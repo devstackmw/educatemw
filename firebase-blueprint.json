@@ -122,6 +122,29 @@
         "completed": { "type": "boolean" }
       },
       "required": ["uid", "subject", "topic", "completed"]
+    },
+    "FlashcardSet": {
+      "title": "Flashcard Set",
+      "description": "A collection of flashcards for a specific topic.",
+      "type": "object",
+      "properties": {
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "cardsCount": { "type": "number" },
+        "color": { "type": "string" },
+        "isPremiumOnly": { "type": "boolean" }
+      },
+      "required": ["subject", "topic", "cardsCount", "color", "isPremiumOnly"]
+    },
+    "Flashcard": {
+      "title": "Flashcard",
+      "description": "A single flashcard with front and back content.",
+      "type": "object",
+      "properties": {
+        "front": { "type": "string" },
+        "back": { "type": "string" }
+      },
+      "required": ["front", "back"]
     }
   },
   "firestore": {
@@ -152,6 +175,14 @@
     "/notes/{noteId}": {
       "schema": { "$ref": "#/entities/Note" },
       "description": "Stores study notes."
+    },
+    "/flashcardSets/{setId}": {
+      "schema": { "$ref": "#/entities/FlashcardSet" },
+      "description": "Stores flashcard sets metadata."
+    },
+    "/flashcardSets/{setId}/cards/{cardId}": {
+      "schema": { "$ref": "#/entities/Flashcard" },
+      "description": "Stores individual flashcards."
     }
   }
 }

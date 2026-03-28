@@ -1,9 +1,109 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // OPEN ACCESS FOR DEVELOPMENT - ELIMINATES ALL PERMISSION ERRORS
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, email, phoneNumber, displayName, photoURL, isPremium, createdAt
+    //
+    // Collection: userStats
+    // Fields: uid, points, streak, lastActiveDate
+    //
+    // Collection: syllabusProgress
+    // Fields: uid, subject, topic, completed
+    //
+    // Collection: papers, quizzes, notes, flashcardSets
+    // Fields: subject, topic, ..., isPremiumOnly
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===============================================================
+    // Validation Functions
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'isPremium', 'createdAt']) &&
+             data.uid is string &&
+             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() < 100 &&
+             data.isPremium is bool &&
+             data.createdAt is string;
+    }
+
+    function isValidUserStats(data) {
+      return data.keys().hasAll(['uid', 'points', 'streak', 'lastActiveDate']) &&
+             data.uid == request.auth.uid &&
+             data.points is number &&
+             data.streak is number &&
+             data.lastActiveDate is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // User Profiles
+    match /users/{userId} {
+      // Only the owner can read/write their own profile
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.isPremium == false;
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.isPremium == resource.data.isPremium;
+    }
+
+    // User Stats & Progress
+    match /userStats/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidUserStats(request.resource.data);
+    }
+
+    match /syllabusProgress/{progressId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow write: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Educational Content (Read-only for all authenticated students)
+    // This ensures no "Missing or insufficient permissions" errors when listing content
+    
+    match /papers/{paperId} {
+      allow read: if isAuthenticated();
+    }
+
+    match /quizzes/{quizId} {
+      allow read: if isAuthenticated();
+      
+      match /questions/{questionId} {
+        allow read: if isAuthenticated();
+      }
+    }
+
+    match /notes/{noteId} {
+      allow read: if isAuthenticated();
+    }
+
+    match /flashcardSets/{setId} {
+      allow read: if isAuthenticated();
+      
+      match /cards/{cardId} {
+        allow read: if isAuthenticated();
+      }
+    }
+    
+    // Default deny for everything else (including write access to content)
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

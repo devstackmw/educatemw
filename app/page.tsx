@@ -8,6 +8,7 @@ import PremiumView from "@/components/PremiumView";
 import AuthView from "@/components/AuthView";
 import ProfileView from "@/components/ProfileView";
 import AskTeacherAI from "@/components/AskTeacherAI";
+import FlashcardView from "@/components/FlashcardView";
 import LoadingScreen from "@/components/LoadingScreen";
 import { AnimatePresence, motion } from "motion/react";
 import { auth, db } from "@/firebase";
@@ -24,6 +25,16 @@ export default function App() {
       setUser(currentUser);
       
       if (currentUser) {
+        // Test connection to Firestore as recommended
+        try {
+          const { getDocFromServer } = await import("firebase/firestore");
+          await getDocFromServer(doc(db, "users", currentUser.uid));
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("offline")) {
+            console.error("Firestore connection failed: client is offline.");
+          }
+        }
+
         // Check if user document exists, if not create it
         const userRef = doc(db, "users", currentUser.uid);
         const userSnap = await getDoc(userRef);
@@ -57,6 +68,7 @@ export default function App() {
       case "quizzes": return <QuizzesView />;
       case "profile": return <ProfileView user={user} />;
       case "premium": return <PremiumView />;
+      case "flashcards": return <FlashcardView />;
       case "auth": return <AuthView onLogin={() => setActiveTab("home")} />;
       case "ai": return <AskTeacherAI />;
       default: return <HomeView onNavigate={setActiveTab} user={user} />;

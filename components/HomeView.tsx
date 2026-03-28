@@ -1,4 +1,4 @@
-import { BookOpen, HelpCircle, Menu, User, ChevronRight } from "lucide-react";
+import { BookOpen, HelpCircle, Menu, User, ChevronRight, Layers } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 
 export default function HomeView({ onNavigate, user }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null }) {
@@ -33,6 +33,7 @@ export default function HomeView({ onNavigate, user }: { onNavigate: (tab: strin
       <div className="grid grid-cols-2 gap-5 mb-10">
         <Card icon={<HelpCircle className="text-orange-500" size={28} />} label="Quizzes" color="bg-orange-50 border-orange-100" onClick={() => onNavigate("quizzes")} />
         <Card icon={<BookOpen className="text-emerald-500" size={28} />} label="Library" color="bg-emerald-50 border-emerald-100" onClick={() => onNavigate("papers")} />
+        <Card icon={<Layers className="text-blue-500" size={28} />} label="Flashcards" color="bg-blue-50 border-blue-100" onClick={() => onNavigate("flashcards")} />
       </div>
 
       <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">

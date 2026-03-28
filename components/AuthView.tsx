@@ -5,10 +5,11 @@ import {
   signInWithPopup, 
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
-  signInWithEmailLink
+  signInWithEmailLink,
+  signInAnonymously
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle } from "lucide-react";
 
 export default function AuthView({ onLogin }: { onLogin?: () => void }) {
   const [method, setMethod] = useState<"select" | "email">("select");
@@ -60,6 +61,20 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
+      if (onLogin) onLogin();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const result = await signInAnonymously(auth);
+      await saveUserToFirestore(result.user, "Guest Student", "");
       if (onLogin) onLogin();
     } catch (err: any) {
       setError(err.message);
@@ -179,6 +194,15 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
             >
               <Mail size={20} />
               Passwordless Email Sign-In
+            </button>
+
+            <button 
+              onClick={handleGuestSignIn}
+              disabled={loading}
+              className="w-full bg-gray-100 text-gray-600 font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-gray-200 transition-colors flex items-center justify-center gap-3"
+            >
+              <UserCircle size={20} />
+              Continue as Guest
             </button>
           </div>
         )}
