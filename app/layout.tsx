@@ -30,7 +30,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={inter.className}>
         {children}
         <Script id="register-sw" strategy="afterInteractive">
           {`

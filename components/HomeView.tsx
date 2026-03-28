@@ -1,14 +1,16 @@
 import { BookOpen, HelpCircle, Menu, User, ChevronRight, Layers } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 
-export default function HomeView({ onNavigate, user }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null }) {
+export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, onOpenSidebar: () => void }) {
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
   return (
     <div className="p-6 pt-8">
       <header className="flex justify-between items-center mb-10">
         <div className="flex items-center gap-4">
-          <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100"><Menu size={20} className="text-slate-600" /></div>
+          <button onClick={onOpenSidebar} className="p-2 bg-white rounded-xl shadow-sm border border-slate-100 active:scale-90 transition-transform cursor-pointer">
+            <Menu size={20} className="text-slate-600" />
+          </button>
           <span className="font-black text-2xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Edumw</span>
         </div>
         <div onClick={() => onNavigate("profile")} className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-slate-100 to-slate-200 p-0.5 shadow-sm cursor-pointer">

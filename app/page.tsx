@@ -9,6 +9,13 @@ import AuthView from "@/components/AuthView";
 import ProfileView from "@/components/ProfileView";
 import AskTeacherAI from "@/components/AskTeacherAI";
 import FlashcardView from "@/components/FlashcardView";
+import LeaderboardView from "@/components/LeaderboardView";
+import ExamDatesView from "@/components/ExamDatesView";
+import CommunityView from "@/components/CommunityView";
+import SettingsView from "@/components/SettingsView";
+import StudyPlanView from "@/components/StudyPlanView";
+import ResourcesView from "@/components/ResourcesView";
+import Sidebar from "@/components/Sidebar";
 import LoadingScreen from "@/components/LoadingScreen";
 import { AnimatePresence, motion } from "motion/react";
 import { auth, db } from "@/firebase";
@@ -19,12 +26,18 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("auth");
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    setHasMounted(true);
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
       if (currentUser) {
+        // Automatically switch to home if user is logged in and currently on auth tab
+        setActiveTab((prev) => prev === "auth" ? "home" : prev);
+
         // Test connection to Firestore as recommended
         try {
           const { getDocFromServer } = await import("firebase/firestore");
@@ -57,26 +70,41 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
+  if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;
   }
 
   const renderView = () => {
     switch (activeTab) {
-      case "home": return <HomeView onNavigate={setActiveTab} user={user} />;
+      case "home": return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
       case "papers": return <PapersView />;
       case "quizzes": return <QuizzesView />;
       case "profile": return <ProfileView user={user} />;
       case "premium": return <PremiumView />;
       case "flashcards": return <FlashcardView />;
+      case "leaderboard": return <LeaderboardView />;
+      case "exams": return <ExamDatesView />;
+      case "community": return <CommunityView />;
+      case "study_plan": return <StudyPlanView />;
+      case "resources": return <ResourcesView />;
+      case "settings": return <SettingsView onNavigate={setActiveTab} />;
       case "auth": return <AuthView onLogin={() => setActiveTab("home")} />;
       case "ai": return <AskTeacherAI />;
-      default: return <HomeView onNavigate={setActiveTab} user={user} />;
+      default: return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
     }
   };
 
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
+      {/* Sidebar */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        activeTab={activeTab} 
+        onNavigate={setActiveTab} 
+        user={user} 
+      />
+
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto pb-24 relative" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <AnimatePresence mode="wait">
