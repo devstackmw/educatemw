@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/firebase";
-import { Layers, ChevronRight, WifiOff, Search } from "lucide-react";
+import { Layers, ChevronRight, WifiOff, Search, Sparkles } from "lucide-react";
 import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
 import LoadingScreen from "@/components/LoadingScreen";
 import FlashcardStudy from "@/components/FlashcardStudy";
+import AIFlashcardGenerator from "@/components/AIFlashcardGenerator";
 
 interface FlashcardSet {
   id: string;
@@ -58,6 +59,8 @@ export default function FlashcardView() {
         <h2 className="text-3xl font-black text-slate-800">Flashcards</h2>
         {isOffline && <WifiOff size={20} className="text-amber-500" />}
       </div>
+
+      <AIFlashcardGenerator onSetGenerated={(set) => setSelectedSet(set)} />
 
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />

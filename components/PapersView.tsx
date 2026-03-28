@@ -92,6 +92,26 @@ export default function PapersView() {
             url="https://drive.google.com/drive/folders/1nAgjHKIKU1TWMMj7YCpGSG8j5WYxz5gv" 
             color="bg-indigo-50 text-indigo-600 border-indigo-100"
           />
+          <NoteLink 
+            title="Agriculture Notes" 
+            url="https://drive.google.com/drive/folders/1--BbSZ9zbtiAXVKYhiaJ9FIjgl-Uxjt5" 
+            color="bg-orange-50 text-orange-600 border-orange-100"
+          />
+          <NoteLink 
+            title="Geography Notes" 
+            url="https://drive.google.com/drive/folders/1jj64lf2kWEAhvrhmV-SKGGrHF67H6Mxg" 
+            color="bg-emerald-50 text-emerald-600 border-emerald-100"
+          />
+          <NoteLink 
+            title="Social Studies Notes" 
+            url="https://drive.google.com/drive/folders/1gKB6neWwy_XG2mujGu07asw7FDkgtX4I" 
+            color="bg-blue-50 text-blue-600 border-blue-100"
+          />
+          <NoteLink 
+            title="Physics Notes" 
+            url="https://drive.google.com/drive/folders/1OMJ_UAboIvKS7frqnfk-Bm9mbbrrAYwT" 
+            color="bg-purple-50 text-purple-600 border-purple-100"
+          />
         </div>
       ) : (
         <>

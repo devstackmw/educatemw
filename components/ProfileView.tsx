@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase";
 import { User as FirebaseUser } from "firebase/auth";
-import { Loader2, Save, User, Trophy, Award, Star, Zap } from "lucide-react";
+import { Loader2, Save, User, Trophy, Award, Star, Zap, Check } from "lucide-react";
+import { AVATARS } from "@/lib/avatars";
 
 export default function ProfileView({ user }: { user: FirebaseUser | null }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
-  const [profile, setProfile] = useState({ nickname: "", realName: "" });
+  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1" });
   const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[] });
 
   useEffect(() => {
@@ -21,7 +22,11 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const data = userSnap.data();
-        setProfile({ nickname: data.nickname || "", realName: data.realName || "" });
+        setProfile({ 
+          nickname: data.nickname || "", 
+          realName: data.realName || "",
+          avatarId: data.avatarId || "girl_1"
+        });
       }
       setLoading(false);
     };
@@ -49,10 +54,11 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, profile);
       
-      // Also update userStats if nickname changed
+      // Also update userStats if nickname or avatar changed
       const statsRef = doc(db, "userStats", user.uid);
       await updateDoc(statsRef, {
-        displayName: profile.nickname || profile.realName || user.displayName || "Student"
+        displayName: profile.nickname || profile.realName || user.displayName || "Student",
+        avatarId: profile.avatarId
       });
 
       setSaveStatus("Profile updated successfully!");
@@ -99,8 +105,8 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-[2.5rem] text-white shadow-xl">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-              <Zap size={24} className="text-amber-400" fill="currentColor" />
+            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/10">
+              {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
             </div>
             <div>
               <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Total Points</p>
@@ -127,6 +133,37 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Avatar Selection */}
+      <div className="space-y-4">
+        <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Choose Your Avatar</h3>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="grid grid-cols-5 gap-3">
+            {AVATARS.map((avatar) => (
+              <button
+                key={avatar.id}
+                onClick={() => setProfile({ ...profile, avatarId: avatar.id })}
+                className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
+                  profile.avatarId === avatar.id ? "border-blue-600 scale-105 shadow-lg" : "border-transparent hover:border-slate-200"
+                }`}
+              >
+                {avatar.svg}
+                {profile.avatarId === avatar.id && (
+                  <div className="absolute inset-0 bg-blue-600/20 flex items-center justify-center">
+                    <div className="bg-blue-600 text-white rounded-full p-0.5">
+                      <Check size={12} />
+                    </div>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-between mt-4 px-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Girls</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Boys</span>
           </div>
         </div>
       </div>

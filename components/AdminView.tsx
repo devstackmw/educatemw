@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebase";
-import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle } from "lucide-react";
+import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database } from "lucide-react";
+import { seedInitialData } from "@/lib/seedData";
 
 export default function AdminView() {
   const [activeTab, setActiveTab] = useState("note");
   const [loading, setLoading] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -89,14 +91,39 @@ export default function AdminView() {
     }
   };
 
+  const handleSeed = async () => {
+    setSeeding(true);
+    setSuccessMsg("");
+    setErrorMsg("");
+    try {
+      await seedInitialData();
+      setSuccessMsg("Initial data seeded successfully!");
+    } catch (err: any) {
+      console.error("Error seeding data:", err);
+      setErrorMsg("Failed to seed data: " + err.message);
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const inputClass = "w-full border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-slate-400 bg-slate-50";
   const labelClass = "block text-sm font-semibold text-slate-700 mb-1.5";
 
   return (
     <div className="p-6 space-y-8 max-w-2xl mx-auto">
-      <div className="border-b border-slate-200 pb-6">
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Content Management</h2>
-        <p className="text-slate-500 mt-1">Add new educational resources to the platform.</p>
+      <div className="border-b border-slate-200 pb-6 flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Content Management</h2>
+          <p className="text-slate-500 mt-1">Add new educational resources to the platform.</p>
+        </div>
+        <button 
+          onClick={handleSeed}
+          disabled={seeding}
+          className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all disabled:opacity-50"
+        >
+          {seeding ? <Loader2 className="animate-spin" size={14} /> : <Database size={14} />}
+          Seed Initial Data
+        </button>
       </div>
 
       <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner">

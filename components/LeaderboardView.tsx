@@ -5,11 +5,13 @@ import { db } from "@/firebase";
 import { Trophy, Medal, Star, Crown, User } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
+import { AVATARS } from "@/lib/avatars";
 
 interface LeaderboardEntry {
   uid: string;
   displayName: string;
   photoURL: string;
+  avatarId?: string;
   points: number;
   streak: number;
 }
@@ -68,7 +70,9 @@ export default function LeaderboardView() {
           >
             <div className="relative">
               <div className="w-16 h-16 rounded-2xl bg-slate-200 border-4 border-slate-300 overflow-hidden flex items-center justify-center relative">
-                {topThree[1].photoURL ? (
+                {topThree[1].avatarId ? (
+                  AVATARS.find(a => a.id === topThree[1].avatarId)?.svg || <User className="text-slate-400" />
+                ) : topThree[1].photoURL ? (
                   <Image src={topThree[1].photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <User className="text-slate-400" />
@@ -95,7 +99,9 @@ export default function LeaderboardView() {
                 <Crown size={32} fill="currentColor" />
               </div>
               <div className="w-20 h-20 rounded-3xl bg-yellow-100 border-4 border-yellow-400 overflow-hidden flex items-center justify-center shadow-xl shadow-yellow-500/20 relative">
-                {topThree[0].photoURL ? (
+                {topThree[0].avatarId ? (
+                  AVATARS.find(a => a.id === topThree[0].avatarId)?.svg || <User className="text-yellow-600" />
+                ) : topThree[0].photoURL ? (
                   <Image src={topThree[0].photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <User className="text-yellow-600" />
@@ -120,7 +126,9 @@ export default function LeaderboardView() {
           >
             <div className="relative">
               <div className="w-16 h-16 rounded-2xl bg-orange-50 border-4 border-orange-200 overflow-hidden flex items-center justify-center relative">
-                {topThree[2].photoURL ? (
+                {topThree[2].avatarId ? (
+                  AVATARS.find(a => a.id === topThree[2].avatarId)?.svg || <User className="text-orange-400" />
+                ) : topThree[2].photoURL ? (
                   <Image src={topThree[2].photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <User className="text-orange-400" />
@@ -150,7 +158,9 @@ export default function LeaderboardView() {
               {index + 4}
             </div>
             <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center relative">
-              {entry.photoURL ? (
+              {entry.avatarId ? (
+                AVATARS.find(a => a.id === entry.avatarId)?.svg || <User size={20} className="text-slate-400" />
+              ) : entry.photoURL ? (
                 <Image src={entry.photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <User size={20} className="text-slate-400" />

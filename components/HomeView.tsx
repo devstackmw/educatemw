@@ -1,16 +1,28 @@
 import { useState, useEffect } from "react";
 import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, onSnapshot, collection, query, where, getCountFromServer } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc } from "firebase/firestore";
 import { db } from "@/firebase";
+import { AVATARS } from "@/lib/avatars";
 
 export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, onOpenSidebar: () => void }) {
   const [points, setPoints] = useState<number>(0);
   const [rank, setRank] = useState<number | string>("--");
+  const [avatarId, setAvatarId] = useState<string>("girl_1");
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
   useEffect(() => {
     if (!user) return;
+
+    // Fetch avatar from users collection
+    const fetchUser = async () => {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        setAvatarId(userSnap.data().avatarId || "girl_1");
+      }
+    };
+    fetchUser();
 
     const statsRef = doc(db, "userStats", user.uid);
     const unsubscribe = onSnapshot(statsRef, async (snapshot) => {
@@ -38,17 +50,25 @@ export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNaviga
       {/* Hero Section */}
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black italic">E</div>
-            <span className="font-black text-lg tracking-tight">Educate MW</span>
+        <div className="relative z-10 flex items-start justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black italic shadow-inner">
+                {/* Replace with your direct Cloudinary URL: https://res.cloudinary.com/dnec8c9lg/image/upload/v1/logo.png */}
+                <span className="text-xl">E</span>
+              </div>
+              <span className="font-black text-lg tracking-tight">Educate MW</span>
+            </div>
+            <h2 className="text-3xl font-black mb-1 leading-tight">Hi, {displayName.split(' ')[0]}!</h2>
+            <p className="text-blue-100 font-medium mb-8 opacity-80">Ready to ace your exams today? 🔥</p>
+            <button onClick={() => onNavigate("ai")} className="bg-white text-blue-700 px-8 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center gap-2 group">
+              Ask Cleo AI
+              <Sparkles size={16} className="group-hover:rotate-12 transition-transform" />
+            </button>
           </div>
-          <h2 className="text-3xl font-black mb-1 leading-tight">Hi, {displayName.split(' ')[0]}!</h2>
-          <p className="text-blue-100 font-medium mb-8 opacity-80">Ready to ace your exams today? 🔥</p>
-          <button onClick={() => onNavigate("ai")} className="bg-white text-blue-700 px-8 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center gap-2 group">
-            Ask Cleo AI
-            <Sparkles size={16} className="group-hover:rotate-12 transition-transform" />
-          </button>
+          <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden flex items-center justify-center shadow-inner">
+            {AVATARS.find(a => a.id === avatarId)?.svg || AVATARS[0].svg}
+          </div>
         </div>
       </div>
 

@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 
+import Image from "next/image";
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -61,7 +63,10 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user }
             {/* Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">E</div>
+                <div className="w-10 h-10 relative rounded-xl overflow-hidden bg-blue-600 flex items-center justify-center text-white font-black italic shadow-lg shadow-blue-600/20">
+                  {/* Replace with your direct Cloudinary URL: https://res.cloudinary.com/dnec8c9lg/image/upload/v1/logo.png */}
+                  <span className="text-xl">E</span>
+                </div>
                 <span className="font-black text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Educate MW</span>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400">

@@ -6,21 +6,26 @@ import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
-  signInAnonymously
+  signInAnonymously,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle, Phone, Lock, User } from "lucide-react";
 
 export default function AuthView({ onLogin }: { onLogin?: () => void }) {
-  const [method, setMethod] = useState<"select" | "email">("select");
+  const [method, setMethod] = useState<"select" | "email" | "phone">("select");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
 
   // Form state
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     // Check if returning from email link
@@ -78,6 +83,45 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
       if (onLogin) onLogin();
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhonePasswordAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError("");
+      
+      // Format phone as a pseudo-email for Firebase Auth
+      // This allows phone+password login without SMS costs
+      const cleanPhone = phone.replace(/\D/g, "");
+      if (cleanPhone.length < 8) {
+        throw new Error("Please enter a valid phone number");
+      }
+      
+      const pseudoEmail = `${cleanPhone}@educatemw.app`;
+      
+      if (authMode === "signup") {
+        if (!name) throw new Error("Please enter your full name");
+        const result = await createUserWithEmailAndPassword(auth, pseudoEmail, password);
+        await updateProfile(result.user, { displayName: name });
+        await saveUserToFirestore(result.user, name, phone);
+      } else {
+        await signInWithEmailAndPassword(auth, pseudoEmail, password);
+      }
+      
+      if (onLogin) onLogin();
+    } catch (err: any) {
+      console.error("Auth error:", err);
+      if (err.code === "auth/email-already-in-use") {
+        setError("This phone number is already registered. Try logging in.");
+      } else if (err.code === "auth/invalid-credential") {
+        setError("Invalid phone number or password.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -189,6 +233,14 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
             </div>
 
             <button 
+              onClick={() => setMethod("phone")}
+              className="w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-emerald-700 transition-colors flex items-center justify-center gap-3"
+            >
+              <Phone size={20} />
+              Phone & Password {authMode === "signup" ? "Sign Up" : "Login"}
+            </button>
+
+            <button 
               onClick={() => setMethod("email")}
               className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-3"
             >
@@ -204,7 +256,91 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
               <UserCircle size={20} />
               Continue as Guest
             </button>
+
+            <div className="pt-4 text-center">
+              <button 
+                onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}
+                className="text-sm text-blue-600 font-bold hover:underline"
+              >
+                {authMode === "signup" ? "Already have an account? Login" : "Don't have an account? Sign Up"}
+              </button>
+            </div>
           </div>
+        )}
+
+        {method === "phone" && (
+          <form onSubmit={handlePhonePasswordAuth} className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">
+                {authMode === "signup" ? "Create Account" : "Welcome Back"}
+              </h2>
+              <p className="text-xs text-gray-500">Using your phone number and password</p>
+            </div>
+
+            {authMode === "signup" && (
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input 
+                    type="text" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="John Doe"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Phone Number</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="tel" 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0888123456"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+            
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl shadow-sm hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 mt-6"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : (authMode === "signup" ? "Create Account" : "Login")}
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={() => setMethod("select")} 
+              className="w-full flex items-center justify-center gap-2 text-sm text-gray-500 mt-4 hover:text-gray-800 transition-colors"
+            >
+              <ArrowLeft size={16} /> Back to options
+            </button>
+          </form>
         )}
 
         {method === "email" && (

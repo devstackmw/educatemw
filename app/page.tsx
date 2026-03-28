@@ -17,6 +17,7 @@ import StudyPlanView from "@/components/StudyPlanView";
 import ResourcesView from "@/components/ResourcesView";
 import Sidebar from "@/components/Sidebar";
 import LoadingScreen from "@/components/LoadingScreen";
+import InstallPWA from "@/components/InstallPWA";
 import { AnimatePresence, motion } from "motion/react";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
@@ -173,6 +174,9 @@ export default function App() {
           <NavItem icon={<User size={22} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
         </nav>
       )}
+
+      {/* PWA Install Prompt */}
+      <InstallPWA />
     </div>
   );
 }

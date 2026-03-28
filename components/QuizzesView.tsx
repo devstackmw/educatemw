@@ -1,8 +1,9 @@
-import { PlayCircle, Clock, CheckCircle2, WifiOff } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle2, WifiOff, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/firebase";
 import QuizSimulator from "@/components/QuizSimulator";
+import AIQuizGenerator from "@/components/AIQuizGenerator";
 import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
 import LoadingScreen from "@/components/LoadingScreen";
 
@@ -48,6 +49,8 @@ export default function QuizzesView() {
 
   return (
     <div className="p-4 space-y-6">
+      <AIQuizGenerator onQuizGenerated={(quiz) => setSelectedQuiz(quiz)} />
+
       <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-lg shadow-indigo-600/20">
         <h2 className="text-2xl font-black mb-2">Daily Challenge</h2>
         <p className="text-indigo-100 text-sm mb-6 font-medium opacity-90">Test your knowledge on MSCE Physical Science and earn points!</p>
