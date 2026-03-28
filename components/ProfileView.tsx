@@ -102,31 +102,39 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       </div>
 
       {/* Stats Card */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-[2.5rem] text-white shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center overflow-hidden border border-white/10">
+      <div className="bg-slate-900 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full -mr-24 -mt-24 blur-3xl animate-pulse"></div>
+        
+        <div className="relative z-10 flex flex-col items-center text-center mb-10">
+          <div className="w-32 h-32 bg-white/5 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-2xl mb-6 group transition-transform hover:scale-105">
+            <div className="w-full h-full p-4">
               {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
             </div>
-            <div>
-              <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Total Points</p>
-              <p className="text-2xl font-black">{stats.points.toLocaleString()}</p>
-            </div>
           </div>
-          <div className="bg-white/10 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest">
-            Level 1
+          <h3 className="text-2xl font-black tracking-tight">{profile.displayName || "Student"}</h3>
+          <p className="text-blue-400 font-black text-[10px] uppercase tracking-[0.2em] mt-1">MSCE Candidate</p>
+        </div>
+
+        <div className="relative z-10 grid grid-cols-2 gap-4 mb-8">
+          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-3xl border border-white/5">
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Points</p>
+            <p className="text-xl font-mono font-black text-blue-400">{stats.points.toLocaleString()}</p>
+          </div>
+          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-3xl border border-white/5">
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Badges</p>
+            <p className="text-xl font-mono font-black text-amber-400">{stats.earnedBadges.length}</p>
           </div>
         </div>
         
-        <div className="space-y-3">
-          <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Badges Earned ({stats.earnedBadges.length})</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="relative z-10 space-y-4">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Badges Earned</p>
+          <div className="flex flex-wrap justify-center gap-3">
             {stats.earnedBadges.length === 0 ? (
-              <p className="text-xs text-white/30 font-bold italic">Complete quizzes to earn badges!</p>
+              <p className="text-xs text-white/20 font-bold italic">Complete quizzes to earn badges!</p>
             ) : (
               stats.earnedBadges.map(badgeId => (
-                <div key={badgeId} className="bg-white/5 border border-white/10 p-2 rounded-xl flex items-center gap-2 pr-3">
-                  <div className="bg-white/10 p-1.5 rounded-lg">
+                <div key={badgeId} className="bg-white/5 border border-white/10 p-2.5 rounded-2xl flex items-center gap-2 pr-4 shadow-lg">
+                  <div className="bg-white/10 p-2 rounded-xl">
                     {getBadgeIcon(badgeId)}
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-widest">{getBadgeName(badgeId)}</span>
@@ -138,32 +146,38 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       </div>
 
       {/* Avatar Selection */}
-      <div className="space-y-4">
-        <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Choose Your Avatar</h3>
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="grid grid-cols-5 gap-3">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Choose Your Avatar</h3>
+          <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">10 Styles</span>
+        </div>
+        
+        <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl">
+          <div className="grid grid-cols-5 gap-4">
             {AVATARS.map((avatar) => (
               <button
                 key={avatar.id}
                 onClick={() => setProfile({ ...profile, avatarId: avatar.id })}
-                className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${
-                  profile.avatarId === avatar.id ? "border-blue-600 scale-105 shadow-lg" : "border-transparent hover:border-slate-200"
+                className={`relative aspect-square rounded-2xl overflow-hidden border-4 transition-all ${
+                  profile.avatarId === avatar.id 
+                  ? "border-blue-600 bg-blue-50 shadow-lg shadow-blue-600/20" 
+                  : "border-transparent bg-slate-50 hover:bg-slate-100"
                 }`}
               >
-                {avatar.svg}
+                <div className="w-full h-full p-2">
+                  {avatar.svg}
+                </div>
                 {profile.avatarId === avatar.id && (
-                  <div className="absolute inset-0 bg-blue-600/20 flex items-center justify-center">
-                    <div className="bg-blue-600 text-white rounded-full p-0.5">
-                      <Check size={12} />
-                    </div>
+                  <div className="absolute top-1 right-1 bg-blue-600 text-white p-1 rounded-full shadow-lg">
+                    <Check size={8} />
                   </div>
                 )}
               </button>
             ))}
           </div>
-          <div className="flex justify-between mt-4 px-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Girls</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Boys</span>
+          <div className="flex justify-between mt-6 px-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Girls (1-5)</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Boys (6-10)</span>
           </div>
         </div>
       </div>

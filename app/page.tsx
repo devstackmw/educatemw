@@ -95,7 +95,7 @@ export default function App() {
     }
   };
 
-  const isMainTab = ["home", "papers", "ai", "leaderboard", "profile"].includes(activeTab);
+  const isMainTab = activeTab === "home";
 
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
@@ -133,7 +133,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' && activeTab !== 'home' ? 'pt-16' : ''} ${isMainTab ? 'pb-24' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' && activeTab !== 'home' ? 'pt-16' : ''} ${isMainTab ? 'pb-20' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -150,28 +150,26 @@ export default function App() {
 
       {/* TikTok Style Bottom Navigation */}
       {activeTab !== 'auth' && isMainTab && (
-        <nav className="absolute bottom-0 left-0 right-0 z-50 bg-slate-900 text-white flex justify-around items-center py-2 px-2 pb-6 border-t border-white/5">
-          <NavItem icon={<Home size={22} />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
-          <NavItem icon={<BookOpen size={22} />} label="Library" isActive={activeTab === "papers"} onClick={() => setActiveTab("papers")} />
+        <nav className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 backdrop-blur-xl text-white flex justify-around items-center py-2 px-4 rounded-full border border-white/10 shadow-2xl w-[90%] max-w-sm">
+          <NavItem icon={<Home size={18} />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
+          <NavItem icon={<BookOpen size={18} />} label="Library" isActive={activeTab === "papers"} onClick={() => setActiveTab("papers")} />
           
           {/* Prominent Cleo AI Button */}
-          <div className="relative -top-4">
+          <div className="relative">
             <button 
               onClick={() => setActiveTab("ai")}
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-xl ${
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shadow-xl ${
                 activeTab === "ai" 
-                ? "bg-blue-600 scale-110 rotate-0" 
+                ? "bg-blue-600 scale-110" 
                 : "bg-gradient-to-tr from-blue-600 to-indigo-600 hover:scale-105"
               }`}
             >
-              <Sparkles size={28} className="text-white" />
-              <div className="absolute -inset-1 bg-blue-400/20 rounded-2xl blur-md animate-pulse"></div>
+              <Sparkles size={20} className="text-white" />
             </button>
-            <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-widest text-blue-400">Cleo</span>
           </div>
 
-          <NavItem icon={<Trophy size={22} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => setActiveTab("leaderboard")} />
-          <NavItem icon={<User size={22} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
+          <NavItem icon={<Trophy size={18} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => setActiveTab("leaderboard")} />
+          <NavItem icon={<User size={18} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
         </nav>
       )}
 

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { AppIcon } from "./AppLogo";
 import { Download, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -55,10 +56,7 @@ export default function InstallPWA() {
         className="fixed bottom-24 left-4 right-4 z-50 md:left-auto md:right-8 md:bottom-8 md:w-80"
       >
         <div className="bg-slate-900 text-white p-5 rounded-[2.5rem] shadow-2xl border border-slate-800 flex items-center gap-5">
-          <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-blue-600/20 shrink-0">
-            {/* Replace with your direct Cloudinary URL: https://res.cloudinary.com/dnec8c9lg/image/upload/v1/logo.png */}
-            <span className="text-2xl">E</span>
-          </div>
+          <AppIcon size={56} className="shadow-lg shadow-blue-600/20 shrink-0" />
           <div className="flex-1">
             <h3 className="font-black text-base">Install Educate MW</h3>
             <p className="text-xs text-slate-400 font-medium">Access past papers offline and faster!</p>

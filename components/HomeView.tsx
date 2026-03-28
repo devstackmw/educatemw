@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { AppIcon } from "./AppLogo";
 import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc } from "firebase/firestore";
 import { db } from "@/firebase";
 import { AVATARS } from "@/lib/avatars";
+import { motion } from "motion/react";
 
 export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, onOpenSidebar: () => void }) {
   const [points, setPoints] = useState<number>(0);
@@ -48,27 +50,54 @@ export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNaviga
     <div className="p-6 pt-20 space-y-8 pb-32">
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-        <div className="relative z-10 flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white font-black italic shadow-inner">
-                {/* Replace with your direct Cloudinary URL: https://res.cloudinary.com/dnec8c9lg/image/upload/v1/logo.png */}
-                <span className="text-xl">E</span>
+      <div className="relative bg-slate-900 rounded-[3rem] p-8 text-white overflow-hidden shadow-2xl">
+        {/* Background Elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/20 rounded-full -ml-24 -mb-24 blur-3xl animate-pulse"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <AppIcon size={48} className="shadow-2xl shadow-blue-600/20" />
+              <div className="flex flex-col">
+                <span className="font-black text-xl tracking-tighter leading-none">Educate MW</span>
+                <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Malawi&apos;s #1 Study App</span>
               </div>
-              <span className="font-black text-lg tracking-tight">Educate MW</span>
             </div>
-            <h2 className="text-3xl font-black mb-1 leading-tight">Hi, {displayName.split(' ')[0]}!</h2>
-            <p className="text-blue-100 font-medium mb-8 opacity-80">Ready to ace your exams today? 🔥</p>
-            <button onClick={() => onNavigate("ai")} className="bg-white text-blue-700 px-8 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center gap-2 group">
-              Ask Cleo AI
-              <Sparkles size={16} className="group-hover:rotate-12 transition-transform" />
-            </button>
+            
+            <div className="space-y-1">
+              <h2 className="text-4xl font-black tracking-tight leading-tight">
+                Muli bwanji, <br/>
+                <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                  {displayName.split(' ')[0]}!
+                </span>
+              </h2>
+              <p className="text-slate-400 font-medium text-sm">Ready to ace your MSCE exams today?</p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button onClick={() => onNavigate("ai")} className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-3 group">
+                Ask Cleo AI
+                <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
+              </button>
+            </div>
           </div>
-          <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 overflow-hidden flex items-center justify-center shadow-inner">
-            {AVATARS.find(a => a.id === avatarId)?.svg || AVATARS[0].svg}
-          </div>
+
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative"
+          >
+            <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full animate-pulse"></div>
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-[3rem] bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-white/10 overflow-hidden flex items-center justify-center shadow-2xl relative">
+              <div className="w-full h-full p-4">
+                {AVATARS.find(a => a.id === avatarId)?.svg || AVATARS[0].svg}
+              </div>
+            </div>
+            <div className="absolute -bottom-2 -right-2 bg-blue-600 p-3 rounded-2xl shadow-xl border-4 border-slate-900">
+              <Trophy size={20} className="text-white" />
+            </div>
+          </motion.div>
         </div>
       </div>
 
