@@ -122,7 +122,7 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Check your email</h2>
           <p className="text-gray-600 mb-6">
-            We've sent a sign-in link to <strong>{email}</strong>. Click the link to complete your registration.
+            We&apos;ve sent a sign-in link to <strong>{email}</strong>. Click the link to complete your registration.
           </p>
           <button 
             onClick={() => setEmailSent(false)}

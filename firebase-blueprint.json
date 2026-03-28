@@ -26,6 +26,14 @@
           "type": "string",
           "description": "The user's profile photo URL."
         },
+        "nickname": {
+          "type": "string",
+          "description": "The user's nickname."
+        },
+        "realName": {
+          "type": "string",
+          "description": "The user's real name."
+        },
         "isPremium": {
           "type": "boolean",
           "description": "Whether the user has an active premium subscription."
@@ -74,15 +82,60 @@
         "subject": { "type": "string" },
         "topic": { "type": "string" },
         "content": { "type": "string" },
+        "imageUrl": { "type": "string", "description": "Optional URL to an image hosted on Cloudinary/Drive" },
+        "videoUrl": { "type": "string", "description": "Optional URL to a YouTube video" },
         "isPremiumOnly": { "type": "boolean" }
       },
       "required": ["subject", "topic", "content", "isPremiumOnly"]
+    },
+    "Question": {
+      "title": "Quiz Question",
+      "description": "A single question within a quiz.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctAnswerIndex": { "type": "number" }
+      },
+      "required": ["text", "options", "correctAnswerIndex"]
+    },
+    "UserStats": {
+      "title": "User Statistics",
+      "description": "User points, streaks, and activity.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "points": { "type": "number" },
+        "streak": { "type": "number" },
+        "lastActiveDate": { "type": "string", "format": "date" }
+      },
+      "required": ["uid", "points", "streak", "lastActiveDate"]
+    },
+    "SyllabusProgress": {
+      "title": "Syllabus Progress",
+      "description": "Progress tracking for subjects and topics.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "completed": { "type": "boolean" }
+      },
+      "required": ["uid", "subject", "topic", "completed"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Stores user profiles."
+    },
+    "/userStats/{userId}": {
+      "schema": { "$ref": "#/entities/UserStats" },
+      "description": "Stores user points and streaks."
+    },
+    "/syllabusProgress/{progressId}": {
+      "schema": { "$ref": "#/entities/SyllabusProgress" },
+      "description": "Stores user progress on syllabus."
     },
     "/papers/{paperId}": {
       "schema": { "$ref": "#/entities/Paper" },
@@ -91,6 +144,10 @@
     "/quizzes/{quizId}": {
       "schema": { "$ref": "#/entities/Quiz" },
       "description": "Stores quizzes metadata."
+    },
+    "/quizzes/{quizId}/questions/{questionId}": {
+      "schema": { "$ref": "#/entities/Question" },
+      "description": "Stores quiz questions."
     },
     "/notes/{noteId}": {
       "schema": { "$ref": "#/entities/Note" },

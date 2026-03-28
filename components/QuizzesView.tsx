@@ -1,7 +1,10 @@
-import { PlayCircle, Clock, CheckCircle2, WifiOff, Loader2 } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle2, WifiOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/firebase";
+import QuizSimulator from "@/components/QuizSimulator";
+import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
+import LoadingScreen from "@/components/LoadingScreen";
 
 interface Quiz {
   id: string;
@@ -18,9 +21,10 @@ export default function QuizzesView() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    const timer = setTimeout(() => setLoading(true), 0);
     const q = query(collection(db, "quizzes"));
     
     const unsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
@@ -32,11 +36,14 @@ export default function QuizzesView() {
       setIsOffline(snapshot.metadata.fromCache);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching quizzes:", error);
+      handleFirestoreError(error, OperationType.LIST, "quizzes");
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -64,9 +71,7 @@ export default function QuizzesView() {
 
         <div className="space-y-3">
           {loading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="animate-spin text-indigo-600" size={32} />
-            </div>
+            <LoadingScreen message="Loading quizzes..." />
           ) : quizzes.length === 0 ? (
             <div className="text-center py-10 text-gray-500 text-sm">
               No quizzes available right now.
@@ -74,7 +79,7 @@ export default function QuizzesView() {
             </div>
           ) : (
             quizzes.map(quiz => (
-              <div key={quiz.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+              <div key={quiz.id} onClick={() => setSelectedQuiz(quiz)} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-indigo-200">
                 <div className={`${quiz.color || 'bg-indigo-500'} w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg`}>
                   {quiz.subject[0]}
                 </div>
@@ -97,6 +102,9 @@ export default function QuizzesView() {
           )}
         </div>
       </div>
+      {selectedQuiz && (
+        <QuizSimulator quiz={selectedQuiz} onClose={() => setSelectedQuiz(null)} />
+      )}
     </div>
   );
 }

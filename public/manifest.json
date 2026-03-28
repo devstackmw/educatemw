@@ -1,7 +1,7 @@
 {
   "name": "Educate MW",
   "short_name": "Educate MW",
-  "description": "MSCE Past Papers, Quizzes, and Study Notes",
+  "description": "MSCE Past Papers and Quizzes",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

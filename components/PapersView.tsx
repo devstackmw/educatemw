@@ -1,7 +1,9 @@
-import { Download, Search, FileText, WifiOff, Loader2 } from "lucide-react";
+import { Download, Search, FileText, WifiOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
+import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
+import LoadingScreen from "@/components/LoadingScreen";
 
 interface Paper {
   id: string;
@@ -21,7 +23,7 @@ export default function PapersView() {
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
+    const timer = setTimeout(() => setLoading(true), 0);
     const q = query(collection(db, "papers"), where("level", "==", filter));
     
     const unsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
@@ -33,11 +35,14 @@ export default function PapersView() {
       setIsOffline(snapshot.metadata.fromCache);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching papers:", error);
+      handleFirestoreError(error, OperationType.LIST, "papers");
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [filter]);
 
   return (
@@ -56,8 +61,8 @@ export default function PapersView() {
           <button
             key={level}
             onClick={() => setFilter(level)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              filter === level ? "bg-blue-600 text-white" : "bg-white text-gray-600 border border-gray-200"
+            className={`px-6 py-2.5 rounded-2xl text-sm font-bold whitespace-nowrap transition-all ${
+              filter === level ? "bg-blue-900 text-white shadow-md" : "bg-white text-slate-600 border border-slate-100 hover:border-blue-200"
             }`}
           >
             {level}
@@ -66,38 +71,40 @@ export default function PapersView() {
       </div>
 
       {isOffline && (
-        <div className="bg-amber-50 text-amber-700 p-3 rounded-xl text-xs flex items-center gap-2 border border-amber-100">
+        <div className="bg-amber-50 text-amber-700 p-4 rounded-2xl text-xs flex items-center gap-2 border border-amber-100">
           <WifiOff size={14} />
           You are offline. Showing cached papers.
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="animate-spin text-blue-600" size={32} />
-          </div>
+          <LoadingScreen message="Fetching papers..." />
         ) : papers.length === 0 ? (
-          <div className="text-center py-10 text-gray-500 text-sm">
-            No papers found for {filter}.
-            {isOffline && " Connect to the internet to fetch more."}
+          <div className="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-sm">
+            <FileText className="mx-auto text-slate-300 mb-3" size={48} />
+            <h3 className="text-slate-800 font-bold mb-1">No papers found</h3>
+            <p className="text-slate-500 text-sm">
+              No papers found for {filter}.
+              {isOffline && " Connect to the internet to fetch more."}
+            </p>
           </div>
         ) : (
           papers.map(paper => (
-            <div key={paper.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
-                  <FileText size={20} />
+            <div key={paper.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
+              <div className="flex items-center gap-4">
+                <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
+                  <FileText size={22} />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                  <h4 className="font-bold text-slate-800 flex items-center gap-2">
                     {paper.subject}
-                    {paper.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">PRO</span>}
+                    {paper.isPremiumOnly && <span className="bg-amber-50 text-amber-600 text-[10px] px-2 py-0.5 rounded-full font-bold">PRO</span>}
                   </h4>
-                  <p className="text-xs text-gray-500">{paper.level} • {paper.year} • {paper.size}</p>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">{paper.level} • {paper.year} • {paper.size}</p>
                 </div>
               </div>
-              <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
+              <button className="p-3 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-2xl transition-colors">
                 <Download size={20} />
               </button>
             </div>
