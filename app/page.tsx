@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu } from "lucide-react";
+import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy } from "lucide-react";
 import HomeView from "@/components/HomeView";
 import PapersView from "@/components/PapersView";
 import QuizzesView from "@/components/QuizzesView";
@@ -94,7 +94,7 @@ export default function App() {
     }
   };
 
-  const isMainTab = ["home", "papers", "ai", "video_list", "profile"].includes(activeTab);
+  const isMainTab = ["home", "papers", "ai", "leaderboard", "profile"].includes(activeTab);
 
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
@@ -117,7 +117,7 @@ export default function App() {
             </button>
           )}
           <h1 className="font-black text-slate-800 capitalize">
-            {activeTab === 'home' ? 'Edumw' : activeTab.replace('_', ' ')}
+            {activeTab === 'home' ? 'Educate MW' : activeTab.replace('_', ' ')}
           </h1>
         </header>
       )}
@@ -169,7 +169,7 @@ export default function App() {
             <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-widest text-blue-400">Cleo</span>
           </div>
 
-          <NavItem icon={<Play size={22} />} label="Videos" isActive={activeTab === "video_list"} onClick={() => setActiveTab("video_list")} />
+          <NavItem icon={<Trophy size={22} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => setActiveTab("leaderboard")} />
           <NavItem icon={<User size={22} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
         </nav>
       )}

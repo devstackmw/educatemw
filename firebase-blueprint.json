@@ -105,11 +105,27 @@
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
         "points": { "type": "number" },
         "streak": { "type": "number" },
-        "lastActiveDate": { "type": "string", "format": "date" }
+        "lastActiveDate": { "type": "string", "format": "date" },
+        "earnedBadges": { "type": "array", "items": { "type": "string" }, "description": "List of badge IDs earned by the user." }
       },
-      "required": ["uid", "points", "streak", "lastActiveDate"]
+      "required": ["uid", "displayName", "points", "streak", "lastActiveDate"]
+    },
+    "Badge": {
+      "title": "Badge",
+      "description": "An achievement badge.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "criteria": { "type": "string" }
+      },
+      "required": ["id", "name", "description", "icon"]
     },
     "SyllabusProgress": {
       "title": "Syllabus Progress",

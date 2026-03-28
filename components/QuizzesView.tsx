@@ -48,55 +48,55 @@ export default function QuizzesView() {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="bg-indigo-600 rounded-2xl p-5 text-white shadow-md">
-        <h2 className="text-xl font-bold mb-2">Daily Challenge</h2>
-        <p className="text-indigo-100 text-sm mb-4">Test your knowledge on MSCE Physical Science and earn points!</p>
-        <button className="bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold w-full flex items-center justify-center gap-2 hover:bg-indigo-50 transition-colors">
-          <PlayCircle size={18} /> Start Challenge
+      <div className="bg-indigo-600 rounded-3xl p-6 text-white shadow-lg shadow-indigo-600/20">
+        <h2 className="text-2xl font-black mb-2">Daily Challenge</h2>
+        <p className="text-indigo-100 text-sm mb-6 font-medium opacity-90">Test your knowledge on MSCE Physical Science and earn points!</p>
+        <button className="bg-white text-indigo-600 px-6 py-3.5 rounded-2xl text-sm font-black w-full flex items-center justify-center gap-2 hover:bg-indigo-50 transition-all active:scale-[0.98]">
+          <PlayCircle size={20} /> Start Challenge
         </button>
       </div>
 
       <div>
-        <h3 className="font-bold text-gray-800 mb-3 flex items-center justify-between">
-          Recommended Quizzes
+        <div className="flex items-center justify-between px-2 mb-4">
+          <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Recommended</h3>
           {isOffline && <WifiOff size={16} className="text-amber-500" />}
-        </h3>
+        </div>
         
         {isOffline && (
-          <div className="bg-amber-50 text-amber-700 p-3 rounded-xl text-xs flex items-center gap-2 border border-amber-100 mb-3">
+          <div className="bg-amber-50 text-amber-700 p-4 rounded-2xl text-xs flex items-center gap-2 border border-amber-100 mb-4">
             <WifiOff size={14} />
             Offline mode. Showing cached quizzes.
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {loading ? (
             <LoadingScreen message="Loading quizzes..." />
           ) : quizzes.length === 0 ? (
-            <div className="text-center py-10 text-gray-500 text-sm">
-              No quizzes available right now.
-              {isOffline && " Connect to the internet to sync."}
+            <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">
+              <p className="text-slate-400 text-sm font-bold">No quizzes available right now.</p>
+              {isOffline && <p className="text-slate-300 text-[10px] mt-2">Connect to the internet to sync.</p>}
             </div>
           ) : (
             quizzes.map(quiz => (
-              <div key={quiz.id} onClick={() => setSelectedQuiz(quiz)} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-indigo-200">
-                <div className={`${quiz.color || 'bg-indigo-500'} w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg`}>
+              <div key={quiz.id} onClick={() => setSelectedQuiz(quiz)} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 cursor-pointer hover:border-indigo-200 transition-all group active:scale-[0.98]">
+                <div className={`${quiz.color || 'bg-indigo-500'} w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-600/10 group-hover:scale-110 transition-transform`}>
                   {quiz.subject[0]}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-bold text-gray-800 flex items-center gap-2">
-                    {quiz.subject}
-                    {quiz.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">PRO</span>}
-                  </h4>
-                  <p className="text-xs text-gray-500">{quiz.topic}</p>
-                  <div className="flex items-center gap-3 mt-2 text-[10px] text-gray-400 font-medium">
-                    <span className="flex items-center gap-1"><CheckCircle2 size={12} /> {quiz.questionsCount} Qs</span>
-                    <span className="flex items-center gap-1"><Clock size={12} /> {quiz.timeLimit}</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{quiz.subject}</span>
+                    {quiz.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[8px] px-2 py-0.5 rounded-full font-black">PRO</span>}
+                  </div>
+                  <h4 className="font-black text-slate-800 leading-tight mb-1">{quiz.topic}</h4>
+                  <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5"><CheckCircle2 size={12} /> {quiz.questionsCount} Qs</span>
+                    <span className="flex items-center gap-1.5"><Clock size={12} /> {quiz.timeLimit}</span>
                   </div>
                 </div>
-                <button className="text-gray-400 hover:text-indigo-600 transition-colors">
+                <div className="p-2 bg-slate-50 rounded-xl text-slate-300 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
                   <PlayCircle size={24} />
-                </button>
+                </div>
               </div>
             ))
           )}

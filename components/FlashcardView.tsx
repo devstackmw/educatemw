@@ -76,8 +76,8 @@ export default function FlashcardView() {
           <p className="font-bold">Loading sets...</p>
         </div>
       ) : filteredSets.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <div className="bg-slate-50 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4">
+        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
+          <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Layers size={32} className="text-slate-300" />
           </div>
           <h4 className="font-black text-slate-800 mb-1">No sets found</h4>
@@ -89,7 +89,7 @@ export default function FlashcardView() {
             <div 
               key={set.id} 
               onClick={() => setSelectedSet(set)}
-              className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group active:scale-[0.98]"
+              className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group active:scale-[0.98]"
             >
               <div className="flex items-center gap-5">
                 <div className={`${set.color || 'bg-blue-600'} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform`}>

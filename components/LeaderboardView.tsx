@@ -1,89 +1,171 @@
 "use client";
-import { Trophy, Medal, User, Crown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { db } from "@/firebase";
+import { Trophy, Medal, Star, Crown, User } from "lucide-react";
+import { motion } from "motion/react";
+import Image from "next/image";
+
+interface LeaderboardEntry {
+  uid: string;
+  displayName: string;
+  photoURL: string;
+  points: number;
+  streak: number;
+}
 
 export default function LeaderboardView() {
-  const topStudents = [
-    { id: 1, name: "Chisomo Banda", points: 1250, rank: 1, color: "text-amber-500 bg-amber-50 border-amber-100" },
-    { id: 2, name: "Tiwonge Phiri", points: 1120, rank: 2, color: "text-slate-400 bg-slate-50 border-slate-100" },
-    { id: 3, name: "Kondwani Mwale", points: 980, rank: 3, color: "text-orange-400 bg-orange-50 border-orange-100" },
-    { id: 4, name: "Lumbani Gondwe", points: 850, rank: 4, color: "text-blue-400 bg-blue-50 border-blue-100" },
-    { id: 5, name: "Atusaye Nyasulu", points: 720, rank: 5, color: "text-blue-400 bg-blue-50 border-blue-100" },
-  ];
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, "userStats"),
+      orderBy("points", "desc"),
+      limit(20)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const leaderboardData: LeaderboardEntry[] = [];
+      snapshot.forEach((doc) => {
+        leaderboardData.push({ uid: doc.id, ...doc.data() } as LeaderboardEntry);
+      });
+      setEntries(leaderboardData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Loading Leaderboard...</p>
+      </div>
+    );
+  }
+
+  const topThree = entries.slice(0, 3);
+  const others = entries.slice(3);
 
   return (
-    <div className="p-6 pt-8 space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="p-4 bg-amber-100 text-amber-600 rounded-2xl shadow-sm"><Trophy size={32} /></div>
-        <div>
-          <h2 className="font-black text-2xl text-slate-800">Leaderboard</h2>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Top Students in Malawi</p>
-        </div>
+    <div className="p-6 space-y-8 pb-24">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-black text-slate-800">Leaderboard</h2>
+        <p className="text-slate-400 font-bold text-sm">Top students in Malawi</p>
       </div>
 
-      {/* Top 3 Podium */}
-      <div className="flex items-end justify-center gap-4 pt-4 pb-8">
+      {/* Podium */}
+      <div className="flex items-end justify-center gap-2 pt-8 pb-4">
         {/* 2nd Place */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-slate-100 border-4 border-white shadow-lg flex items-center justify-center text-slate-400 relative">
-            <User size={32} />
-            <div className="absolute -top-2 -right-2 bg-slate-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black">2</div>
-          </div>
-          <div className="h-24 w-16 bg-slate-100 rounded-t-2xl flex flex-col items-center justify-center p-2">
-            <span className="text-[10px] font-black text-slate-500 text-center leading-tight">Tiwonge</span>
-          </div>
-        </div>
+        {topThree[1] && (
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-col items-center gap-2 flex-1 max-w-[100px]"
+          >
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-slate-200 border-4 border-slate-300 overflow-hidden flex items-center justify-center relative">
+                {topThree[1].photoURL ? (
+                  <Image src={topThree[1].photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <User className="text-slate-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-slate-400 rounded-full flex items-center justify-center text-white font-black text-xs border-2 border-white">
+                2
+              </div>
+            </div>
+            <p className="font-black text-slate-800 text-xs truncate w-full text-center">{topThree[1].displayName}</p>
+            <p className="font-black text-blue-600 text-[10px]">{topThree[1].points} pts</p>
+          </motion.div>
+        )}
 
         {/* 1st Place */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-20 h-20 rounded-full bg-amber-100 border-4 border-white shadow-xl flex items-center justify-center text-amber-500 relative">
-            <Crown size={40} className="absolute -top-8 text-amber-500 transform -rotate-12" />
-            <User size={40} />
-            <div className="absolute -top-2 -right-2 bg-amber-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs font-black">1</div>
-          </div>
-          <div className="h-32 w-20 bg-amber-100 rounded-t-2xl flex flex-col items-center justify-center p-2">
-            <span className="text-xs font-black text-amber-600 text-center leading-tight">Chisomo</span>
-          </div>
-        </div>
+        {topThree[0] && (
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="flex flex-col items-center gap-2 flex-1 max-w-[120px] -translate-y-4"
+          >
+            <div className="relative">
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-yellow-500">
+                <Crown size={32} fill="currentColor" />
+              </div>
+              <div className="w-20 h-20 rounded-3xl bg-yellow-100 border-4 border-yellow-400 overflow-hidden flex items-center justify-center shadow-xl shadow-yellow-500/20 relative">
+                {topThree[0].photoURL ? (
+                  <Image src={topThree[0].photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <User className="text-yellow-600" />
+                )}
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-white font-black text-sm border-2 border-white">
+                1
+              </div>
+            </div>
+            <p className="font-black text-slate-800 text-sm truncate w-full text-center">{topThree[0].displayName}</p>
+            <p className="font-black text-blue-600 text-xs">{topThree[0].points} pts</p>
+          </motion.div>
+        )}
 
         {/* 3rd Place */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-full bg-orange-100 border-4 border-white shadow-lg flex items-center justify-center text-orange-400 relative">
-            <User size={32} />
-            <div className="absolute -top-2 -right-2 bg-orange-400 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black">3</div>
-          </div>
-          <div className="h-20 w-16 bg-orange-100 rounded-t-2xl flex flex-col items-center justify-center p-2">
-            <span className="text-[10px] font-black text-orange-600 text-center leading-tight">Kondwani</span>
-          </div>
-        </div>
+        {topThree[2] && (
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col items-center gap-2 flex-1 max-w-[100px]"
+          >
+            <div className="relative">
+              <div className="w-16 h-16 rounded-2xl bg-orange-50 border-4 border-orange-200 overflow-hidden flex items-center justify-center relative">
+                {topThree[2].photoURL ? (
+                  <Image src={topThree[2].photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <User className="text-orange-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center text-white font-black text-xs border-2 border-white">
+                3
+              </div>
+            </div>
+            <p className="font-black text-slate-800 text-xs truncate w-full text-center">{topThree[2].displayName}</p>
+            <p className="font-black text-blue-600 text-[10px]">{topThree[2].points} pts</p>
+          </motion.div>
+        )}
       </div>
 
       {/* List */}
-      <div className="space-y-4">
-        <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Rankings</h3>
-        {topStudents.map((student) => (
-          <div key={student.id} className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm border ${student.color}`}>
-                {student.rank}
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-800">{student.name}</h4>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{student.points} Points</p>
-              </div>
+      <div className="space-y-3">
+        {others.map((entry, index) => (
+          <motion.div 
+            key={entry.uid}
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: index * 0.05 }}
+            className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4"
+          >
+            <div className="w-8 font-black text-slate-300 text-center italic">
+              {index + 4}
             </div>
-            <div className="p-2 bg-slate-50 rounded-xl">
-              <Medal size={18} className={student.rank <= 3 ? student.color.split(' ')[0] : "text-slate-300"} />
+            <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center relative">
+              {entry.photoURL ? (
+                <Image src={entry.photoURL} alt="" fill className="object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <User size={20} className="text-slate-400" />
+              )}
             </div>
-          </div>
+            <div className="flex-1">
+              <h4 className="font-black text-slate-800 text-sm">{entry.displayName}</h4>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ranked Student</p>
+            </div>
+            <div className="text-right">
+              <p className="font-black text-blue-600 text-sm">{entry.points}</p>
+              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Points</p>
+            </div>
+          </motion.div>
         ))}
-      </div>
-
-      <div className="bg-blue-600 p-6 rounded-[2.5rem] text-white shadow-xl shadow-blue-600/20 text-center">
-        <h3 className="font-black text-lg mb-2">You are Rank #152</h3>
-        <p className="text-blue-100 text-xs font-medium mb-4">Complete 3 more quizzes to break into the top 100!</p>
-        <button className="w-full bg-white text-blue-600 py-3 rounded-2xl font-black text-sm active:scale-95 transition-all">
-          Start Quiz Now
-        </button>
       </div>
     </div>
   );

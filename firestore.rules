@@ -44,8 +44,9 @@ service cloud.firestore {
     }
 
     function isValidUserStats(data) {
-      return data.keys().hasAll(['uid', 'points', 'streak', 'lastActiveDate']) &&
+      return data.keys().hasAll(['uid', 'displayName', 'points', 'streak', 'lastActiveDate']) &&
              data.uid == request.auth.uid &&
+             data.displayName is string && data.displayName.size() > 0 &&
              data.points is number &&
              data.streak is number &&
              data.lastActiveDate is string;
@@ -65,7 +66,8 @@ service cloud.firestore {
 
     // User Stats & Progress
     match /userStats/{userId} {
-      allow read: if isOwner(userId);
+      // Allow all authenticated users to read stats for the leaderboard
+      allow read: if isAuthenticated();
       allow write: if isOwner(userId) && isValidUserStats(request.resource.data);
     }
 
