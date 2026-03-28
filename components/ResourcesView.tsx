@@ -2,14 +2,7 @@
 import { Archive, FileText, Download, ExternalLink, ChevronRight, Search } from "lucide-react";
 
 export default function ResourcesView() {
-  const resources = [
-    { id: 1, title: "MSCE Syllabus 2026", type: "PDF", size: "2.4 MB", category: "Official" },
-    { id: 2, title: "JCE Syllabus 2026", type: "PDF", size: "1.8 MB", category: "Official" },
-    { id: 3, title: "MANEB Exam Guidelines", type: "PDF", size: "0.5 MB", category: "Official" },
-    { id: 4, title: "Biology Diagrams Pack", type: "ZIP", size: "15.2 MB", category: "Study Material" },
-    { id: 5, title: "Physics Formula Sheet", type: "PDF", size: "0.2 MB", category: "Study Material" },
-    { id: 6, title: "English Literature Guide", type: "PDF", size: "3.1 MB", category: "Study Material" },
-  ];
+  const resources: any[] = [];
 
   return (
     <div className="p-6 pt-8 space-y-8">
@@ -33,7 +26,11 @@ export default function ResourcesView() {
       <div className="space-y-6">
         <div className="space-y-4">
           <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Official Documents</h3>
-          {resources.filter(r => r.category === "Official").map((resource) => (
+          {resources.length === 0 ? (
+            <div className="p-10 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+              <p className="text-slate-400 text-sm font-medium">No resources uploaded yet.</p>
+            </div>
+          ) : resources.filter(r => r.category === "Official").map((resource) => (
             <div key={resource.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-rose-200 transition-all">
               <div className="flex items-center gap-4">
                 <div className="bg-rose-50 p-3 rounded-2xl text-rose-600">
@@ -53,7 +50,11 @@ export default function ResourcesView() {
 
         <div className="space-y-4">
           <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Study Materials</h3>
-          {resources.filter(r => r.category === "Study Material").map((resource) => (
+          {resources.length === 0 ? (
+            <div className="p-10 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+              <p className="text-slate-400 text-sm font-medium">No materials uploaded yet.</p>
+            </div>
+          ) : resources.filter(r => r.category === "Study Material").map((resource) => (
             <div key={resource.id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between hover:border-rose-200 transition-all">
               <div className="flex items-center gap-4">
                 <div className="bg-rose-50 p-3 rounded-2xl text-rose-600">

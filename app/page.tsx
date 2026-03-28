@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Home, BookOpen, MessageSquare, User, Play } from "lucide-react";
+import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu } from "lucide-react";
 import HomeView from "@/components/HomeView";
 import PapersView from "@/components/PapersView";
 import QuizzesView from "@/components/QuizzesView";
@@ -94,8 +94,34 @@ export default function App() {
     }
   };
 
+  const isMainTab = ["home", "papers", "ai", "video_list", "profile"].includes(activeTab);
+
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
+      {/* Top Header */}
+      {activeTab !== 'auth' && (
+        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-slate-100 p-4 flex items-center gap-4">
+          {activeTab === 'home' ? (
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600"
+            >
+              <Menu size={20} />
+            </button>
+          ) : (
+            <button 
+              onClick={() => setActiveTab("home")}
+              className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          )}
+          <h1 className="font-black text-slate-800 capitalize">
+            {activeTab === 'home' ? 'Edumw' : activeTab.replace('_', ' ')}
+          </h1>
+        </header>
+      )}
+
       {/* Sidebar */}
       <Sidebar 
         isOpen={isSidebarOpen} 
@@ -106,13 +132,13 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto pb-24 relative" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' && activeTab !== 'home' ? 'pt-16' : ''} ${isMainTab ? 'pb-24' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
             className="h-full"
           >
@@ -121,13 +147,29 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom Navigation */}
-      {activeTab !== 'auth' && (
-        <nav className="absolute bottom-6 left-4 right-4 z-50 bg-white/80 backdrop-blur-xl border border-white/40 flex justify-around items-center py-4 px-2 rounded-3xl shadow-2xl">
+      {/* TikTok Style Bottom Navigation */}
+      {activeTab !== 'auth' && isMainTab && (
+        <nav className="absolute bottom-0 left-0 right-0 z-50 bg-slate-900 text-white flex justify-around items-center py-2 px-2 pb-6 border-t border-white/5">
           <NavItem icon={<Home size={22} />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
-          <NavItem icon={<Play size={22} />} label="Videos" isActive={activeTab === "video_list"} onClick={() => setActiveTab("video_list")} />
           <NavItem icon={<BookOpen size={22} />} label="Library" isActive={activeTab === "papers"} onClick={() => setActiveTab("papers")} />
-          <NavItem icon={<MessageSquare size={22} />} label="Ed-Ai" isActive={activeTab === "ai"} onClick={() => setActiveTab("ai")} />
+          
+          {/* Prominent Cleo AI Button */}
+          <div className="relative -top-4">
+            <button 
+              onClick={() => setActiveTab("ai")}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-xl ${
+                activeTab === "ai" 
+                ? "bg-blue-600 scale-110 rotate-0" 
+                : "bg-gradient-to-tr from-blue-600 to-indigo-600 hover:scale-105"
+              }`}
+            >
+              <Sparkles size={28} className="text-white" />
+              <div className="absolute -inset-1 bg-blue-400/20 rounded-2xl blur-md animate-pulse"></div>
+            </button>
+            <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-widest text-blue-400">Cleo</span>
+          </div>
+
+          <NavItem icon={<Play size={22} />} label="Videos" isActive={activeTab === "video_list"} onClick={() => setActiveTab("video_list")} />
           <NavItem icon={<User size={22} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
         </nav>
       )}
@@ -137,11 +179,12 @@ export default function App() {
 
 function NavItem({ icon, label, isActive, onClick }: any) {
   return (
-    <button onClick={onClick} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'text-blue-600 scale-110' : 'text-slate-400 hover:text-slate-600'}`}>
-      <div className={`${isActive ? 'bg-blue-50 p-2 rounded-xl' : ''}`}>
+    <button onClick={onClick} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
+      <div className="mb-1">
         {icon}
       </div>
-      <span className={`text-[10px] mt-1 font-bold ${isActive ? 'opacity-100' : 'opacity-0'}`}>{label}</span>
+      <span className="text-[10px] font-bold uppercase tracking-tighter">{label}</span>
+      {isActive && <motion.div layoutId="nav-dot" className="w-1 h-1 bg-blue-500 rounded-full mt-1" />}
     </button>
   );
 }

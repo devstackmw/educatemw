@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 
 export default function AskTeacherAI() {
   const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
-    { role: 'ai', text: "Hello! I'm your Ed-Ai Assistant. Ask me anything about your studies!" }
+    { role: 'ai', text: "Muli bwanji! I'm Cleo AI, your smart teacher. I'm here to help you prepare for your MSCE, JCE, or PSLCE exams. Ask me any question related to your studies!" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,9 +47,21 @@ export default function AskTeacherAI() {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `You are a helpful tutor for Malawian students. Answer the following question: ${userMessage}`,
+        contents: userMessage,
         config: {
-          systemInstruction: "You are a friendly, encouraging tutor for Malawian MSCE/JCE students. Explain concepts simply, use local Malawian examples if possible, and keep answers concise. Use markdown for formatting (bold, lists, tables, etc.) to make it easy to read. If you provide code, use code blocks."
+          systemInstruction: `You are a smart, expert AI Teacher for Malawian students, specializing in the Malawi National Curriculum (PSLCE, JCE, and MSCE) and MANEB examination standards. 
+
+Your goals:
+1. **Focus on Malawi:** Only provide information relevant to the Malawian curriculum. Do not use examples or curricula from outside Malawi.
+2. **Simple & Memorable:** Explain concepts in a simple way that students won't forget. Use mnemonics or simple analogies.
+3. **Relevant Examples:** Always provide local Malawian examples (e.g., using local names like Kondwani or Chimwemwe, places like Mount Mulanje or Lake Malawi, or situations like trading at a local market).
+4. **Concise:** Keep answers short and to the point so students can grab the main idea quickly.
+5. **MANEB Style:** At the end of every academic answer, include a section titled '**If asked in exams, answer like this:**' followed by a direct, concise answer that a MANEB examiner would award full marks for.
+6. **Strict Academic Scope:** Do NOT answer any questions that are not related to the Malawian school syllabus (e.g., 'who is the richest man', 'how to make AI videos', celebrity gossip, etc.). 
+7. **Refusal Message:** If a question is outside the study scope, you MUST politely refuse and say exactly: 'I'm your AI teacher focused on your exam not outside questions.'
+
+Use Markdown for clear formatting.`,
+          tools: [{ googleSearch: {} }]
         }
       });
       
@@ -68,7 +80,7 @@ export default function AskTeacherAI() {
         <div className="flex items-center gap-3">
           <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl shadow-sm"><BrainCircuit size={24} /></div>
           <div>
-            <h2 className="font-black text-xl text-slate-800 leading-tight">Ed-Ai Assistant</h2>
+            <h2 className="font-black text-xl text-slate-800 leading-tight">Cleo AI</h2>
             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Online Now</p>
           </div>
         </div>
@@ -79,9 +91,9 @@ export default function AskTeacherAI() {
           <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
             <div className={`flex items-center gap-2 mb-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-                {msg.role === 'user' ? 'ME' : 'AI'}
+                {msg.role === 'user' ? 'ME' : 'CL'}
               </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{msg.role === 'user' ? 'You' : 'Ed-Ai'}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{msg.role === 'user' ? 'You' : 'Cleo AI'}</span>
             </div>
             
             <div className={`group relative p-5 rounded-3xl max-w-[95%] shadow-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'}`}>
@@ -110,12 +122,12 @@ export default function AskTeacherAI() {
         {loading && (
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-6 h-6 rounded-lg bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-black">AI</div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ed-Ai</span>
+              <div className="w-6 h-6 rounded-lg bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-black">CL</div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cleo AI</span>
             </div>
             <div className="bg-white p-5 rounded-3xl border border-slate-100 text-slate-500 flex items-center gap-3 rounded-tl-none shadow-sm">
               <Loader2 className="animate-spin text-blue-600" size={18} /> 
-              <span className="text-xs font-bold animate-pulse">Teacher is thinking...</span>
+              <span className="text-xs font-bold animate-pulse">Cleo is thinking...</span>
             </div>
           </div>
         )}

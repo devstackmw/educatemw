@@ -2,13 +2,7 @@
 import { Clock, CheckCircle2, Circle, Plus, ChevronRight } from "lucide-react";
 
 export default function StudyPlanView() {
-  const schedule = [
-    { time: "05:00 AM", task: "Morning Review", subject: "Biology", completed: true },
-    { time: "08:00 AM", task: "School Session", subject: "All Subjects", completed: true },
-    { time: "04:00 PM", task: "Past Paper Practice", subject: "Mathematics", completed: false },
-    { time: "07:00 PM", task: "AI Tutor Session", subject: "Physics", completed: false },
-    { time: "09:00 PM", task: "Flashcard Drill", subject: "English", completed: false },
-  ];
+  const schedule: any[] = [];
 
   return (
     <div className="p-6 pt-8 space-y-8">
@@ -37,7 +31,11 @@ export default function StudyPlanView() {
 
       <div className="space-y-4">
         <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Timeline</h3>
-        {schedule.map((item, idx) => (
+        {schedule.length === 0 ? (
+          <div className="p-10 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+            <p className="text-slate-400 text-sm font-medium">Your schedule is empty. Add tasks or generate one with AI!</p>
+          </div>
+        ) : schedule.map((item, idx) => (
           <div key={idx} className="flex gap-4">
             <div className="flex flex-col items-center">
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-sm ${item.completed ? "bg-emerald-100 text-emerald-600" : "bg-white border border-slate-100 text-slate-300"}`}>

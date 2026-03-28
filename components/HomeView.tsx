@@ -1,24 +1,11 @@
-import { BookOpen, HelpCircle, Menu, User, ChevronRight, Layers } from "lucide-react";
+import { BookOpen, HelpCircle, User, ChevronRight, Layers } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 
 export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, onOpenSidebar: () => void }) {
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
   return (
-    <div className="p-6 pt-8">
-      <header className="flex justify-between items-center mb-10">
-        <div className="flex items-center gap-4">
-          <button onClick={onOpenSidebar} className="p-2 bg-white rounded-xl shadow-sm border border-slate-100 active:scale-90 transition-transform cursor-pointer">
-            <Menu size={20} className="text-slate-600" />
-          </button>
-          <span className="font-black text-2xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Edumw</span>
-        </div>
-        <div onClick={() => onNavigate("profile")} className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-slate-100 to-slate-200 p-0.5 shadow-sm cursor-pointer">
-          <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
-              <User size={18} className="text-slate-400" />
-          </div>
-        </div>
-      </header>
+    <div className="p-6 pt-20">
 
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-[2.5rem] p-8 text-white mb-10 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
@@ -26,7 +13,7 @@ export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNaviga
           <h2 className="text-3xl font-black mb-1">Hi, {displayName.split(' ')[0]}!</h2>
           <p className="text-blue-100 font-medium mb-8 opacity-80">You&apos;re on a 5-day streak 🔥</p>
           <button onClick={() => onNavigate("ai")} className="bg-white text-blue-700 px-8 py-3 rounded-2xl font-black text-sm shadow-xl shadow-blue-900/20 active:scale-95 transition-all flex items-center gap-2">
-            Ask Ed-Ai Assistant
+            Ask Cleo AI
             <ChevronRight size={16} />
           </button>
         </div>
