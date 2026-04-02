@@ -111,7 +111,7 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
               {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
             </div>
           </div>
-          <h3 className="text-2xl font-black tracking-tight">{profile.displayName || "Student"}</h3>
+          <h3 className="text-2xl font-black tracking-tight">{profile.nickname || profile.realName || "Student"}</h3>
           <p className="text-blue-400 font-black text-[10px] uppercase tracking-[0.2em] mt-1">MSCE Candidate</p>
         </div>
 

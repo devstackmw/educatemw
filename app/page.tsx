@@ -21,11 +21,12 @@ import InstallPWA from "@/components/InstallPWA";
 import { AnimatePresence, motion } from "motion/react";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, getDocs, writeBatch } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("auth");
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
@@ -39,31 +40,40 @@ export default function App() {
         // Automatically switch to home if user is logged in and currently on auth tab
         setActiveTab((prev) => prev === "auth" ? "home" : prev);
 
+        // Check if user document exists, if not create it
+        const userRef = doc(db, "users", currentUser.uid);
+        
+        // Listen for real-time updates to user data (important for premium status)
+        const unsubUser = onSnapshot(userRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUserData(docSnap.data());
+          } else {
+            // Create initial user doc if it doesn't exist
+            setDoc(userRef, {
+              uid: currentUser.uid,
+              displayName: currentUser.displayName || "Student",
+              email: currentUser.email || "",
+              phoneNumber: currentUser.phoneNumber || "",
+              photoURL: currentUser.photoURL || "",
+              isPremium: false,
+              createdAt: new Date().toISOString()
+            });
+          }
+        });
+
         // Test connection to Firestore as recommended
         try {
           const { getDocFromServer } = await import("firebase/firestore");
-          await getDocFromServer(doc(db, "users", currentUser.uid));
+          await getDocFromServer(userRef);
         } catch (error) {
           if (error instanceof Error && error.message.includes("offline")) {
             console.error("Firestore connection failed: client is offline.");
           }
         }
 
-        // Check if user document exists, if not create it
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            uid: currentUser.uid,
-            displayName: currentUser.displayName || "Student",
-            email: currentUser.email || "",
-            phoneNumber: currentUser.phoneNumber || "",
-            photoURL: currentUser.photoURL || "",
-            isPremium: false,
-            createdAt: new Date().toISOString()
-          });
-        }
+        return () => unsubUser();
+      } else {
+        setUserData(null);
       }
       
       setLoading(false);
@@ -81,7 +91,7 @@ export default function App() {
       case "papers": return <PapersView />;
       case "quizzes": return <QuizzesView />;
       case "profile": return <ProfileView user={user} />;
-      case "premium": return <PremiumView user={user} />;
+      case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
       case "flashcards": return <FlashcardView />;
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
@@ -90,12 +100,12 @@ export default function App() {
       case "resources": return <ResourcesView />;
       case "settings": return <SettingsView onNavigate={setActiveTab} />;
       case "auth": return <AuthView onLogin={() => setActiveTab("home")} />;
-      case "ai": return <AskTeacherAI />;
+      case "ai": return <AskTeacherAI isPremium={userData?.isPremium} />;
       default: return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
     }
   };
 
-  const isMainTab = activeTab === "home";
+  const isMainTab = ["home", "papers", "leaderboard", "profile"].includes(activeTab);
 
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">

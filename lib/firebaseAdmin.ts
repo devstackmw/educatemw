@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
 if (!admin.apps.length) {
@@ -17,4 +18,4 @@ if (!admin.apps.length) {
 }
 
 // Ensure we use the correct database ID
-export const adminDb = admin.firestore(admin.app(), firebaseConfig.firestoreDatabaseId);
+export const adminDb = getFirestore(admin.app(), firebaseConfig.firestoreDatabaseId);

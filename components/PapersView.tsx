@@ -1,17 +1,17 @@
-import { Download, Search, FileText } from "lucide-react";
+import { Download, Search, FileText, Lock } from "lucide-react";
 import { useState } from "react";
 
-export default function PapersView() {
+export default function PapersView({ isPremium }: { isPremium?: boolean }) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const notes = [
-    { title: "Chemistry Notes", url: "https://drive.google.com/drive/folders/1oqBNZAKDbPm3Wv1K1CyzOIWSXclzM-YZ", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-    { title: "Biology Notes", url: "https://drive.google.com/drive/folders/1IPDdImZt98qhBe-dZwTJK-JLXIvQ3gKs", color: "bg-rose-50 text-rose-600 border-rose-100" },
-    { title: "Mathematics Notes", url: "https://drive.google.com/drive/folders/1nAgjHKIKU1TWMMj7YCpGSG8j5WYxz5gv", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
-    { title: "Agriculture Notes", url: "https://drive.google.com/drive/folders/1--BbSZ9zbtiAXVKYhiaJ9FIjgl-Uxjt5", color: "bg-orange-50 text-orange-600 border-orange-100" },
-    { title: "Geography Notes", url: "https://drive.google.com/drive/folders/1jj64lf2kWEAhvrhmV-SKGGrHF67H6Mxg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-    { title: "Social Studies Notes", url: "https://drive.google.com/drive/folders/1gKB6neWwy_XG2mujGu07asw7FDkgtX4I", color: "bg-blue-50 text-blue-600 border-blue-100" },
-    { title: "Physics Notes", url: "https://drive.google.com/drive/folders/1OMJ_UAboIvKS7frqnfk-Bm9mbbrrAYwT", color: "bg-purple-50 text-purple-600 border-purple-100" }
+    { title: "Chemistry Notes", url: "https://drive.google.com/drive/folders/1oqBNZAKDbPm3Wv1K1CyzOIWSXclzM-YZ", color: "bg-emerald-50 text-emerald-600 border-emerald-100", premium: false },
+    { title: "Biology Notes", url: "https://drive.google.com/drive/folders/1IPDdImZt98qhBe-dZwTJK-JLXIvQ3gKs", color: "bg-rose-50 text-rose-600 border-rose-100", premium: false },
+    { title: "Mathematics Notes", url: "https://drive.google.com/drive/folders/1nAgjHKIKU1TWMMj7YCpGSG8j5WYxz5gv", color: "bg-indigo-50 text-indigo-600 border-indigo-100", premium: true },
+    { title: "Agriculture Notes", url: "https://drive.google.com/drive/folders/1--BbSZ9zbtiAXVKYhiaJ9FIjgl-Uxjt5", color: "bg-orange-50 text-orange-600 border-orange-100", premium: true },
+    { title: "Geography Notes", url: "https://drive.google.com/drive/folders/1jj64lf2kWEAhvrhmV-SKGGrHF67H6Mxg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", premium: true },
+    { title: "Social Studies Notes", url: "https://drive.google.com/drive/folders/1gKB6neWwy_XG2mujGu07asw7FDkgtX4I", color: "bg-blue-50 text-blue-600 border-blue-100", premium: true },
+    { title: "Physics Notes", url: "https://drive.google.com/drive/folders/1OMJ_UAboIvKS7frqnfk-Bm9mbbrrAYwT", color: "bg-purple-50 text-purple-600 border-purple-100", premium: true }
   ];
 
   const filteredNotes = notes.filter(note => note.title.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -54,6 +54,7 @@ export default function PapersView() {
               title={note.title} 
               url={note.url} 
               color={note.color}
+              isLocked={note.premium && !isPremium}
             />
           ))
         )}
@@ -62,21 +63,33 @@ export default function PapersView() {
   );
 }
 
-function NoteLink({ title, url, color }: { title: string, url: string, color: string }) {
+function NoteLink({ title, url, color, isLocked }: { title: string, url: string, color: string, isLocked: boolean }) {
+  const content = (
+    <div className={`flex items-center justify-between p-5 rounded-3xl border transition-all ${isLocked ? 'bg-slate-50 text-slate-400 border-slate-200 grayscale' : `hover:shadow-md active:scale-[0.98] ${color}`}`}>
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-2xl shadow-sm ${isLocked ? 'bg-slate-200' : 'bg-white'}`}>
+          {isLocked ? <Lock size={22} /> : <FileText size={22} />}
+        </div>
+        <div className="flex flex-col">
+          <span className="font-black text-sm">{title}</span>
+          {isLocked && <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Pro Feature</span>}
+        </div>
+      </div>
+      {!isLocked && <Download size={20} />}
+    </div>
+  );
+
+  if (isLocked) {
+    return <div className="cursor-not-allowed">{content}</div>;
+  }
+
   return (
     <a 
       href={url} 
       target="_blank" 
       rel="noopener noreferrer"
-      className={`flex items-center justify-between p-5 rounded-3xl border transition-all hover:shadow-md active:scale-[0.98] ${color}`}
     >
-      <div className="flex items-center gap-4">
-        <div className="p-3 bg-white rounded-2xl shadow-sm">
-          <FileText size={22} />
-        </div>
-        <span className="font-black text-sm">{title}</span>
-      </div>
-      <Download size={20} />
+      {content}
     </a>
   );
 }

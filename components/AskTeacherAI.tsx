@@ -4,7 +4,7 @@ import { Send, Loader2, BrainCircuit, User, Copy, CheckCircle, AlertCircle } fro
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export default function AskTeacherAI() {
+export default function AskTeacherAI({ isPremium }: { isPremium?: boolean }) {
   const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
     { role: 'ai', text: "Muli bwanji! I'm Cleo AI, your smart teacher. I'm here to help you prepare for your MSCE, JCE, or PSLCE exams. Ask me any question related to your studies!" }
   ]);
@@ -13,6 +13,10 @@ export default function AskTeacherAI() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Simple local counter for free users (resets on refresh, but good for UX)
+  const [freeQuestionsCount, setFreeQuestionsCount] = useState(0);
+  const FREE_LIMIT = 3;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,6 +34,14 @@ export default function AskTeacherAI() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+
+    if (!isPremium && freeQuestionsCount >= FREE_LIMIT) {
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        text: "You've reached your free daily limit of 3 questions. Upgrade to **Educate MW PRO** for unlimited access to your AI Teacher!" 
+      }]);
+      return;
+    }
 
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
@@ -65,6 +77,9 @@ Use Markdown for clear formatting.`
       });
       
       setMessages(prev => [...prev, { role: 'ai', text: response.text || "Sorry, I couldn't understand that." }]);
+      if (!isPremium) {
+        setFreeQuestionsCount(prev => prev + 1);
+      }
     } catch (error) {
       console.error("AI Error:", error);
       setMessages(prev => [...prev, { role: 'ai', text: "Sorry, I'm having trouble connecting to the teacher right now." }]);
