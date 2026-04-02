@@ -81,7 +81,7 @@ export default function App() {
       case "papers": return <PapersView />;
       case "quizzes": return <QuizzesView />;
       case "profile": return <ProfileView user={user} />;
-      case "premium": return <PremiumView />;
+      case "premium": return <PremiumView user={user} />;
       case "flashcards": return <FlashcardView />;
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
@@ -137,10 +137,10 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -15 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className="h-full"
           >
             {renderView()}

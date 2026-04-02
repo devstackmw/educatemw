@@ -1,6 +1,53 @@
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { User as FirebaseUser } from "firebase/auth";
 
-export default function PremiumView() {
+export default function PremiumView({ user }: { user?: FirebaseUser | null }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handlePayment = async () => {
+    if (!user) {
+      setError("Please log in to upgrade.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/pay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: user.email || "student@educatemw.com",
+          firstName: user.displayName?.split(' ')[0] || "Student",
+          lastName: user.displayName?.split(' ').slice(1).join(' ') || "",
+          amount: 5000,
+          userId: user.uid,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initiate payment');
+      }
+
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (err: any) {
+      console.error("Payment error:", err);
+      setError(err.message || "An error occurred while initiating payment.");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 pb-10">
       <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-3xl p-6 text-white shadow-lg text-center relative overflow-hidden">
@@ -23,12 +70,20 @@ export default function PremiumView() {
           <Feature text="Ad-free Experience" />
         </div>
 
+        {error && (
+          <div className="mt-4 p-3 bg-red-500/20 text-white rounded-xl text-sm font-medium relative z-10">
+            {error}
+          </div>
+        )}
+
         <div className="mt-8 space-y-3 relative z-10">
-          <button className="w-full bg-white text-orange-600 font-bold py-3 rounded-xl shadow-md hover:bg-gray-50 transition-colors">
-            Pay with Airtel Money
-          </button>
-          <button className="w-full bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 transition-colors">
-            Pay with TNM Mpamba
+          <button 
+            onClick={handlePayment}
+            disabled={loading}
+            className="w-full bg-white text-orange-600 font-bold py-3 rounded-xl shadow-md hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {loading ? <Loader2 className="animate-spin" size={20} /> : null}
+            {loading ? "Processing..." : "Upgrade Now with PayChangu"}
           </button>
         </div>
       </div>

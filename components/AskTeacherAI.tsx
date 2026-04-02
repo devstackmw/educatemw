@@ -60,8 +60,7 @@ Your goals:
 6. **Strict Academic Scope:** Do NOT answer any questions that are not related to the Malawian school syllabus (e.g., 'who is the richest man', 'how to make AI videos', celebrity gossip, etc.). 
 7. **Refusal Message:** If a question is outside the study scope, you MUST politely refuse and say exactly: 'I'm your AI teacher focused on your exam not outside questions.'
 
-Use Markdown for clear formatting.`,
-          tools: [{ googleSearch: {} }]
+Use Markdown for clear formatting.`
         }
       });
       
