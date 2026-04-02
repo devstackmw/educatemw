@@ -1,6 +1,5 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="128" fill="white"/>
-  <rect x="40" y="40" width="432" height="432" rx="108" fill="url(#paint0_linear)"/>
+  <rect width="512" height="512" fill="url(#paint0_linear)"/>
   
   <!-- Book Base -->
   <path d="M140 340C140 320 160 300 200 300H372V380H200C160 380 140 360 140 340Z" fill="white" fill-opacity="0.2"/>
@@ -15,13 +14,8 @@
   <path d="M310 165L330 210" stroke="#FBBF24" stroke-width="6" stroke-linecap="round"/>
   <circle cx="330" cy="215" r="5" fill="#FBBF24"/>
 
-  <!-- Decorative Lines -->
-  <rect x="210" y="200" width="100" height="8" rx="4" fill="#E2E8F0"/>
-  <rect x="210" y="230" width="80" height="8" rx="4" fill="#E2E8F0"/>
-  <rect x="210" y="260" width="110" height="8" rx="4" fill="#E2E8F0"/>
-
   <defs>
-    <linearGradient id="paint0_linear" x1="40" y1="40" x2="472" y2="472" gradientUnits="userSpaceOnUse">
+    <linearGradient id="paint0_linear" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
       <stop stop-color="#2563EB"/>
       <stop offset="1" stop-color="#4F46E5"/>
     </linearGradient>

@@ -91,49 +91,49 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
   if (loading) return <ProfileSkeleton />;
 
   return (
-    <div className="p-6 pt-8 space-y-8 pb-32">
-      <div className="flex items-center gap-4">
-        <div className="p-4 bg-blue-100 text-blue-600 rounded-2xl"><User size={32} /></div>
-        <h2 className="font-black text-2xl text-slate-800">My Profile</h2>
+    <div className="p-4 pt-6 space-y-6 pb-24">
+      <div className="flex items-center gap-3">
+        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl"><User size={24} /></div>
+        <h2 className="font-bold text-xl text-slate-800 tracking-tight">My Profile</h2>
       </div>
 
       {/* Stats Card */}
-      <div className="bg-slate-900 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/10 rounded-full -mr-24 -mt-24 blur-3xl animate-pulse"></div>
+      <div className="bg-slate-900 p-6 rounded-2xl text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse"></div>
         
-        <div className="relative z-10 flex flex-col items-center text-center mb-10">
-          <div className="w-32 h-32 bg-white/5 backdrop-blur-md rounded-[2.5rem] flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-2xl mb-6 group transition-transform hover:scale-105">
-            <div className="w-full h-full p-4">
+        <div className="relative z-10 flex flex-col items-center text-center mb-6">
+          <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-xl mb-4 group transition-transform hover:scale-105">
+            <div className="w-full h-full p-3">
               {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
             </div>
           </div>
-          <h3 className="text-2xl font-black tracking-tight">{profile.nickname || profile.realName || "Student"}</h3>
-          <p className="text-blue-400 font-black text-[10px] uppercase tracking-[0.2em] mt-1">MSCE Candidate</p>
+          <h3 className="text-xl font-bold tracking-tight">{profile.nickname || profile.realName || "Student"}</h3>
+          <p className="text-blue-400 font-bold text-[9px] uppercase tracking-[0.2em] mt-0.5">MSCE Candidate</p>
         </div>
 
-        <div className="relative z-10 grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-3xl border border-white/5">
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Points</p>
-            <p className="text-xl font-mono font-black text-blue-400">{stats.points.toLocaleString()}</p>
+        <div className="relative z-10 grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5">
+            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Total Points</p>
+            <p className="text-lg font-mono font-bold text-blue-400">{stats.points.toLocaleString()}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-3xl border border-white/5">
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Badges</p>
-            <p className="text-xl font-mono font-black text-amber-400">{stats.earnedBadges.length}</p>
+          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5">
+            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Badges</p>
+            <p className="text-lg font-mono font-bold text-amber-400">{stats.earnedBadges.length}</p>
           </div>
         </div>
         
-        <div className="relative z-10 space-y-4">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Badges Earned</p>
-          <div className="flex flex-wrap justify-center gap-3">
+        <div className="relative z-10 space-y-3">
+          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest text-center">Badges Earned</p>
+          <div className="flex flex-wrap justify-center gap-2">
             {stats.earnedBadges.length === 0 ? (
-              <p className="text-xs text-white/20 font-bold italic">Complete quizzes to earn badges!</p>
+              <p className="text-[10px] text-white/20 font-bold italic">Complete quizzes to earn badges!</p>
             ) : (
               stats.earnedBadges.map(badgeId => (
-                <div key={badgeId} className="bg-white/5 border border-white/10 p-2.5 rounded-2xl flex items-center gap-2 pr-4 shadow-lg">
-                  <div className="bg-white/10 p-2 rounded-xl">
+                <div key={badgeId} className="bg-white/5 border border-white/10 p-2 rounded-xl flex items-center gap-1.5 pr-3 shadow-lg">
+                  <div className="bg-white/10 p-1.5 rounded-lg">
                     {getBadgeIcon(badgeId)}
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest">{getBadgeName(badgeId)}</span>
+                  <span className="text-[8px] font-bold uppercase tracking-widest">{getBadgeName(badgeId)}</span>
                 </div>
               ))
             )}
@@ -142,62 +142,62 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       </div>
 
       {/* Avatar Selection */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between px-2">
-          <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest">Choose Your Avatar</h3>
-          <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">10 Styles</span>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Choose Your Avatar</h3>
+          <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">10 Styles</span>
         </div>
         
-        <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl">
-          <div className="grid grid-cols-5 gap-4">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg">
+          <div className="grid grid-cols-5 gap-3">
             {AVATARS.map((avatar) => (
               <button
                 key={avatar.id}
                 onClick={() => setProfile({ ...profile, avatarId: avatar.id })}
-                className={`relative aspect-square rounded-2xl overflow-hidden border-4 transition-all ${
+                className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
                   profile.avatarId === avatar.id 
-                  ? "border-blue-600 bg-blue-50 shadow-lg shadow-blue-600/20" 
+                  ? "border-blue-600 bg-blue-50 shadow-md shadow-blue-600/20" 
                   : "border-transparent bg-slate-50 hover:bg-slate-100"
                 }`}
               >
-                <div className="w-full h-full p-2">
+                <div className="w-full h-full p-1.5">
                   {avatar.svg}
                 </div>
                 {profile.avatarId === avatar.id && (
-                  <div className="absolute top-1 right-1 bg-blue-600 text-white p-1 rounded-full shadow-lg">
-                    <Check size={8} />
+                  <div className="absolute top-0.5 right-0.5 bg-blue-600 text-white p-0.5 rounded-full shadow-lg">
+                    <Check size={6} />
                   </div>
                 )}
               </button>
             ))}
           </div>
-          <div className="flex justify-between mt-6 px-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Girls (1-5)</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Boys (6-10)</span>
+          <div className="flex justify-between mt-4 px-1">
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Girls (1-5)</span>
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Boys (6-10)</span>
           </div>
         </div>
       </div>
       
-      <div className="space-y-4">
-        <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">Settings</h3>
-        <div className="space-y-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-500">Nickname</label>
+      <div className="space-y-3">
+        <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-1">Settings</h3>
+        <div className="space-y-3 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500">Nickname</label>
             <input
               type="text"
               value={profile.nickname}
               onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
-              className="w-full bg-slate-100 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+              className="w-full bg-slate-100 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 text-xs font-medium"
               placeholder="How should we call you?"
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-slate-500">Real Name</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500">Real Name</label>
             <input
               type="text"
               value={profile.realName}
               onChange={(e) => setProfile({ ...profile, realName: e.target.value })}
-              className="w-full bg-slate-100 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-blue-500 text-sm font-medium"
+              className="w-full bg-slate-100 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 text-xs font-medium"
               placeholder="Your full name"
             />
           </div>
@@ -205,9 +205,9 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-600 text-white p-4 rounded-2xl font-black text-sm hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold text-xs hover:bg-blue-700 disabled:opacity-50 shadow-md shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
           >
-            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             Save Changes
           </button>
 

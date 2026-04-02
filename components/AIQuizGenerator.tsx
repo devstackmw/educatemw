@@ -103,16 +103,16 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
     switch (step) {
       case "form":
         return (
-          <div className="space-y-4">
-            <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <GraduationCap size={16} /> Select Your Class
+          <div className="space-y-3">
+            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <GraduationCap size={14} /> Select Your Class
             </h4>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {forms.map((f) => (
                 <button
                   key={f}
                   onClick={() => { setSelectedForm(f); setStep("subject"); }}
-                  className="p-4 rounded-2xl border-2 border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-black text-slate-700 text-center"
+                  className="p-3 rounded-xl border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-bold text-slate-700 text-center text-sm"
                 >
                   {f}
                 </button>
@@ -122,22 +122,22 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
         );
       case "subject":
         return (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <BookOpen size={16} /> Select Subject
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <BookOpen size={14} /> Select Subject
               </h4>
-              <button onClick={() => setStep("form")} className="text-[10px] font-black text-indigo-600 uppercase">Change Class</button>
+              <button onClick={() => setStep("form")} className="text-[9px] font-bold text-indigo-600 uppercase">Change Class</button>
             </div>
-            <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="grid grid-cols-1 gap-1.5 max-h-[250px] overflow-y-auto pr-1.5 custom-scrollbar">
               {CURRICULUM.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => { setSelectedSubject(s); setStep("topic"); }}
-                  className="p-4 rounded-2xl border-2 border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-bold text-slate-700 text-left flex items-center justify-between group"
+                  className="p-3 rounded-xl border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all font-bold text-slate-700 text-left flex items-center justify-between group text-sm"
                 >
                   {s.name}
-                  <ChevronRight size={16} className="text-slate-300 group-hover:text-indigo-500" />
+                  <ChevronRight size={14} className="text-slate-300 group-hover:text-indigo-500" />
                 </button>
               ))}
             </div>
@@ -145,56 +145,56 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
         );
       case "topic":
         return (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Layers size={16} /> Select Topic
+              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <Layers size={14} /> Select Topic
               </h4>
-              <button onClick={() => setStep("subject")} className="text-[10px] font-black text-indigo-600 uppercase">Change Subject</button>
+              <button onClick={() => setStep("subject")} className="text-[9px] font-bold text-indigo-600 uppercase">Change Subject</button>
             </div>
-            <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="grid grid-cols-1 gap-1.5 max-h-[250px] overflow-y-auto pr-1.5 custom-scrollbar">
               {selectedSubject?.topics[selectedForm]?.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => setSelectedTopic(t)}
-                  className={`p-4 rounded-2xl border-2 transition-all font-bold text-left flex items-center justify-between group ${
+                  className={`p-3 rounded-xl border transition-all font-bold text-left flex items-center justify-between group text-sm ${
                     selectedTopic?.id === t.id 
                       ? 'border-indigo-500 bg-indigo-50 text-indigo-900' 
                       : 'border-slate-100 text-slate-700 hover:border-indigo-200'
                   }`}
                 >
                   {t.name}
-                  {selectedTopic?.id === t.id && <Sparkles size={16} className="text-indigo-500" />}
+                  {selectedTopic?.id === t.id && <Sparkles size={14} className="text-indigo-500" />}
                 </button>
               ))}
             </div>
             <button 
               onClick={generateQuiz}
               disabled={!selectedTopic || loading}
-              className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm flex items-center justify-center gap-3 shadow-xl hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95 mt-4"
+              className="w-full bg-slate-900 text-white py-3.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50 active:scale-95 mt-2"
             >
-              <PlayCircle size={20} />
+              <PlayCircle size={18} />
               Generate & Start Quiz
             </button>
           </div>
         );
       case "generating":
         return (
-          <div className="text-center py-12 space-y-6">
-            <div className="relative w-24 h-24 mx-auto">
-              <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+          <div className="text-center py-8 space-y-4">
+            <div className="relative w-16 h-16 mx-auto">
+              <div className="absolute inset-0 border-2 border-indigo-100 rounded-full"></div>
+              <div className="absolute inset-0 border-2 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles size={32} className="text-indigo-600 animate-pulse" />
+                <Sparkles size={24} className="text-indigo-600 animate-pulse" />
               </div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-black text-slate-800">Generating Your Quiz</h3>
-              <p className="text-slate-400 text-sm font-medium">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-slate-800">Generating Your Quiz</h3>
+              <p className="text-slate-400 text-xs font-medium">
                 Creating questions for <span className="text-indigo-600 font-bold">{selectedTopic?.name}</span>...
               </p>
             </div>
-            <div className="bg-indigo-50 p-4 rounded-2xl text-indigo-600 text-[10px] font-black uppercase tracking-widest animate-bounce">
+            <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600 text-[9px] font-bold uppercase tracking-widest animate-bounce inline-block">
               Analyzing MANEB Standards
             </div>
           </div>
@@ -206,15 +206,15 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
     <>
       <button 
         onClick={() => { setIsOpen(true); reset(); }}
-        className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-5 rounded-3xl font-black text-sm flex items-center justify-center gap-3 shadow-xl shadow-indigo-600/20 active:scale-95 transition-all"
+        className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-indigo-600/10 active:scale-95 transition-all"
       >
-        <Sparkles size={20} className="animate-pulse" />
+        <Sparkles size={18} className="animate-pulse" />
         Generate AI Quiz on any Topic
       </button>
 
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -226,20 +226,20 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl overflow-hidden"
+              className="bg-white w-full max-w-md rounded-2xl p-6 relative z-10 shadow-2xl overflow-hidden"
             >
               {step !== "generating" && (
-                <button onClick={() => setIsOpen(false)} className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-50 rounded-xl">
-                  <X size={20} />
+                <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg">
+                  <X size={18} />
                 </button>
               )}
 
-              <div className="text-center space-y-2 mb-8">
-                <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Sparkles size={32} />
+              <div className="text-center space-y-1 mb-6">
+                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <Sparkles size={24} />
                 </div>
-                <h3 className="text-2xl font-black text-slate-800">AI Quiz Engine</h3>
-                <p className="text-slate-400 text-sm font-medium">Personalized for Malawi Secondary Curriculum</p>
+                <h3 className="text-xl font-bold text-slate-800">AI Quiz Engine</h3>
+                <p className="text-slate-400 text-xs font-medium">Personalized for Malawi Secondary Curriculum</p>
               </div>
 
               {renderStep()}

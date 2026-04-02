@@ -17,6 +17,21 @@ export const metadata: Metadata = {
   title: 'Educate MW',
   description: 'The ultimate learning companion for Malawian students. Access past papers, quizzes, and premium content.',
   manifest: '/manifest.json',
+  openGraph: {
+    title: 'Educate MW',
+    description: 'The ultimate learning companion for Malawian students.',
+    url: 'https://educatemw.vercel.app',
+    siteName: 'Educate MW',
+    images: [
+      {
+        url: '/og-image.svg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_MW',
+    type: 'website',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

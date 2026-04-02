@@ -17,23 +17,23 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function HomeSkeleton() {
   return (
-    <div className="p-6 pt-20 space-y-8 pb-32 animate-pulse">
+    <div className="p-4 pt-16 space-y-6 pb-28 animate-pulse">
       {/* Hero Skeleton */}
-      <div className="bg-slate-100 rounded-[3rem] p-8 h-64 w-full" />
+      <div className="bg-slate-100 rounded-xl p-6 h-48 w-full" />
       
       {/* Stats Skeleton */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-slate-100 h-24 rounded-3xl" />
-        <div className="bg-slate-100 h-24 rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-slate-100 h-16 rounded-lg" />
+        <div className="bg-slate-100 h-16 rounded-lg" />
       </div>
       
       {/* Path Skeleton */}
-      <div className="space-y-4">
-        <div className="h-4 w-32 bg-slate-100 rounded-full" />
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-slate-100 h-40 rounded-3xl" />
-          <div className="bg-slate-100 h-40 rounded-3xl" />
-          <div className="bg-slate-100 h-32 rounded-3xl col-span-2" />
+      <div className="space-y-3">
+        <div className="h-3 w-24 bg-slate-100 rounded-full" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-100 h-32 rounded-lg" />
+          <div className="bg-slate-100 h-32 rounded-lg" />
+          <div className="bg-slate-100 h-24 rounded-lg col-span-2" />
         </div>
       </div>
     </div>
@@ -42,13 +42,13 @@ export function HomeSkeleton() {
 
 export function PapersSkeleton() {
   return (
-    <div className="p-4 space-y-6 animate-pulse">
-      <div className="h-12 bg-slate-100 rounded-xl w-full" />
-      <div className="h-10 bg-slate-100 rounded-2xl w-32" />
-      <div className="space-y-4">
-        <div className="h-32 bg-slate-100 rounded-[2rem] w-full" />
+    <div className="p-4 space-y-4 animate-pulse">
+      <div className="h-10 bg-slate-100 rounded-lg w-full" />
+      <div className="h-8 bg-slate-100 rounded-lg w-24" />
+      <div className="space-y-3">
+        <div className="h-24 bg-slate-100 rounded-xl w-full" />
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-20 bg-slate-100 rounded-3xl w-full" />
+          <div key={i} className="h-16 bg-slate-100 rounded-lg w-full" />
         ))}
       </div>
     </div>
@@ -57,11 +57,11 @@ export function PapersSkeleton() {
 
 export function LeaderboardSkeleton() {
   return (
-    <div className="p-6 space-y-8 animate-pulse">
-      <div className="h-48 bg-slate-100 rounded-[2.5rem] w-full" />
-      <div className="space-y-4">
+    <div className="p-4 space-y-6 animate-pulse">
+      <div className="h-40 bg-slate-100 rounded-xl w-full" />
+      <div className="space-y-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="h-20 bg-slate-100 rounded-3xl w-full" />
+          <div key={i} className="h-16 bg-slate-100 rounded-lg w-full" />
         ))}
       </div>
     </div>
@@ -70,13 +70,13 @@ export function LeaderboardSkeleton() {
 
 export function QuizzesSkeleton() {
   return (
-    <div className="p-4 space-y-6 animate-pulse">
-      <div className="h-32 bg-slate-100 rounded-3xl w-full" />
-      <div className="h-40 bg-slate-100 rounded-3xl w-full shadow-lg" />
-      <div className="space-y-4">
-        <div className="h-4 w-32 bg-slate-100 rounded-full" />
+    <div className="p-4 space-y-4 animate-pulse">
+      <div className="h-24 bg-slate-100 rounded-xl w-full" />
+      <div className="h-32 bg-slate-100 rounded-xl w-full shadow-sm" />
+      <div className="space-y-3">
+        <div className="h-3 w-24 bg-slate-100 rounded-full" />
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-24 bg-slate-100 rounded-3xl w-full" />
+          <div key={i} className="h-20 bg-slate-100 rounded-lg w-full" />
         ))}
       </div>
     </div>
@@ -85,16 +85,16 @@ export function QuizzesSkeleton() {
 
 export function FlashcardsSkeleton() {
   return (
-    <div className="p-6 space-y-8 animate-pulse">
+    <div className="p-4 space-y-6 animate-pulse">
       <div className="flex justify-between items-center">
-        <div className="h-8 w-40 bg-slate-100 rounded-xl" />
-        <div className="h-6 w-6 bg-slate-100 rounded-full" />
+        <div className="h-6 w-32 bg-slate-100 rounded-lg" />
+        <div className="h-5 w-5 bg-slate-100 rounded-full" />
       </div>
-      <div className="h-32 bg-slate-100 rounded-3xl w-full" />
-      <div className="h-14 bg-slate-100 rounded-2xl w-full" />
-      <div className="grid grid-cols-1 gap-4">
+      <div className="h-24 bg-slate-100 rounded-xl w-full" />
+      <div className="h-10 bg-slate-100 rounded-lg w-full" />
+      <div className="grid grid-cols-1 gap-3">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-24 bg-slate-100 rounded-3xl w-full" />
+          <div key={i} className="h-20 bg-slate-100 rounded-lg w-full" />
         ))}
       </div>
     </div>
@@ -103,19 +103,19 @@ export function FlashcardsSkeleton() {
 
 export function ProfileSkeleton() {
   return (
-    <div className="p-6 pt-8 space-y-8 animate-pulse">
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 bg-slate-100 rounded-2xl" />
-        <div className="h-8 w-32 bg-slate-100 rounded-xl" />
+    <div className="p-4 pt-6 space-y-6 animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+        <div className="h-6 w-24 bg-slate-100 rounded-lg" />
       </div>
-      <div className="h-80 bg-slate-100 rounded-[3rem] w-full" />
-      <div className="space-y-4">
-        <div className="h-4 w-40 bg-slate-100 rounded-full" />
-        <div className="h-48 bg-slate-100 rounded-[3rem] w-full" />
+      <div className="h-64 bg-slate-100 rounded-xl w-full" />
+      <div className="space-y-3">
+        <div className="h-3 w-32 bg-slate-100 rounded-full" />
+        <div className="h-32 bg-slate-100 rounded-xl w-full" />
       </div>
-      <div className="space-y-4">
-        <div className="h-4 w-24 bg-slate-100 rounded-full" />
-        <div className="h-64 bg-slate-100 rounded-3xl w-full" />
+      <div className="space-y-3">
+        <div className="h-3 w-20 bg-slate-100 rounded-full" />
+        <div className="h-48 bg-slate-100 rounded-lg w-full" />
       </div>
     </div>
   );
@@ -124,19 +124,19 @@ export function ProfileSkeleton() {
 export function CommunitySkeleton() {
   return (
     <div className="flex flex-col h-full bg-slate-50 animate-pulse">
-      <div className="p-6 bg-white border-b border-slate-100 flex justify-between items-center">
+      <div className="p-4 bg-white border-b border-slate-100 flex justify-between items-center">
         <div className="flex gap-3">
-          <div className="w-12 h-12 bg-slate-100 rounded-2xl" />
-          <div className="space-y-2">
-            <div className="h-5 w-24 bg-slate-100 rounded-lg" />
-            <div className="h-3 w-32 bg-slate-100 rounded-lg" />
+          <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-20 bg-slate-100 rounded-lg" />
+            <div className="h-2.5 w-24 bg-slate-100 rounded-lg" />
           </div>
         </div>
-        <div className="w-12 h-12 bg-slate-100 rounded-2xl" />
+        <div className="w-10 h-10 bg-slate-100 rounded-xl" />
       </div>
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-48 bg-slate-100 rounded-[2.5rem] w-full" />
+          <div key={i} className="h-32 bg-slate-100 rounded-xl w-full" />
         ))}
       </div>
     </div>
@@ -145,21 +145,21 @@ export function CommunitySkeleton() {
 
 export function ResourcesSkeleton() {
   return (
-    <div className="p-6 pt-8 space-y-8 animate-pulse">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 bg-slate-100 rounded-2xl" />
-        <div className="space-y-2">
-          <div className="h-8 w-32 bg-slate-100 rounded-xl" />
-          <div className="h-4 w-48 bg-slate-100 rounded-lg" />
+    <div className="p-4 pt-6 space-y-6 animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 bg-slate-100 rounded-xl" />
+        <div className="space-y-1.5">
+          <div className="h-6 w-24 bg-slate-100 rounded-lg" />
+          <div className="h-3 w-32 bg-slate-100 rounded-lg" />
         </div>
       </div>
-      <div className="h-14 bg-slate-100 rounded-2xl w-full" />
-      <div className="space-y-6">
+      <div className="h-10 bg-slate-100 rounded-lg w-full" />
+      <div className="space-y-4">
         {[1, 2].map((i) => (
-          <div key={i} className="space-y-4">
-            <div className="h-4 w-32 bg-slate-100 rounded-full" />
-            <div className="h-20 bg-slate-100 rounded-3xl w-full" />
-            <div className="h-20 bg-slate-100 rounded-3xl w-full" />
+          <div key={i} className="space-y-3">
+            <div className="h-3 w-24 bg-slate-100 rounded-full" />
+            <div className="h-16 bg-slate-100 rounded-xl w-full" />
+            <div className="h-16 bg-slate-100 rounded-xl w-full" />
           </div>
         ))}
       </div>
@@ -169,22 +169,22 @@ export function ResourcesSkeleton() {
 
 export function StudyPlanSkeleton() {
   return (
-    <div className="p-6 pt-8 space-y-8 animate-pulse">
+    <div className="p-4 pt-6 space-y-6 animate-pulse">
       <div className="flex justify-between items-center">
-        <div className="flex gap-4">
-          <div className="w-16 h-16 bg-slate-100 rounded-2xl" />
-          <div className="space-y-2">
-            <div className="h-8 w-32 bg-slate-100 rounded-xl" />
-            <div className="h-4 w-24 bg-slate-100 rounded-lg" />
+        <div className="flex gap-3">
+          <div className="w-12 h-12 bg-slate-100 rounded-xl" />
+          <div className="space-y-1.5">
+            <div className="h-6 w-24 bg-slate-100 rounded-lg" />
+            <div className="h-3 w-20 bg-slate-100 rounded-lg" />
           </div>
         </div>
-        <div className="w-12 h-12 bg-slate-100 rounded-2xl" />
+        <div className="w-10 h-10 bg-slate-100 rounded-xl" />
       </div>
-      <div className="h-32 bg-slate-100 rounded-[2.5rem] w-full" />
-      <div className="space-y-4">
-        <div className="h-4 w-24 bg-slate-100 rounded-full" />
+      <div className="h-24 bg-slate-100 rounded-xl w-full" />
+      <div className="space-y-3">
+        <div className="h-3 w-20 bg-slate-100 rounded-full" />
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-slate-100 rounded-3xl w-full" />
+          <div key={i} className="h-16 bg-slate-100 rounded-lg w-full" />
         ))}
       </div>
     </div>
@@ -193,17 +193,17 @@ export function StudyPlanSkeleton() {
 
 export function ExamDatesSkeleton() {
   return (
-    <div className="p-6 pt-8 space-y-8 animate-pulse">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 bg-slate-100 rounded-2xl" />
-        <div className="space-y-2">
-          <div className="h-8 w-40 bg-slate-100 rounded-xl" />
-          <div className="h-4 w-48 bg-slate-100 rounded-lg" />
+    <div className="p-4 pt-6 space-y-6 animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 bg-slate-100 rounded-xl" />
+        <div className="space-y-1.5">
+          <div className="h-6 w-32 bg-slate-100 rounded-lg" />
+          <div className="h-3 w-40 bg-slate-100 rounded-lg" />
         </div>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-48 bg-slate-100 rounded-[2.5rem] w-full" />
+          <div key={i} className="h-32 bg-slate-100 rounded-xl w-full" />
         ))}
       </div>
     </div>

@@ -34,40 +34,40 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
   ];
 
   return (
-    <div className="p-6 pt-8 space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="p-4 bg-slate-100 text-slate-600 rounded-2xl shadow-sm"><Settings size={32} /></div>
+    <div className="p-4 pt-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <div className="p-3 bg-slate-100 text-slate-600 rounded-xl shadow-sm"><Settings size={24} /></div>
         <div>
-          <h2 className="font-black text-2xl text-slate-800">Settings</h2>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">App Preferences</p>
+          <h2 className="font-black text-xl text-slate-800">Settings</h2>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">App Preferences</p>
         </div>
       </div>
 
-      <div className="space-y-8 pb-10">
+      <div className="space-y-6 pb-10">
         {settingsGroups.map((group) => (
-          <div key={group.title} className="space-y-4">
-            <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest px-2">{group.title}</h3>
-            <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div key={group.title} className="space-y-3">
+            <h3 className="font-black text-slate-800 text-[10px] uppercase tracking-widest px-1">{group.title}</h3>
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
               {group.items.map((item, idx) => (
                 <button 
                   key={item.id}
                   onClick={() => item.id === "profile" && onNavigate("profile")}
-                  className={`w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors ${idx !== group.items.length - 1 ? "border-b border-slate-50" : ""}`}
+                  className={`w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${idx !== group.items.length - 1 ? "border-b border-slate-50" : ""}`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-2xl ${item.color}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${item.color}`}>
                       {item.icon}
                     </div>
-                    <span className="font-bold text-slate-700 text-sm">{item.label}</span>
+                    <span className="font-bold text-slate-700 text-xs">{item.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {"value" in item && item.value && <span className="text-xs font-bold text-slate-400">{item.value as string}</span>}
+                    {"value" in item && item.value && <span className="text-[10px] font-bold text-slate-400">{item.value as string}</span>}
                     {"toggle" in item && item.toggle ? (
-                      <div className="w-10 h-6 bg-slate-200 rounded-full relative">
-                        <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                      <div className="w-8 h-5 bg-slate-200 rounded-full relative">
+                        <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"></div>
                       </div>
                     ) : (
-                      <ChevronRight size={18} className="text-slate-300" />
+                      <ChevronRight size={16} className="text-slate-300" />
                     )}
                   </div>
                 </button>
@@ -78,9 +78,9 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
 
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 p-5 bg-red-50 text-red-600 rounded-[2.5rem] font-black text-sm active:scale-95 transition-all"
+          className="w-full flex items-center justify-center gap-2 p-4 bg-red-50 text-red-600 rounded-xl font-black text-xs active:scale-95 transition-all"
         >
-          <LogOut size={20} />
+          <LogOut size={18} />
           Logout
         </button>
       </div>

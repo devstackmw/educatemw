@@ -42,3 +42,54 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const tx_ref = searchParams.get('tx_ref');
+    const status = searchParams.get('status');
+
+    console.log('GET redirect received from PayChangu:', { tx_ref, status });
+
+    // If we have a tx_ref, we can try to verify the transaction immediately
+    // in case the POST webhook is delayed.
+    const PAYCHANGU_SECRET_KEY = process.env.PAYCHANGU_SECRET_KEY;
+    if (tx_ref && PAYCHANGU_SECRET_KEY) {
+      try {
+        const verifyResponse = await fetch(`https://api.paychangu.com/verify-payment/${tx_ref}`, {
+          headers: {
+            'Authorization': `Bearer ${PAYCHANGU_SECRET_KEY}`,
+            'Accept': 'application/json'
+          }
+        });
+        const verifyData = await verifyResponse.json();
+        
+        if (verifyData.status === 'success' && verifyData.data?.status === 'success') {
+          const parts = tx_ref.split('-');
+          if (parts.length >= 2) {
+            const userId = parts[1];
+            console.log(`GET verification successful for user: ${userId}`);
+            
+            // Update Firestore (same logic as POST webhook)
+            await adminDb.collection('users').doc(userId).set({
+              isPremium: true,
+              premiumUnlockedAt: new Date().toISOString(),
+              lastTxRef: tx_ref
+            }, { merge: true });
+          }
+        }
+      } catch (verifyError) {
+        console.error('GET verification failed:', verifyError);
+      }
+    }
+
+    // Redirect back to the home page with the payment status
+    const origin = new URL(req.url).origin;
+    const redirectStatus = status === 'failed' ? 'failed' : 'success';
+    return NextResponse.redirect(`${origin}/?payment=${redirectStatus}`);
+  } catch (error) {
+    console.error('GET redirect error:', error);
+    const origin = new URL(req.url).origin;
+    return NextResponse.redirect(`${origin}/`);
+  }
+}

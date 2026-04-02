@@ -107,7 +107,7 @@ export default function App() {
   const renderView = () => {
     switch (activeTab) {
       case "home": return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
-      case "papers": return <PapersView />;
+      case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={setActiveTab} />;
       case "quizzes": return <QuizzesView />;
       case "profile": return <ProfileView user={user} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
@@ -130,23 +130,23 @@ export default function App() {
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
       {/* Top Header */}
       {activeTab !== 'auth' && (
-        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-slate-100 p-4 flex items-center gap-4">
+        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-slate-100 p-3 flex items-center gap-3">
           {activeTab === 'home' ? (
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600"
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
           ) : (
             <button 
               onClick={() => setActiveTab("home")}
-              className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600"
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={18} />
             </button>
           )}
-          <h1 className="font-black text-slate-800 capitalize">
+          <h1 className="font-bold text-slate-800 capitalize text-sm tracking-tight">
             {activeTab === 'home' ? 'Educate MW' : activeTab.replace('_', ' ')}
           </h1>
         </header>
@@ -179,26 +179,26 @@ export default function App() {
 
       {/* TikTok Style Bottom Navigation */}
       {activeTab !== 'auth' && isMainTab && (
-        <nav className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900/90 backdrop-blur-xl text-white flex justify-around items-center py-2 px-4 rounded-full border border-white/10 shadow-2xl w-[90%] max-w-sm">
-          <NavItem icon={<Home size={18} />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
-          <NavItem icon={<BookOpen size={18} />} label="Library" isActive={activeTab === "papers"} onClick={() => setActiveTab("papers")} />
+        <nav className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-xl text-white flex justify-around items-center py-1.5 px-3 rounded-2xl border border-white/10 shadow-xl w-[85%] max-w-sm">
+          <NavItem icon={<Home size={16} />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
+          <NavItem icon={<BookOpen size={16} />} label="Library" isActive={activeTab === "papers"} onClick={() => setActiveTab("papers")} />
           
           {/* Prominent Cleo AI Button */}
           <div className="relative">
             <button 
               onClick={() => setActiveTab("ai")}
-              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shadow-xl ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
                 activeTab === "ai" 
-                ? "bg-blue-600 scale-110" 
+                ? "bg-blue-600 scale-105" 
                 : "bg-gradient-to-tr from-blue-600 to-indigo-600 hover:scale-105"
               }`}
             >
-              <Sparkles size={20} className="text-white" />
+              <Sparkles size={18} className="text-white" />
             </button>
           </div>
 
-          <NavItem icon={<Trophy size={18} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => setActiveTab("leaderboard")} />
-          <NavItem icon={<User size={18} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
+          <NavItem icon={<Trophy size={16} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => setActiveTab("leaderboard")} />
+          <NavItem icon={<User size={16} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
         </nav>
       )}
 
@@ -208,19 +208,19 @@ export default function App() {
       {/* Payment Success Modal */}
       <AnimatePresence>
         {showPaymentSuccess && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.9, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center space-y-6 shadow-2xl"
+              exit={{ scale: 0.9, opacity: 0, y: 10 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl"
             >
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                <Trophy size={40} fill="currentColor" />
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                <Trophy size={32} fill="currentColor" />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900">Payment Successful!</h3>
-                <p className="text-slate-500 font-medium">
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold text-slate-900">Payment Successful!</h3>
+                <p className="text-slate-500 text-xs font-medium">
                   Welcome to Educate MW PRO! Your premium features are now unlocked.
                 </p>
               </div>
@@ -229,7 +229,7 @@ export default function App() {
                   setShowPaymentSuccess(false);
                   setActiveTab("home");
                 }}
-                className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all"
+                className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"
               >
                 Start Learning
               </button>
@@ -244,11 +244,11 @@ export default function App() {
 function NavItem({ icon, label, isActive, onClick }: any) {
   return (
     <button onClick={onClick} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-      <div className="mb-1">
+      <div className="mb-0.5">
         {icon}
       </div>
-      <span className="text-[10px] font-bold uppercase tracking-tighter">{label}</span>
-      {isActive && <motion.div layoutId="nav-dot" className="w-1 h-1 bg-blue-500 rounded-full mt-1" />}
+      <span className="text-[8px] font-bold uppercase tracking-tight">{label}</span>
+      {isActive && <motion.div layoutId="nav-dot" className="w-1 h-1 bg-blue-500 rounded-full mt-0.5" />}
     </button>
   );
 }

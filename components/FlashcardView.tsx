@@ -54,57 +54,57 @@ export default function FlashcardView() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-black text-slate-800">Flashcards</h2>
-        {isOffline && <WifiOff size={20} className="text-amber-500" />}
+        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Flashcards</h2>
+        {isOffline && <WifiOff size={18} className="text-amber-500" />}
       </div>
 
       <AIFlashcardGenerator onSetGenerated={(set) => setSelectedSet(set)} />
 
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
         <input 
           type="text"
           placeholder="Search topics or subjects..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-slate-100 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all"
+          className="w-full bg-slate-100 border-none rounded-lg py-3 pl-10 pr-4 text-xs font-medium focus:ring-2 focus:ring-blue-500 transition-all"
         />
       </div>
 
       {loading ? (
         <FlashcardsSkeleton />
       ) : filteredSets.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
-          <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Layers size={32} className="text-slate-300" />
+        <div className="text-center py-12 bg-white rounded-xl border border-slate-100 shadow-sm">
+          <div className="bg-slate-50 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Layers size={24} className="text-slate-300" />
           </div>
-          <h4 className="font-black text-slate-800 mb-1">No sets found</h4>
-          <p className="text-slate-400 text-xs font-medium">Try searching for something else.</p>
+          <h4 className="font-bold text-slate-800 text-sm mb-1">No sets found</h4>
+          <p className="text-slate-400 text-[10px] font-medium">Try searching for something else.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           {filteredSets.map(set => (
             <div 
               key={set.id} 
               onClick={() => setSelectedSet(set)}
-              className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-blue-100 transition-all cursor-pointer group active:scale-[0.98]"
+              className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all cursor-pointer group active:scale-[0.98]"
             >
-              <div className="flex items-center gap-5">
-                <div className={`${set.color || 'bg-blue-600'} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 group-hover:scale-110 transition-transform`}>
-                  <Layers size={24} />
+              <div className="flex items-center gap-4">
+                <div className={`${set.color || 'bg-blue-600'} w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-600/20 group-hover:scale-105 transition-transform`}>
+                  <Layers size={20} />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider">{set.subject}</span>
-                    {set.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[8px] px-2 py-0.5 rounded-full font-black">PRO</span>}
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider">{set.subject}</span>
+                    {set.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[8px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>}
                   </div>
-                  <h4 className="font-black text-slate-800 leading-tight mb-1">{set.topic}</h4>
-                  <p className="text-xs text-slate-400 font-bold">{set.cardsCount} cards to review</p>
+                  <h4 className="font-bold text-slate-800 text-sm leading-tight mb-0.5">{set.topic}</h4>
+                  <p className="text-[10px] text-slate-400 font-bold">{set.cardsCount} cards to review</p>
                 </div>
-                <div className="p-2 bg-slate-50 rounded-xl text-slate-300 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
-                  <ChevronRight size={20} />
+                <div className="p-1.5 bg-slate-50 rounded-lg text-slate-300 group-hover:text-blue-600 group-hover:bg-blue-50 transition-colors">
+                  <ChevronRight size={18} />
                 </div>
               </div>
             </div>

@@ -61,43 +61,43 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user }
             className="fixed top-0 left-0 bottom-0 w-[280px] bg-white z-[101] shadow-2xl flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AppIcon size={40} className="shadow-lg shadow-blue-600/20" />
-                <span className="font-black text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Educate MW</span>
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AppIcon size={32} className="shadow-md shadow-blue-600/20" />
+                <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">Educate MW</span>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400">
-                <X size={20} />
+              <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400">
+                <X size={18} />
               </button>
             </div>
 
             {/* User Profile Summary */}
-            <div className="p-6 bg-slate-50/50">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
-                  <User size={24} />
+            <div className="p-4 bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                  <User size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-black text-slate-800 truncate">{user?.displayName || "Student"}</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Free Account</p>
+                  <h3 className="font-bold text-slate-800 truncate text-sm">{user?.displayName || "Student"}</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Free Account</p>
                 </div>
               </div>
               <button 
                 onClick={() => { onNavigate("premium"); onClose(); }}
-                className="mt-4 w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                className="mt-3 w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white py-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/10 active:scale-95 transition-all"
               >
-                <Zap size={14} fill="currentColor" />
+                <Zap size={12} fill="currentColor" />
                 Upgrade to Pro
               </button>
             </div>
 
             {/* Navigation Items */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="flex-1 overflow-y-auto p-3 space-y-0.5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => { onNavigate(item.id); onClose(); }}
-                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 ${
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                     activeTab === item.id 
                     ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100" 
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
@@ -106,26 +106,26 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user }
                   <span className={activeTab === item.id ? "text-blue-600" : "text-slate-400"}>
                     {item.icon}
                   </span>
-                  <span className="font-bold text-sm">{item.label}</span>
+                  <span className="font-bold text-xs">{item.label}</span>
                 </button>
               ))}
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-100 space-y-1">
+            <div className="p-3 border-t border-slate-100 space-y-0.5">
               <button 
                 onClick={() => { onNavigate("settings"); onClose(); }}
-                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all"
               >
-                <Settings size={20} className="text-slate-400" />
-                <span className="font-bold text-sm">Settings</span>
+                <Settings size={18} className="text-slate-400" />
+                <span className="font-bold text-xs">Settings</span>
               </button>
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-50 transition-all"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all"
               >
-                <LogOut size={20} />
-                <span className="font-bold text-sm">Logout</span>
+                <LogOut size={18} />
+                <span className="font-bold text-xs">Logout</span>
               </button>
             </div>
           </motion.div>
