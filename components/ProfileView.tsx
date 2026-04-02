@@ -5,6 +5,7 @@ import { db } from "@/firebase";
 import { User as FirebaseUser } from "firebase/auth";
 import { Loader2, Save, User, Trophy, Award, Star, Zap, Check } from "lucide-react";
 import { AVATARS } from "@/lib/avatars";
+import { ProfileSkeleton } from "./Skeleton";
 
 export default function ProfileView({ user }: { user: FirebaseUser | null }) {
   const [loading, setLoading] = useState(true);
@@ -87,12 +88,7 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
     }
   };
 
-  if (loading) return (
-    <div className="p-6 flex flex-col items-center justify-center min-h-[60vh]">
-      <Loader2 className="animate-spin text-blue-600 mb-4" size={32} />
-      <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Loading Profile...</p>
-    </div>
-  );
+  if (loading) return <ProfileSkeleton />;
 
   return (
     <div className="p-6 pt-8 space-y-8 pb-32">

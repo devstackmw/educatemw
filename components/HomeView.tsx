@@ -6,11 +6,13 @@ import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc }
 import { db } from "@/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { motion } from "motion/react";
+import { HomeSkeleton } from "./Skeleton";
 
 export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, onOpenSidebar: () => void }) {
   const [points, setPoints] = useState<number>(0);
   const [rank, setRank] = useState<number | string>("--");
   const [avatarId, setAvatarId] = useState<string>("girl_1");
+  const [loading, setLoading] = useState(true);
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
   useEffect(() => {
@@ -41,10 +43,18 @@ export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNaviga
           console.error("Error fetching rank:", error);
         }
       }
+      setLoading(false);
+    }, (error) => {
+      console.error("HomeView Snapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, [user]);
+
+  if (loading) {
+    return <HomeSkeleton />;
+  }
 
   return (
     <div className="p-6 pt-20 space-y-8 pb-32">

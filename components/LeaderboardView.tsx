@@ -6,6 +6,7 @@ import { Trophy, Medal, Star, Crown, User } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { AVATARS } from "@/lib/avatars";
+import { LeaderboardSkeleton } from "./Skeleton";
 
 interface LeaderboardEntry {
   uid: string;
@@ -40,12 +41,7 @@ export default function LeaderboardView() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="p-6 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Loading Leaderboard...</p>
-      </div>
-    );
+    return <LeaderboardSkeleton />;
   }
 
   const topThree = entries.slice(0, 3);

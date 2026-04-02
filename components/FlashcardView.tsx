@@ -4,7 +4,7 @@ import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/firebase";
 import { Layers, ChevronRight, WifiOff, Search, Sparkles } from "lucide-react";
 import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
-import LoadingScreen from "@/components/LoadingScreen";
+import { FlashcardsSkeleton } from "./Skeleton";
 import FlashcardStudy from "@/components/FlashcardStudy";
 import AIFlashcardGenerator from "@/components/AIFlashcardGenerator";
 
@@ -74,10 +74,7 @@ export default function FlashcardView() {
       </div>
 
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-slate-400">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="font-bold">Loading sets...</p>
-        </div>
+        <FlashcardsSkeleton />
       ) : filteredSets.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
           <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">

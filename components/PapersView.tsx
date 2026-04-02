@@ -1,8 +1,16 @@
 import { Download, Search, FileText, Lock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { PapersSkeleton } from "./Skeleton";
 
 export default function PapersView({ isPremium }: { isPremium?: boolean }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading for better UX transition
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const notes = [
     { title: "Chemistry Notes", url: "https://drive.google.com/drive/folders/1oqBNZAKDbPm3Wv1K1CyzOIWSXclzM-YZ", color: "bg-emerald-50 text-emerald-600 border-emerald-100", premium: false },
@@ -13,6 +21,10 @@ export default function PapersView({ isPremium }: { isPremium?: boolean }) {
     { title: "Social Studies Notes", url: "https://drive.google.com/drive/folders/1gKB6neWwy_XG2mujGu07asw7FDkgtX4I", color: "bg-blue-50 text-blue-600 border-blue-100", premium: true },
     { title: "Physics Notes", url: "https://drive.google.com/drive/folders/1OMJ_UAboIvKS7frqnfk-Bm9mbbrrAYwT", color: "bg-purple-50 text-purple-600 border-purple-100", premium: true }
   ];
+
+  if (loading) {
+    return <PapersSkeleton />;
+  }
 
   const filteredNotes = notes.filter(note => note.title.toLowerCase().includes(searchQuery.toLowerCase()));
 

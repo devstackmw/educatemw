@@ -1,8 +1,19 @@
 "use client";
 import { Clock, CheckCircle2, Circle, Plus, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { StudyPlanSkeleton } from "./Skeleton";
 
 export default function StudyPlanView() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(timer);
+  }, []);
+
   const schedule: any[] = [];
+
+  if (loading) return <StudyPlanSkeleton />;
 
   return (
     <div className="p-6 pt-8 space-y-8">

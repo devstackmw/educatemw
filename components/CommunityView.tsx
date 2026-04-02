@@ -1,12 +1,23 @@
 "use client";
 import { Users, MessageSquare, Heart, Share2, Plus, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CommunitySkeleton } from "./Skeleton";
 
 export default function CommunityView() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const posts = [
     { id: 1, author: "Lumbani Gondwe", time: "2h ago", content: "Does anyone have the 2023 MSCE Biology Paper 2? I'm struggling with the genetics section.", likes: 12, comments: 5 },
     { id: 2, author: "Atusaye Nyasulu", time: "5h ago", content: "Just finished the Physics quiz! Ed-Ai explained the projectile motion so well. Highly recommend!", likes: 24, comments: 2 },
     { id: 3, author: "Kondwani Mwale", time: "1d ago", content: "Good luck to everyone preparing for the mock exams next week. We can do this! 🇲🇼", likes: 45, comments: 10 },
   ];
+
+  if (loading) return <CommunitySkeleton />;
 
   return (
     <div className="flex flex-col h-full bg-slate-50">

@@ -5,7 +5,7 @@ import { db } from "@/firebase";
 import QuizSimulator from "@/components/QuizSimulator";
 import AIQuizGenerator from "@/components/AIQuizGenerator";
 import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
-import LoadingScreen from "@/components/LoadingScreen";
+import { QuizzesSkeleton } from "./Skeleton";
 
 interface Quiz {
   id: string;
@@ -74,7 +74,7 @@ export default function QuizzesView() {
 
         <div className="space-y-4">
           {loading ? (
-            <LoadingScreen message="Loading quizzes..." />
+            <QuizzesSkeleton />
           ) : quizzes.length === 0 ? (
             <div className="text-center py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">
               <p className="text-slate-400 text-sm font-bold">No quizzes available right now.</p>

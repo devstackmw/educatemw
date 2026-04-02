@@ -1,8 +1,19 @@
 "use client";
 import { Archive, FileText, Download, ExternalLink, ChevronRight, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ResourcesSkeleton } from "./Skeleton";
 
 export default function ResourcesView() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   const resources: any[] = [];
+
+  if (loading) return <ResourcesSkeleton />;
 
   return (
     <div className="p-6 pt-8 space-y-8">

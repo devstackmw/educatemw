@@ -33,53 +33,62 @@ export default function App() {
 
   useEffect(() => {
     setHasMounted(true);
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      
-      if (currentUser) {
-        // Automatically switch to home if user is logged in and currently on auth tab
-        setActiveTab((prev) => prev === "auth" ? "home" : prev);
-
-        // Check if user document exists, if not create it
-        const userRef = doc(db, "users", currentUser.uid);
-        
-        // Listen for real-time updates to user data (important for premium status)
-        const unsubUser = onSnapshot(userRef, (docSnap) => {
-          if (docSnap.exists()) {
-            setUserData(docSnap.data());
-          } else {
-            // Create initial user doc if it doesn't exist
-            setDoc(userRef, {
-              uid: currentUser.uid,
-              displayName: currentUser.displayName || "Student",
-              email: currentUser.email || "",
-              phoneNumber: currentUser.phoneNumber || "",
-              photoURL: currentUser.photoURL || "",
-              isPremium: false,
-              createdAt: new Date().toISOString()
-            });
-          }
-        });
-
-        // Test connection to Firestore as recommended
-        try {
-          const { getDocFromServer } = await import("firebase/firestore");
-          await getDocFromServer(userRef);
-        } catch (error) {
-          if (error instanceof Error && error.message.includes("offline")) {
-            console.error("Firestore connection failed: client is offline.");
-          }
-        }
-
-        return () => unsubUser();
-      } else {
+      if (!currentUser) {
         setUserData(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Automatically switch to home if user is logged in and currently on auth tab
+    setActiveTab((prev) => prev === "auth" ? "home" : prev);
+
+    // Check if user document exists, if not create it
+    const userRef = doc(db, "users", user.uid);
+    
+    // Listen for real-time updates to user data (important for premium status)
+    const unsubUser = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setUserData(docSnap.data());
+      } else {
+        // Create initial user doc if it doesn't exist
+        setDoc(userRef, {
+          uid: user.uid,
+          displayName: user.displayName || "Student",
+          email: user.email || "",
+          phoneNumber: user.phoneNumber || "",
+          photoURL: user.photoURL || "",
+          isPremium: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("User data snapshot error:", error);
+      setLoading(false);
+    });
+
+    // Test connection to Firestore as recommended
+    const testConnection = async () => {
+      try {
+        const { getDocFromServer } = await import("firebase/firestore");
+        await getDocFromServer(userRef);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("offline")) {
+          console.error("Firestore connection failed: client is offline.");
+        }
+      }
+    };
+    testConnection();
+
+    return () => unsubUser();
+  }, [user]);
 
   if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;

@@ -1,12 +1,23 @@
 "use client";
 import { Calendar, Clock, AlertCircle, ChevronRight, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ExamDatesSkeleton } from "./Skeleton";
 
 export default function ExamDatesView() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
+
   const exams = [
     { id: 1, name: "MSCE Exams", date: "June 15, 2026", daysLeft: 79, color: "bg-blue-600 shadow-blue-600/20" },
     { id: 2, name: "JCE Exams", date: "July 02, 2026", daysLeft: 96, color: "bg-emerald-600 shadow-emerald-600/20" },
     { id: 3, name: "PSLCE Exams", date: "May 20, 2026", daysLeft: 53, color: "bg-orange-600 shadow-orange-600/20" },
   ];
+
+  if (loading) return <ExamDatesSkeleton />;
 
   return (
     <div className="p-6 pt-8 space-y-8">
