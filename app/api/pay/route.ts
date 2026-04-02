@@ -18,6 +18,8 @@ export async function POST(req: Request) {
     // Generate a unique transaction reference starting with EDUMW-
     const tx_ref = `EDUMW-${userId}-${Date.now()}`;
 
+    const origin = req.headers.get('origin') || "https://educatemw.vercel.app";
+    
     // PayChangu API payload
     const payload = {
       amount: amount,
@@ -25,8 +27,8 @@ export async function POST(req: Request) {
       email: email,
       first_name: firstName || "Student",
       last_name: lastName || "",
-      callback_url: "https://educatemw.vercel.app/api/paychangu-webhook",
-      return_url: "https://educatemw.vercel.app/?payment=success",
+      callback_url: `${origin}/api/paychangu-webhook`,
+      return_url: `${origin}/?payment=success`,
       tx_ref: tx_ref,
       customization: {
         title: "Educate MW Premium",

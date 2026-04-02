@@ -67,10 +67,12 @@
       "properties": {
         "subject": { "type": "string" },
         "topic": { "type": "string" },
+        "form": { "type": "string", "description": "The class level (e.g., Form 1)" },
         "questionsCount": { "type": "number" },
         "timeLimit": { "type": "string" },
         "color": { "type": "string" },
-        "isPremiumOnly": { "type": "boolean" }
+        "isPremiumOnly": { "type": "boolean" },
+        "isAIGenerated": { "type": "boolean" }
       },
       "required": ["subject", "topic", "questionsCount", "timeLimit", "color", "isPremiumOnly"]
     },

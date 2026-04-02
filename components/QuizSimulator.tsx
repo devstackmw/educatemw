@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { collection, onSnapshot, query, doc, getDoc, setDoc, updateDoc, increment, arrayUnion } from "firebase/firestore";
 import { db, auth } from "@/firebase";
-import { X, Timer, CheckCircle, AlertCircle, Trophy, Star, Award, Zap } from "lucide-react";
+import { X, Timer, CheckCircle, AlertCircle, Trophy, Star, Award, Zap, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface Question {
@@ -25,6 +25,8 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   
   // Parse timeLimit string to minutes
   const timeLimitMinutes = parseInt(quiz.timeLimit) || 10;
@@ -52,16 +54,7 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
     setIsFinished(true);
     setSaving(true);
 
-    let calculatedScore = 0;
-    questions.forEach((q, idx) => {
-      if (userAnswers[idx] === q.correctAnswerIndex) {
-        calculatedScore++;
-      }
-    });
-    setScore(calculatedScore);
-
-    const pointsPerCorrect = 10;
-    const totalPoints = calculatedScore * pointsPerCorrect;
+    const totalPoints = score * 10;
     setEarnedPoints(totalPoints);
 
     const user = auth.currentUser;
@@ -72,13 +65,12 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
         const badgesToAward: string[] = [];
 
         // Logic for badges
-        if (calculatedScore === questions.length && questions.length > 0) {
+        if (score === questions.length && questions.length > 0) {
           badgesToAward.push("quiz_master");
           setNewBadge("Quiz Master");
         }
         
         if (totalPoints >= 100) {
-          // Check if they already have 'rising_star'
           const currentBadges = statsDoc.exists() ? (statsDoc.data().earnedBadges || []) : [];
           if (!currentBadges.includes("rising_star")) {
             badgesToAward.push("rising_star");
@@ -108,21 +100,38 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
       }
     }
     setSaving(false);
-  }, [questions, userAnswers, isFinished]);
+  }, [questions, score, isFinished]);
 
   useEffect(() => {
     if (timeLeft > 0 && !isFinished) {
       const timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
       return () => clearInterval(timer);
     } else if (timeLeft === 0 && !isFinished) {
-      finishQuiz();
+      const timer = setTimeout(() => finishQuiz(), 0);
+      return () => clearTimeout(timer);
     }
   }, [timeLeft, isFinished, finishQuiz]);
 
   const handleAnswer = (optionIndex: number) => {
+    if (showFeedback) return;
+
+    const correct = optionIndex === questions[currentQuestionIndex].correctAnswerIndex;
+    setIsCorrect(correct);
+    setShowFeedback(true);
+    
     const newAnswers = [...userAnswers];
     newAnswers[currentQuestionIndex] = optionIndex;
     setUserAnswers(newAnswers);
+
+    if (correct) {
+      setScore(prev => prev + 1);
+    }
+  };
+
+  const nextQuestion = () => {
+    setShowFeedback(false);
+    setIsCorrect(null);
+    setCurrentQuestionIndex(prev => prev + 1);
   };
 
   const formatTime = (seconds: number) => {
@@ -238,56 +247,92 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
         </div>
         
         <div className="grid grid-cols-1 gap-3">
-          {currentQuestion.options.map((option, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleAnswer(idx)}
-              className={`w-full p-5 rounded-3xl border-2 text-left transition-all relative overflow-hidden group ${
-                userAnswers[currentQuestionIndex] === idx 
-                  ? 'border-blue-600 bg-blue-50 text-blue-900' 
-                  : 'border-white bg-white text-slate-600 hover:border-blue-200 shadow-sm'
-              }`}
-            >
-              <div className="flex items-center gap-4 relative z-10">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-colors ${
-                  userAnswers[currentQuestionIndex] === idx 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-slate-100 text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600'
-                }`}>
-                  {String.fromCharCode(65 + idx)}
+          {currentQuestion.options.map((option, idx) => {
+            const isSelected = userAnswers[currentQuestionIndex] === idx;
+            const isCorrectOption = idx === currentQuestion.correctAnswerIndex;
+            
+            let buttonClass = "border-white bg-white text-slate-600 hover:border-blue-200 shadow-sm";
+            if (showFeedback) {
+              if (isCorrectOption) {
+                buttonClass = "border-green-500 bg-green-50 text-green-900";
+              } else if (isSelected && !isCorrectOption) {
+                buttonClass = "border-rose-500 bg-rose-50 text-rose-900";
+              } else {
+                buttonClass = "border-white bg-white text-slate-300 opacity-50";
+              }
+            } else if (isSelected) {
+              buttonClass = "border-blue-600 bg-blue-50 text-blue-900";
+            }
+
+            return (
+              <button
+                key={idx}
+                disabled={showFeedback}
+                onClick={() => handleAnswer(idx)}
+                className={`w-full p-5 rounded-3xl border-2 text-left transition-all relative overflow-hidden group ${buttonClass}`}
+              >
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-colors ${
+                    isSelected 
+                      ? (showFeedback ? (isCorrectOption ? 'bg-green-600' : 'bg-rose-600') : 'bg-blue-600') 
+                      : (showFeedback && isCorrectOption ? 'bg-green-600' : 'bg-slate-100 text-slate-400')
+                  } ${isSelected || (showFeedback && isCorrectOption) ? 'text-white' : ''}`}>
+                    {String.fromCharCode(65 + idx)}
+                  </div>
+                  <span className="font-bold flex-1">{option}</span>
+                  {showFeedback && isCorrectOption && <CheckCircle size={20} className="text-green-600" />}
+                  {showFeedback && isSelected && !isCorrectOption && <AlertCircle size={20} className="text-rose-600" />}
                 </div>
-                <span className="font-bold flex-1">{option}</span>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
+
+        <AnimatePresence>
+          {showFeedback && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`p-6 rounded-[2rem] flex items-center gap-4 ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-rose-100 text-rose-800'}`}
+            >
+              <div className={`p-3 rounded-2xl ${isCorrect ? 'bg-green-200' : 'bg-rose-200'}`}>
+                {isCorrect ? <Zap size={24} className="animate-bounce" /> : <AlertCircle size={24} />}
+              </div>
+              <div>
+                <p className="font-black text-lg">{isCorrect ? 'Brilliant!' : 'Not quite right'}</p>
+                <p className="text-sm font-medium opacity-80">
+                  {isCorrect ? 'You got it correct. Keep going!' : `The correct answer was option ${String.fromCharCode(65 + currentQuestion.correctAnswerIndex)}.`}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Footer Controls */}
       <div className="p-6 bg-white border-t border-slate-100 flex gap-3">
-        <button 
-          disabled={currentQuestionIndex === 0}
-          onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-          className="flex-1 py-4 rounded-2xl font-black border-2 border-slate-100 text-slate-400 disabled:opacity-30 transition-all active:scale-95"
-        >
-          Previous
-        </button>
-        {currentQuestionIndex < questions.length - 1 ? (
-          <button 
-            disabled={userAnswers[currentQuestionIndex] === undefined}
-            onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-            className="flex-[2] py-4 rounded-2xl font-black bg-blue-600 text-white shadow-lg shadow-blue-600/20 disabled:opacity-50 transition-all active:scale-95"
-          >
-            Next Question
-          </button>
+        {!showFeedback ? (
+          <div className="flex-1 text-center py-4 text-slate-400 font-bold text-sm italic">
+            Select an answer to continue
+          </div>
         ) : (
-          <button 
-            disabled={userAnswers[currentQuestionIndex] === undefined}
-            onClick={finishQuiz}
-            className="flex-[2] py-4 rounded-2xl font-black bg-green-600 text-white shadow-lg shadow-green-600/20 disabled:opacity-50 transition-all active:scale-95"
-          >
-            Finish Quiz
-          </button>
+          <>
+            {currentQuestionIndex < questions.length - 1 ? (
+              <button 
+                onClick={nextQuestion}
+                className="w-full py-4 rounded-2xl font-black bg-slate-900 text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                Next Question <ChevronRight size={20} />
+              </button>
+            ) : (
+              <button 
+                onClick={finishQuiz}
+                className="w-full py-4 rounded-2xl font-black bg-green-600 text-white shadow-xl shadow-green-600/20 transition-all active:scale-95"
+              >
+                Finish & See Results
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

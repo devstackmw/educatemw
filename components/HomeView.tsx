@@ -129,6 +129,29 @@ export default function HomeView({ onNavigate, user, onOpenSidebar }: { onNaviga
         </div>
       </div>
 
+      {/* AI Quiz Engine Shortcut */}
+      <div 
+        onClick={() => onNavigate("quizzes")}
+        className="bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 rounded-[2.5rem] p-6 text-white shadow-xl shadow-indigo-600/20 cursor-pointer group active:scale-[0.98] transition-all relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform">
+          <Sparkles size={120} />
+        </div>
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest">New Feature</span>
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-80">AI Powered</span>
+            </div>
+            <h3 className="text-2xl font-black leading-tight">AI Quiz Engine</h3>
+            <p className="text-indigo-100 text-xs font-medium max-w-[200px]">Generate personalized quizzes for your class and topic.</p>
+          </div>
+          <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-indigo-600 transition-all">
+            <ChevronRight size={24} />
+          </div>
+        </div>
+      </div>
+
       {/* Learning Modules - Bento Grid */}
       <div className="space-y-4">
         <div className="flex justify-between items-center px-2">

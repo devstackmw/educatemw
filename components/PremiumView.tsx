@@ -56,7 +56,7 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
           email: user.email || "student@educatemw.com",
           firstName: user.displayName?.split(' ')[0] || "Student",
           lastName: user.displayName?.split(' ').slice(1).join(' ') || "",
-          amount: 5000,
+          amount: 100,
           userId: user.uid,
         }),
       });
@@ -154,10 +154,10 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
 
           <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 mb-8 border border-white/10">
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-black text-white">K5,000</span>
-              <span className="text-slate-400 text-sm font-bold">/ term</span>
+              <span className="text-4xl font-black text-white">K100</span>
+              <span className="text-slate-400 text-sm font-bold">/ month</span>
             </div>
-            <p className="text-slate-400 text-[10px] font-medium mt-2">One-time payment per academic term.</p>
+            <p className="text-slate-400 text-[10px] font-medium mt-2">One-time payment per academic month.</p>
           </div>
 
           <div className="space-y-4 mb-10">
