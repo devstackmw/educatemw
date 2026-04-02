@@ -31,6 +31,16 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "devstackmw@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isPremium() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isPremium == true;
+    }
+
     // ===============================================================
     // Validation Functions
     // ===============================================================
@@ -52,6 +62,16 @@ service cloud.firestore {
              data.lastActiveDate is string;
     }
 
+    function isValidPost(data) {
+      return data.keys().hasAll(['uid', 'authorName', 'content', 'likes', 'commentsCount', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.authorName is string && data.authorName.size() > 0 && data.authorName.size() < 100 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 1000 &&
+             data.likes is number && data.likes >= 0 &&
+             data.commentsCount is number && data.commentsCount >= 0 &&
+             data.createdAt is string;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -61,7 +81,21 @@ service cloud.firestore {
       // Only the owner can read/write their own profile
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.isPremium == false;
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.isPremium == resource.data.isPremium;
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.isPremium == resource.data.isPremium || isAdmin());
+    }
+
+    // Community Posts
+    match /posts/{postId} {
+      // All authenticated users can read posts
+      allow read: if isAuthenticated();
+      // Only premium users can create posts
+      allow create: if isPremium() && isValidPost(request.resource.data);
+      // Only the owner or an admin can delete a post
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.uid || isAdmin());
+      // Users can update likes (only increment/decrement)
+      allow update: if isAuthenticated() && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+                    math.abs(request.resource.data.likes - resource.data.likes) == 1;
     }
 
     // User Stats & Progress

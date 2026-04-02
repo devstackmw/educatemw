@@ -1,4 +1,4 @@
-import { PlayCircle, Clock, CheckCircle2, WifiOff, Sparkles } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle2, WifiOff, Sparkles, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -6,6 +6,7 @@ import QuizSimulator from "@/components/QuizSimulator";
 import AIQuizGenerator from "@/components/AIQuizGenerator";
 import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
 import { QuizzesSkeleton } from "./Skeleton";
+import { ENGLISH_STARTER_QUIZ } from "@/lib/starterQuizzes";
 
 interface Quiz {
   id: string;
@@ -16,6 +17,7 @@ interface Quiz {
   color: string;
   isPremiumOnly: boolean;
   fromCache?: boolean;
+  questions?: any[];
 }
 
 export default function QuizzesView() {
@@ -33,11 +35,14 @@ export default function QuizzesView() {
       snapshot.forEach((doc) => {
         fetchedQuizzes.push({ id: doc.id, ...doc.data(), fromCache: snapshot.metadata.fromCache } as Quiz);
       });
-      setQuizzes(fetchedQuizzes);
+      // Add the starter quiz at the beginning
+      setQuizzes([ENGLISH_STARTER_QUIZ as any, ...fetchedQuizzes]);
       setIsOffline(snapshot.metadata.fromCache);
       setLoading(false);
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, "quizzes");
+      // Still show starter quiz on error
+      setQuizzes([ENGLISH_STARTER_QUIZ as any]);
       setLoading(false);
     });
 
@@ -51,11 +56,18 @@ export default function QuizzesView() {
     <div className="p-4 space-y-6">
       <AIQuizGenerator onQuizGenerated={(quiz) => setSelectedQuiz(quiz)} />
 
-      <div className="bg-indigo-600 rounded-xl p-5 text-white shadow-md shadow-indigo-600/10">
-        <h2 className="text-xl font-bold mb-1">Daily Challenge</h2>
-        <p className="text-indigo-100 text-xs mb-4 font-medium opacity-90">Test your knowledge on MSCE Physical Science and earn points!</p>
-        <button className="bg-white text-indigo-600 px-4 py-2.5 rounded-lg text-xs font-bold w-full flex items-center justify-center gap-2 hover:bg-indigo-50 transition-all active:scale-[0.98]">
-          <PlayCircle size={16} /> Start Challenge
+      <div className="bg-indigo-600 rounded-xl p-5 text-white shadow-md shadow-indigo-600/10 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+        <h2 className="text-xl font-bold mb-1 flex items-center gap-2">
+          <BookOpen size={20} className="text-indigo-200" />
+          English Starter Quiz
+        </h2>
+        <p className="text-indigo-100 text-[10px] mb-4 font-bold uppercase tracking-widest opacity-90">MSCE Grammar & Vocabulary Mastery</p>
+        <button 
+          onClick={() => setSelectedQuiz(ENGLISH_STARTER_QUIZ as any)}
+          className="bg-white text-indigo-600 px-4 py-3 rounded-xl text-xs font-black w-full flex items-center justify-center gap-2 hover:bg-indigo-50 transition-all active:scale-[0.98] shadow-lg shadow-indigo-900/20"
+        >
+          <PlayCircle size={18} /> Start Starter Quiz
         </button>
       </div>
 

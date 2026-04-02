@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { db } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
-
 export default function AIFlashcardGenerator({ onSetGenerated }: { onSetGenerated: (set: any) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [topic, setTopic] = useState("");
@@ -20,6 +18,7 @@ export default function AIFlashcardGenerator({ onSetGenerated }: { onSetGenerate
     setError("");
 
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Generate a set of 10 flashcards for MSCE students in Malawi on the topic: ${topic}. 

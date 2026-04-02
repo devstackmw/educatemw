@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { GoogleGenAI } from "@google/genai";
-import { Send, Loader2, BrainCircuit, User, Copy, CheckCircle, AlertCircle } from "lucide-react";
+import { Send, Loader2, BrainCircuit, User, Copy, CheckCircle, AlertCircle, Zap } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -16,7 +16,7 @@ export default function AskTeacherAI({ isPremium }: { isPremium?: boolean }) {
 
   // Simple local counter for free users (resets on refresh, but good for UX)
   const [freeQuestionsCount, setFreeQuestionsCount] = useState(0);
-  const FREE_LIMIT = 3;
+  const FREE_LIMIT = 2;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,7 +38,7 @@ export default function AskTeacherAI({ isPremium }: { isPremium?: boolean }) {
     if (!isPremium && freeQuestionsCount >= FREE_LIMIT) {
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "You've reached your free daily limit of 3 questions. Upgrade to **Educate MW PRO** for unlimited access to your AI Teacher!" 
+        text: "You've reached your free limit of 2 questions. Upgrade to **Educate MW PRO** to have AI without limit on Cleo AI! [Upgrade Now](premium)" 
       }]);
       return;
     }
@@ -113,7 +113,29 @@ Use Markdown for clear formatting.`
             <div className={`group relative p-4 rounded-2xl max-w-[95%] shadow-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'}`}>
               {msg.role === 'ai' ? (
                 <div className="prose prose-xs prose-slate max-w-none prose-p:leading-relaxed prose-headings:font-bold prose-headings:text-slate-800 prose-strong:text-blue-600 prose-code:bg-slate-100 prose-code:p-0.5 prose-code:rounded prose-li:marker:text-blue-500">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ node, ...props }) => {
+                        if (props.href === 'premium') {
+                          return (
+                            <button 
+                              onClick={() => {
+                                // We need to pass onNavigate to this component
+                                // For now, let's assume it's available or use a window event
+                                window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+                              }}
+                              className="bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold text-[10px] shadow-sm shadow-amber-500/20 active:scale-95 transition-all inline-flex items-center gap-1 mt-2"
+                            >
+                              <Zap size={10} fill="currentColor" />
+                              Upgrade to PRO
+                            </button>
+                          );
+                        }
+                        return <a {...props} className="text-blue-600 hover:underline" />;
+                      }
+                    }}
+                  >
                     {msg.text}
                   </ReactMarkdown>
                 </div>

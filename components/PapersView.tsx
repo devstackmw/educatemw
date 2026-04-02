@@ -1,4 +1,4 @@
-import { Download, Search, FileText, Lock } from "lucide-react";
+import { Download, Search, FileText, Lock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PapersSkeleton } from "./Skeleton";
 
@@ -35,7 +35,7 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
   );
 
   const handleLockedClick = () => {
-    if (onNavigate) onNavigate("premium");
+    window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
   };
 
   return (
@@ -105,7 +105,18 @@ function NoteLink({ title, url, color, isLocked, onLockedClick }: { title: strin
         </div>
         <div className="flex flex-col">
           <span className="font-bold text-xs">{title}</span>
-          {isLocked && <span className="text-[8px] font-bold uppercase tracking-widest text-amber-600">Pro Feature</span>}
+          {isLocked && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onLockedClick();
+              }}
+              className="mt-1 bg-amber-500 text-white text-[7px] font-black px-2 py-1 rounded-md shadow-sm shadow-amber-500/20 flex items-center gap-1 w-fit"
+            >
+              <Zap size={8} fill="currentColor" />
+              Pay to Unlock
+            </button>
+          )}
         </div>
       </div>
       {!isLocked && <Download size={16} />}

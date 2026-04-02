@@ -1,18 +1,20 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase";
 import { User as FirebaseUser } from "firebase/auth";
-import { Loader2, Save, User, Trophy, Award, Star, Zap, Check } from "lucide-react";
+import { Loader2, Save, User, Trophy, Award, Star, Zap, Check, Camera, Upload } from "lucide-react";
 import { AVATARS } from "@/lib/avatars";
 import { ProfileSkeleton } from "./Skeleton";
+import Image from "next/image";
 
-export default function ProfileView({ user }: { user: FirebaseUser | null }) {
+export default function ProfileView({ user, isPremium }: { user: FirebaseUser | null, isPremium?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
-  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1" });
-  const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[] });
+  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "" });
+  const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[], photoURL: "" });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -26,7 +28,8 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
         setProfile({ 
           nickname: data.nickname || "", 
           realName: data.realName || "",
-          avatarId: data.avatarId || "girl_1"
+          avatarId: data.avatarId || "girl_1",
+          photoURL: data.photoURL || ""
         });
       }
       setLoading(false);
@@ -37,15 +40,39 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
     const statsRef = doc(db, "userStats", user.uid);
     const unsubscribe = onSnapshot(statsRef, (snapshot) => {
       if (snapshot.exists()) {
+        const data = snapshot.data();
         setStats({
-          points: snapshot.data().points || 0,
-          earnedBadges: snapshot.data().earnedBadges || []
+          points: data.points || 0,
+          earnedBadges: data.earnedBadges || [],
+          photoURL: data.photoURL || ""
         });
       }
     });
 
     return () => unsubscribe();
   }, [user]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isPremium) {
+      alert("Profile picture upload is a PRO feature. Join your friends in premium to unlock this!");
+      window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+      return;
+    }
+
+    if (file.size > 500 * 1024) { // 500KB limit for base64 in Firestore
+      alert("Image is too large. Please choose an image smaller than 500KB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfile(prev => ({ ...prev, photoURL: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -55,11 +82,12 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, profile);
       
-      // Also update userStats if nickname or avatar changed
+      // Also update userStats if nickname or avatar or photo changed
       const statsRef = doc(db, "userStats", user.uid);
       await updateDoc(statsRef, {
         displayName: profile.nickname || profile.realName || user.displayName || "Student",
-        avatarId: profile.avatarId
+        avatarId: profile.avatarId,
+        photoURL: profile.photoURL
       });
 
       setSaveStatus("Profile updated successfully!");
@@ -102,21 +130,57 @@ export default function ProfileView({ user }: { user: FirebaseUser | null }) {
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse"></div>
         
         <div className="relative z-10 flex flex-col items-center text-center mb-6">
-          <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-xl mb-4 group transition-transform hover:scale-105">
-            <div className="w-full h-full p-3">
-              {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
+          <div className="relative group">
+            <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-xl mb-4 transition-transform hover:scale-105">
+              <div className="w-full h-full relative">
+                {profile.photoURL ? (
+                  <Image 
+                    src={profile.photoURL} 
+                    alt="Profile" 
+                    fill 
+                    className="object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full p-3">
+                    {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
+                  </div>
+                )}
+              </div>
             </div>
+            
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className={`absolute -bottom-1 -right-1 p-2 rounded-xl shadow-lg transition-all active:scale-90 ${
+                isPremium ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-700 text-slate-400"
+              }`}
+            >
+              {isPremium ? <Camera size={14} /> : <Zap size={14} fill="currentColor" className="text-amber-400" />}
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept="image/*" 
+              className="hidden" 
+            />
           </div>
-          <h3 className="text-xl font-bold tracking-tight">{profile.nickname || profile.realName || "Student"}</h3>
+
+          <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+            {profile.nickname || profile.realName || "Student"}
+            {isPremium && (
+              <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-orange-500/20 animate-pulse">PRO</span>
+            )}
+          </h3>
           <p className="text-blue-400 font-bold text-[9px] uppercase tracking-[0.2em] mt-0.5">MSCE Candidate</p>
         </div>
 
         <div className="relative z-10 grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5">
+          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
             <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Total Points</p>
             <p className="text-lg font-mono font-bold text-blue-400">{stats.points.toLocaleString()}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5">
+          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
             <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Badges</p>
             <p className="text-lg font-mono font-bold text-amber-400">{stats.earnedBadges.length}</p>
           </div>

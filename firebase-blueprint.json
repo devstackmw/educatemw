@@ -163,12 +163,31 @@
         "back": { "type": "string" }
       },
       "required": ["front", "back"]
+    },
+    "Post": {
+      "title": "Community Post",
+      "description": "A post shared by a user in the community.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "content": { "type": "string" },
+        "likes": { "type": "number" },
+        "commentsCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "authorName", "content", "likes", "commentsCount", "createdAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Stores user profiles."
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Stores community posts."
     },
     "/userStats/{userId}": {
       "schema": { "$ref": "#/entities/UserStats" },

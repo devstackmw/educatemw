@@ -18,6 +18,8 @@ import ResourcesView from "@/components/ResourcesView";
 import Sidebar from "@/components/Sidebar";
 import LoadingScreen from "@/components/LoadingScreen";
 import InstallPWA from "@/components/InstallPWA";
+import PrivacyPolicyView from "@/components/PrivacyPolicyView";
+import TermsOfServiceView from "@/components/TermsOfServiceView";
 import { AnimatePresence, motion } from "motion/react";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
@@ -31,6 +33,14 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+
+  useEffect(() => {
+    const handleNavigate = (e: any) => {
+      setActiveTab(e.detail);
+    };
+    window.addEventListener('navigate', handleNavigate);
+    return () => window.removeEventListener('navigate', handleNavigate);
+  }, []);
 
   useEffect(() => {
     setHasMounted(true);
@@ -106,18 +116,20 @@ export default function App() {
 
   const renderView = () => {
     switch (activeTab) {
-      case "home": return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
+      case "home": return <HomeView onNavigate={setActiveTab} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />;
       case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={setActiveTab} />;
       case "quizzes": return <QuizzesView />;
-      case "profile": return <ProfileView user={user} />;
+      case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
       case "flashcards": return <FlashcardView />;
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
-      case "community": return <CommunityView />;
+      case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={setActiveTab} />;
       case "study_plan": return <StudyPlanView />;
       case "resources": return <ResourcesView />;
       case "settings": return <SettingsView onNavigate={setActiveTab} />;
+      case "privacy": return <PrivacyPolicyView onBack={() => setActiveTab("settings")} />;
+      case "terms": return <TermsOfServiceView onBack={() => setActiveTab("settings")} />;
       case "auth": return <AuthView onLogin={() => setActiveTab("home")} />;
       case "ai": return <AskTeacherAI isPremium={userData?.isPremium} />;
       default: return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
@@ -159,6 +171,8 @@ export default function App() {
         activeTab={activeTab} 
         onNavigate={setActiveTab} 
         user={user} 
+        userData={userData}
+        isPremium={userData?.isPremium}
       />
 
       {/* Main Content Area */}

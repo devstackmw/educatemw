@@ -9,6 +9,7 @@ interface Question {
   text: string;
   options: string[];
   correctAnswerIndex: number;
+  explanation?: string;
 }
 
 interface Quiz {
@@ -19,10 +20,11 @@ interface Quiz {
   timeLimit: string; // e.g., "10 mins"
   color: string;
   isPremiumOnly: boolean;
+  questions?: Question[];
 }
 
 export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: () => void }) {
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<Question[]>(quiz.questions || []);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -38,6 +40,10 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (quiz.questions && quiz.questions.length > 0) {
+      return;
+    }
+
     const q = query(collection(db, `quizzes/${quiz.id}/questions`));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const questionsData: Question[] = [];
@@ -47,7 +53,7 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
       setQuestions(questionsData);
     });
     return () => unsubscribe();
-  }, [quiz.id]);
+  }, [quiz.id, quiz.questions]);
 
   const finishQuiz = useCallback(async () => {
     if (isFinished) return;
@@ -303,6 +309,11 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
                 <p className="text-sm font-medium opacity-80">
                   {isCorrect ? 'You got it correct. Keep going!' : `The correct answer was option ${String.fromCharCode(65 + currentQuestion.correctAnswerIndex)}.`}
                 </p>
+                {currentQuestion.explanation && (
+                  <p className="text-[10px] mt-2 font-bold bg-black/10 p-2 rounded-lg italic">
+                    {currentQuestion.explanation}
+                  </p>
+                )}
               </div>
             </motion.div>
           )}

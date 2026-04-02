@@ -7,8 +7,6 @@ import { db } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { CURRICULUM, Subject, Topic } from "@/lib/curriculum";
 
-const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
-
 export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: (quiz: any) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"form" | "subject" | "topic" | "generating">("form");
@@ -35,6 +33,7 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
     setError("");
 
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Generate a 5-question multiple choice quiz for ${selectedForm} students in Malawi on the subject ${selectedSubject.name} and topic: ${selectedTopic.name}. 

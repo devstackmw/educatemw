@@ -1,5 +1,5 @@
 "use client";
-import { Settings, Bell, Shield, Moon, Globe, HelpCircle, ChevronRight, LogOut } from "lucide-react";
+import { Settings, Bell, Shield, Moon, Globe, HelpCircle, ChevronRight, LogOut, FileText } from "lucide-react";
 import { auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 
@@ -26,12 +26,25 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
       ]
     },
     {
+      title: "Legal",
+      items: [
+        { id: "privacy", label: "Privacy Policy", icon: <Shield size={20} />, color: "text-blue-600 bg-blue-50" },
+        { id: "terms", label: "Terms of Service", icon: <FileText size={20} />, color: "text-slate-600 bg-slate-50" },
+      ]
+    },
+    {
       title: "Support",
       items: [
         { id: "help", label: "Help Center", icon: <HelpCircle size={20} />, color: "text-slate-600 bg-slate-50" },
       ]
     }
   ];
+
+  const handleItemClick = (id: string) => {
+    if (id === "profile") onNavigate("profile");
+    if (id === "privacy") onNavigate("privacy");
+    if (id === "terms") onNavigate("terms");
+  };
 
   return (
     <div className="p-4 pt-6 space-y-6">
@@ -51,7 +64,7 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
               {group.items.map((item, idx) => (
                 <button 
                   key={item.id}
-                  onClick={() => item.id === "profile" && onNavigate("profile")}
+                  onClick={() => handleItemClick(item.id)}
                   className={`w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${idx !== group.items.length - 1 ? "border-b border-slate-50" : ""}`}
                 >
                   <div className="flex items-center gap-3">

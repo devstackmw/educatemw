@@ -11,15 +11,20 @@ import { signOut } from "firebase/auth";
 
 import { AppIcon } from "./AppLogo";
 
+import { AVATARS } from "@/lib/avatars";
+import Image from "next/image";
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   activeTab: string;
   onNavigate: (tab: string) => void;
   user: any;
+  userData?: any;
+  isPremium?: boolean;
 }
 
-export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, userData, isPremium }: SidebarProps) {
   const handleLogout = async () => {
     await signOut(auth);
     onNavigate("auth");
@@ -74,21 +79,43 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user }
             {/* User Profile Summary */}
             <div className="p-4 bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-                  <User size={20} />
+                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 overflow-hidden relative">
+                  {userData?.photoURL ? (
+                    <Image 
+                      src={userData.photoURL} 
+                      alt="" 
+                      fill 
+                      className="object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-2">
+                      {AVATARS.find(a => a.id === userData?.avatarId)?.svg || <User size={20} />}
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-slate-800 truncate text-sm">{user?.displayName || "Student"}</h3>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Free Account</p>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-bold text-slate-800 truncate text-sm">{userData?.nickname || userData?.realName || user?.displayName || "Student"}</h3>
+                    {isPremium && (
+                      <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md shadow-sm shadow-orange-500/20">PRO</span>
+                    )}
+                  </div>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{isPremium ? "Pro Account" : "Free Account"}</p>
                 </div>
               </div>
-              <button 
-                onClick={() => { onNavigate("premium"); onClose(); }}
-                className="mt-3 w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white py-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/10 active:scale-95 transition-all"
-              >
-                <Zap size={12} fill="currentColor" />
-                Upgrade to Pro
-              </button>
+              {!isPremium && (
+                <button 
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+                    onClose();
+                  }}
+                  className="mt-3 w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white py-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/10 active:scale-95 transition-all"
+                >
+                  <Zap size={12} fill="currentColor" />
+                  Upgrade to Pro
+                </button>
+              )}
             </div>
 
             {/* Navigation Items */}
