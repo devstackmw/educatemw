@@ -12,6 +12,7 @@ import FlashcardView from "@/components/FlashcardView";
 import LeaderboardView from "@/components/LeaderboardView";
 import ExamDatesView from "@/components/ExamDatesView";
 import CommunityView from "@/components/CommunityView";
+import TimetableView from "@/components/TimetableView";
 import SettingsView from "@/components/SettingsView";
 import StudyPlanView from "@/components/StudyPlanView";
 import ResourcesView from "@/components/ResourcesView";
@@ -152,6 +153,7 @@ export default function App() {
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
       case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
+      case "timetable": return <TimetableView onClose={() => navigateTo("home")} />;
       case "study_plan": return <StudyPlanView />;
       case "resources": return <ResourcesView />;
       case "settings": return <SettingsView onNavigate={navigateTo} />;

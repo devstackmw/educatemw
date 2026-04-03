@@ -41,6 +41,7 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
     { id: "leaderboard", label: "Leaderboard", icon: <Trophy size={20} /> },
     { id: "exams", label: "Exam Countdown", icon: <Calendar size={20} /> },
     { id: "community", label: "Community", icon: <Users size={20} /> },
+    { id: "timetable", label: "Student Timetable", icon: <Calendar size={20} /> },
     { id: "ai", label: "Cleo AI Assistant", icon: <MessageSquare size={20} /> },
   ];
 
