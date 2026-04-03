@@ -20,13 +20,14 @@ import LoadingScreen from "@/components/LoadingScreen";
 import InstallPWA from "@/components/InstallPWA";
 import PrivacyPolicyView from "@/components/PrivacyPolicyView";
 import TermsOfServiceView from "@/components/TermsOfServiceView";
+import LandingView from "@/components/LandingView";
 import { AnimatePresence, motion } from "motion/react";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState("auth");
+  const [activeTab, setActiveTab] = useState("landing");
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,7 @@ export default function App() {
       } else if (user) {
         setActiveTab("home");
       } else {
-        setActiveTab("auth");
+        setActiveTab("landing");
       }
     };
 
@@ -75,10 +76,22 @@ export default function App() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
+    // Handle initial URL path for Google Verification
+    const path = window.location.pathname;
+    if (path === '/privacy') {
+      setActiveTab('privacy');
+    } else if (path === '/terms') {
+      setActiveTab('terms');
+    } else if (path === '/home') {
+      setActiveTab('landing');
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
         setUserData(null);
+        // If not logged in, and not on a legal page, show landing
+        setActiveTab((prev) => (prev === 'privacy' || prev === 'terms') ? prev : 'landing');
         setLoading(false);
       }
     });
@@ -88,8 +101,8 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
 
-    // Automatically switch to home if user is logged in and currently on auth tab
-    if (activeTab === "auth") {
+    // Automatically switch to home if user is logged in and currently on auth/landing tab
+    if (activeTab === "auth" || activeTab === "landing") {
       navigateTo("home", false);
     }
 
@@ -152,9 +165,10 @@ export default function App() {
       case "study_plan": return <StudyPlanView />;
       case "resources": return <ResourcesView />;
       case "settings": return <SettingsView onNavigate={navigateTo} />;
-      case "privacy": return <PrivacyPolicyView onBack={() => navigateTo("settings")} />;
-      case "terms": return <TermsOfServiceView onBack={() => navigateTo("settings")} />;
+      case "privacy": return <PrivacyPolicyView onBack={() => navigateTo(user ? "settings" : "landing")} />;
+      case "terms": return <TermsOfServiceView onBack={() => navigateTo(user ? "settings" : "landing")} />;
       case "auth": return <AuthView onLogin={() => navigateTo("home")} />;
+      case "landing": return <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />;
       case "ai": return <AskTeacherAI isPremium={userData?.isPremium} />;
       default: return <HomeView onNavigate={navigateTo} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
     }

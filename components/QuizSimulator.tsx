@@ -121,7 +121,12 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
   const handleAnswer = (optionIndex: number) => {
     if (showFeedback) return;
 
-    const correct = optionIndex === questions[currentQuestionIndex].correctAnswerIndex;
+    const currentQ = questions[currentQuestionIndex];
+    const correctIdx = currentQ.correctAnswerIndex !== undefined 
+      ? currentQ.correctAnswerIndex 
+      : (currentQ as any).correctAnswer;
+      
+    const correct = optionIndex === correctIdx;
     setIsCorrect(correct);
     setShowFeedback(true);
     
@@ -214,6 +219,12 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
   );
 
   const currentQuestion = questions[currentQuestionIndex];
+  const questionText = currentQuestion?.text || (currentQuestion as any)?.question || "Question text missing";
+  const options = currentQuestion?.options || [];
+  const correctAnswerIdx = currentQuestion?.correctAnswerIndex !== undefined 
+    ? currentQuestion.correctAnswerIndex 
+    : (currentQuestion as any)?.correctAnswer;
+    
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
@@ -253,14 +264,14 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
             </span>
           </div>
           <h3 className="text-2xl font-black text-slate-800 leading-tight tracking-tight">
-            {currentQuestion.text}
+            {questionText}
           </h3>
         </div>
         
         <div className="grid grid-cols-1 gap-3">
-          {currentQuestion.options.map((option, idx) => {
+          {options.map((option, idx) => {
             const isSelected = userAnswers[currentQuestionIndex] === idx;
-            const isCorrectOption = idx === currentQuestion.correctAnswerIndex;
+            const isCorrectOption = idx === correctAnswerIdx;
             
             let buttonClass = "border-slate-100 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/30 shadow-sm";
             let iconClass = "bg-slate-100 text-slate-400";
@@ -325,7 +336,7 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
                 <div className="space-y-2">
                   <p className="font-black text-xl leading-none">{isCorrect ? 'Excellent!' : 'Keep Learning'}</p>
                   <p className="text-sm font-bold opacity-70 leading-relaxed">
-                    {isCorrect ? 'Your answer is correct.' : `The correct answer is ${String.fromCharCode(65 + currentQuestion.correctAnswerIndex)}.`}
+                    {isCorrect ? 'Your answer is correct.' : `The correct answer is ${String.fromCharCode(65 + correctAnswerIdx)}.`}
                   </p>
                   
                   {currentQuestion.explanation && (
