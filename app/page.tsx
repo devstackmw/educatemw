@@ -76,16 +76,6 @@ export default function App() {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // Handle initial URL path for Google Verification
-    const path = window.location.pathname;
-    if (path === '/privacy') {
-      setActiveTab('privacy');
-    } else if (path === '/terms') {
-      setActiveTab('terms');
-    } else if (path === '/home') {
-      setActiveTab('landing');
-    }
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
