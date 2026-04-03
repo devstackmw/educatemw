@@ -35,8 +35,30 @@ export default function App() {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
 
   useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.tab) {
+        setActiveTab(event.state.tab);
+      } else if (user) {
+        setActiveTab("home");
+      } else {
+        setActiveTab("auth");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [user]);
+
+  const navigateTo = (tab: string, pushState = true) => {
+    setActiveTab(tab);
+    if (pushState) {
+      window.history.pushState({ tab }, "", "");
+    }
+  };
+
+  useEffect(() => {
     const handleNavigate = (e: any) => {
-      setActiveTab(e.detail);
+      navigateTo(e.detail);
     };
     window.addEventListener('navigate', handleNavigate);
     return () => window.removeEventListener('navigate', handleNavigate);
@@ -67,7 +89,9 @@ export default function App() {
     if (!user) return;
 
     // Automatically switch to home if user is logged in and currently on auth tab
-    setActiveTab((prev) => prev === "auth" ? "home" : prev);
+    if (activeTab === "auth") {
+      navigateTo("home", false);
+    }
 
     // Check if user document exists, if not create it
     const userRef = doc(db, "users", user.uid);
@@ -108,7 +132,7 @@ export default function App() {
     testConnection();
 
     return () => unsubUser();
-  }, [user]);
+  }, [user, activeTab]);
 
   if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;
@@ -116,23 +140,23 @@ export default function App() {
 
   const renderView = () => {
     switch (activeTab) {
-      case "home": return <HomeView onNavigate={setActiveTab} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />;
-      case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={setActiveTab} />;
+      case "home": return <HomeView onNavigate={navigateTo} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />;
+      case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
       case "quizzes": return <QuizzesView />;
       case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
       case "flashcards": return <FlashcardView />;
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
-      case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={setActiveTab} />;
+      case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
       case "study_plan": return <StudyPlanView />;
       case "resources": return <ResourcesView />;
-      case "settings": return <SettingsView onNavigate={setActiveTab} />;
-      case "privacy": return <PrivacyPolicyView onBack={() => setActiveTab("settings")} />;
-      case "terms": return <TermsOfServiceView onBack={() => setActiveTab("settings")} />;
-      case "auth": return <AuthView onLogin={() => setActiveTab("home")} />;
+      case "settings": return <SettingsView onNavigate={navigateTo} />;
+      case "privacy": return <PrivacyPolicyView onBack={() => navigateTo("settings")} />;
+      case "terms": return <TermsOfServiceView onBack={() => navigateTo("settings")} />;
+      case "auth": return <AuthView onLogin={() => navigateTo("home")} />;
       case "ai": return <AskTeacherAI isPremium={userData?.isPremium} />;
-      default: return <HomeView onNavigate={setActiveTab} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
+      default: return <HomeView onNavigate={navigateTo} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
     }
   };
 
@@ -169,14 +193,14 @@ export default function App() {
         isOpen={isSidebarOpen} 
         onClose={() => setIsSidebarOpen(false)} 
         activeTab={activeTab} 
-        onNavigate={setActiveTab} 
+        onNavigate={navigateTo} 
         user={user} 
         userData={userData}
         isPremium={userData?.isPremium}
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' && activeTab !== 'home' ? 'pt-16' : ''} ${isMainTab ? 'pb-20' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' && activeTab !== 'home' ? 'pt-16' : ''} ${isMainTab ? 'pb-16' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -193,26 +217,26 @@ export default function App() {
 
       {/* TikTok Style Bottom Navigation */}
       {activeTab !== 'auth' && isMainTab && (
-        <nav className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-xl text-white flex justify-around items-center py-1.5 px-3 rounded-2xl border border-white/10 shadow-xl w-[85%] max-w-sm">
-          <NavItem icon={<Home size={16} />} label="Home" isActive={activeTab === "home"} onClick={() => setActiveTab("home")} />
-          <NavItem icon={<BookOpen size={16} />} label="Library" isActive={activeTab === "papers"} onClick={() => setActiveTab("papers")} />
+        <nav className="absolute bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl text-white flex justify-around items-center py-2 px-4 border-t border-white/10 shadow-xl w-full">
+          <NavItem icon={<Home size={18} />} label="Home" isActive={activeTab === "home"} onClick={() => navigateTo("home")} />
+          <NavItem icon={<BookOpen size={18} />} label="Library" isActive={activeTab === "papers"} onClick={() => navigateTo("papers")} />
           
           {/* Prominent Cleo AI Button */}
           <div className="relative">
             <button 
-              onClick={() => setActiveTab("ai")}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
+              onClick={() => navigateTo("ai")}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
                 activeTab === "ai" 
                 ? "bg-blue-600 scale-105" 
                 : "bg-gradient-to-tr from-blue-600 to-indigo-600 hover:scale-105"
               }`}
             >
-              <Sparkles size={18} className="text-white" />
+              <Sparkles size={20} className="text-white" />
             </button>
           </div>
 
-          <NavItem icon={<Trophy size={16} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => setActiveTab("leaderboard")} />
-          <NavItem icon={<User size={16} />} label="Me" isActive={activeTab === "profile"} onClick={() => setActiveTab("profile")} />
+          <NavItem icon={<Trophy size={18} />} label="Rank" isActive={activeTab === "leaderboard"} onClick={() => navigateTo("leaderboard")} />
+          <NavItem icon={<User size={18} />} label="Me" isActive={activeTab === "profile"} onClick={() => navigateTo("profile")} />
         </nav>
       )}
 
@@ -241,7 +265,7 @@ export default function App() {
               <button 
                 onClick={() => {
                   setShowPaymentSuccess(false);
-                  setActiveTab("home");
+                  navigateTo("home");
                 }}
                 className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"
               >

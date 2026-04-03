@@ -242,12 +242,17 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
       </div>
 
       {/* Question Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-2xl mx-auto w-full">
         <div className="space-y-4">
-          <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-            Question {currentQuestionIndex + 1} of {questions.length}
-          </span>
-          <h3 className="text-2xl font-black text-slate-800 leading-tight">
+          <div className="flex items-center gap-2">
+            <span className="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm">
+              Question {currentQuestionIndex + 1}
+            </span>
+            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+              / {questions.length}
+            </span>
+          </div>
+          <h3 className="text-2xl font-black text-slate-800 leading-tight tracking-tight">
             {currentQuestion.text}
           </h3>
         </div>
@@ -257,17 +262,23 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
             const isSelected = userAnswers[currentQuestionIndex] === idx;
             const isCorrectOption = idx === currentQuestion.correctAnswerIndex;
             
-            let buttonClass = "border-white bg-white text-slate-600 hover:border-blue-200 shadow-sm";
+            let buttonClass = "border-slate-100 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/30 shadow-sm";
+            let iconClass = "bg-slate-100 text-slate-400";
+
             if (showFeedback) {
               if (isCorrectOption) {
-                buttonClass = "border-green-500 bg-green-50 text-green-900";
+                buttonClass = "border-emerald-500 bg-emerald-50 text-emerald-900 shadow-emerald-100";
+                iconClass = "bg-emerald-600 text-white";
               } else if (isSelected && !isCorrectOption) {
-                buttonClass = "border-rose-500 bg-rose-50 text-rose-900";
+                buttonClass = "border-rose-500 bg-rose-50 text-rose-900 shadow-rose-100";
+                iconClass = "bg-rose-600 text-white";
               } else {
-                buttonClass = "border-white bg-white text-slate-300 opacity-50";
+                buttonClass = "border-slate-50 bg-slate-50/50 text-slate-300 opacity-60";
+                iconClass = "bg-slate-100 text-slate-200";
               }
             } else if (isSelected) {
-              buttonClass = "border-blue-600 bg-blue-50 text-blue-900";
+              buttonClass = "border-blue-600 bg-blue-50 text-blue-900 shadow-blue-100";
+              iconClass = "bg-blue-600 text-white";
             }
 
             return (
@@ -275,20 +286,22 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
                 key={idx}
                 disabled={showFeedback}
                 onClick={() => handleAnswer(idx)}
-                className={`w-full p-5 rounded-3xl border-2 text-left transition-all relative overflow-hidden group ${buttonClass}`}
+                className={`w-full p-4 rounded-2xl border-2 text-left transition-all duration-200 relative overflow-hidden group flex items-center gap-4 ${buttonClass}`}
               >
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-colors ${
-                    isSelected 
-                      ? (showFeedback ? (isCorrectOption ? 'bg-green-600' : 'bg-rose-600') : 'bg-blue-600') 
-                      : (showFeedback && isCorrectOption ? 'bg-green-600' : 'bg-slate-100 text-slate-400')
-                  } ${isSelected || (showFeedback && isCorrectOption) ? 'text-white' : ''}`}>
-                    {String.fromCharCode(65 + idx)}
-                  </div>
-                  <span className="font-bold flex-1">{option}</span>
-                  {showFeedback && isCorrectOption && <CheckCircle size={20} className="text-green-600" />}
-                  {showFeedback && isSelected && !isCorrectOption && <AlertCircle size={20} className="text-rose-600" />}
+                <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center font-black text-sm transition-all duration-300 ${iconClass}`}>
+                  {String.fromCharCode(65 + idx)}
                 </div>
+                <span className="font-bold text-sm flex-1 leading-snug">{option}</span>
+                {showFeedback && isCorrectOption && (
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-emerald-100 text-emerald-600 p-1 rounded-full">
+                    <CheckCircle size={18} fill="currentColor" className="text-white" />
+                  </motion.div>
+                )}
+                {showFeedback && isSelected && !isCorrectOption && (
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-rose-100 text-rose-600 p-1 rounded-full">
+                    <AlertCircle size={18} fill="currentColor" className="text-white" />
+                  </motion.div>
+                )}
               </button>
             );
           })}
@@ -297,23 +310,33 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
         <AnimatePresence>
           {showFeedback && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`p-6 rounded-[2rem] flex items-center gap-4 ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-rose-100 text-rose-800'}`}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className={`p-6 rounded-3xl border-2 shadow-xl ${
+                isCorrect 
+                  ? 'bg-emerald-50 border-emerald-100 text-emerald-900 shadow-emerald-900/5' 
+                  : 'bg-rose-50 border-rose-100 text-rose-900 shadow-rose-900/5'
+              }`}
             >
-              <div className={`p-3 rounded-2xl ${isCorrect ? 'bg-green-200' : 'bg-rose-200'}`}>
-                {isCorrect ? <Zap size={24} className="animate-bounce" /> : <AlertCircle size={24} />}
-              </div>
-              <div>
-                <p className="font-black text-lg">{isCorrect ? 'Brilliant!' : 'Not quite right'}</p>
-                <p className="text-sm font-medium opacity-80">
-                  {isCorrect ? 'You got it correct. Keep going!' : `The correct answer was option ${String.fromCharCode(65 + currentQuestion.correctAnswerIndex)}.`}
-                </p>
-                {currentQuestion.explanation && (
-                  <p className="text-[10px] mt-2 font-bold bg-black/10 p-2 rounded-lg italic">
-                    {currentQuestion.explanation}
+              <div className="flex items-start gap-4">
+                <div className={`p-3 rounded-2xl shrink-0 ${isCorrect ? 'bg-emerald-200 text-emerald-700' : 'bg-rose-200 text-rose-700'}`}>
+                  {isCorrect ? <Zap size={24} className="animate-pulse" /> : <AlertCircle size={24} />}
+                </div>
+                <div className="space-y-2">
+                  <p className="font-black text-xl leading-none">{isCorrect ? 'Excellent!' : 'Keep Learning'}</p>
+                  <p className="text-sm font-bold opacity-70 leading-relaxed">
+                    {isCorrect ? 'Your answer is correct.' : `The correct answer is ${String.fromCharCode(65 + currentQuestion.correctAnswerIndex)}.`}
                   </p>
-                )}
+                  
+                  {currentQuestion.explanation && (
+                    <div className="mt-4 pt-4 border-t border-black/5">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Explanation</p>
+                      <p className="text-xs font-bold leading-relaxed italic">
+                        {currentQuestion.explanation}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
