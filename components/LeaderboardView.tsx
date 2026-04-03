@@ -24,16 +24,18 @@ export default function LeaderboardView() {
   useEffect(() => {
     const q = query(
       collection(db, "userStats"),
-      orderBy("points", "desc"),
-      limit(20)
+      orderBy("points", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const leaderboardData: LeaderboardEntry[] = [];
       snapshot.forEach((doc) => {
-        leaderboardData.push({ uid: doc.id, ...doc.data() } as LeaderboardEntry);
+        const data = doc.data();
+        if (data.isPremium) {
+          leaderboardData.push({ uid: doc.id, ...data } as LeaderboardEntry);
+        }
       });
-      setEntries(leaderboardData);
+      setEntries(leaderboardData.slice(0, 20));
       setLoading(false);
     });
 

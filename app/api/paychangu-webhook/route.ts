@@ -30,6 +30,11 @@ export async function POST(req: Request) {
           lastTxRef: tx_ref
         }, { merge: true });
 
+        // Also update publicProfiles
+        await adminDb.collection('publicProfiles').doc(userId).set({
+          isPremium: true
+        }, { merge: true });
+
         console.log(`Successfully updated user ${userId} to premium.`);
       }
     }
@@ -75,6 +80,11 @@ export async function GET(req: Request) {
               isPremium: true,
               premiumUnlockedAt: new Date().toISOString(),
               lastTxRef: tx_ref
+            }, { merge: true });
+
+            // Also update publicProfiles
+            await adminDb.collection('publicProfiles').doc(userId).set({
+              isPremium: true
             }, { merge: true });
           }
         }

@@ -12,6 +12,7 @@ import FlashcardView from "@/components/FlashcardView";
 import LeaderboardView from "@/components/LeaderboardView";
 import ExamDatesView from "@/components/ExamDatesView";
 import CommunityView from "@/components/CommunityView";
+import PremiumStudentsView from "@/components/PremiumStudentsView";
 import TimetableView from "@/components/TimetableView";
 import SettingsView from "@/components/SettingsView";
 import StudyPlanView from "@/components/StudyPlanView";
@@ -115,6 +116,12 @@ export default function App() {
           isPremium: false,
           createdAt: new Date().toISOString()
         });
+        setDoc(doc(db, "publicProfiles", user.uid), {
+          uid: user.uid,
+          displayName: user.displayName || "Student",
+          photoURL: user.photoURL || "",
+          isPremium: false
+        });
       }
       setLoading(false);
     }, (error) => {
@@ -153,6 +160,7 @@ export default function App() {
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
       case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
+      case "premium_students": return <PremiumStudentsView />;
       case "timetable": return <TimetableView onClose={() => navigateTo("home")} />;
       case "study_plan": return <StudyPlanView />;
       case "resources": return <ResourcesView />;

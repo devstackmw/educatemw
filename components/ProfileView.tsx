@@ -90,6 +90,14 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
         photoURL: profile.photoURL
       });
 
+      // Also update publicProfiles if nickname or avatar or photo changed
+      const publicProfileRef = doc(db, "publicProfiles", user.uid);
+      await updateDoc(publicProfileRef, {
+        displayName: profile.nickname || profile.realName || user.displayName || "Student",
+        avatarId: profile.avatarId,
+        photoURL: profile.photoURL
+      });
+
       setSaveStatus("Profile updated successfully!");
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (error) {

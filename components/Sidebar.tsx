@@ -3,7 +3,7 @@ import {
   X, Home, BookOpen, MessageSquare, User, 
   Trophy, Calendar, Settings, Zap, LogOut, 
   HelpCircle, Layers, PlayCircle, Users,
-  Clock, Archive
+  Clock, Archive, Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { auth } from "@/firebase";
@@ -41,6 +41,7 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
     { id: "leaderboard", label: "Leaderboard", icon: <Trophy size={20} /> },
     { id: "exams", label: "Exam Countdown", icon: <Calendar size={20} /> },
     { id: "community", label: "Community", icon: <Users size={20} /> },
+    { id: "premium_students", label: "Premium Students", icon: <Star size={20} className="text-amber-500" /> },
     { id: "timetable", label: "Student Timetable", icon: <Calendar size={20} /> },
     { id: "ai", label: "Cleo AI Assistant", icon: <MessageSquare size={20} /> },
   ];

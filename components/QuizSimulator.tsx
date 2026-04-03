@@ -66,8 +66,12 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
     const user = auth.currentUser;
     if (user) {
       const statsRef = doc(db, "userStats", user.uid);
+      const userRef = doc(db, "users", user.uid);
       try {
         const statsDoc = await getDoc(statsRef);
+        const userDoc = await getDoc(userRef);
+        const isPremium = userDoc.exists() ? userDoc.data().isPremium : false;
+        
         const badgesToAward: string[] = [];
 
         // Logic for badges
@@ -88,7 +92,8 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
           await updateDoc(statsRef, {
             points: increment(totalPoints),
             lastActiveDate: new Date().toISOString().split('T')[0],
-            earnedBadges: arrayUnion(...badgesToAward)
+            earnedBadges: arrayUnion(...badgesToAward),
+            isPremium: isPremium
           });
         } else {
           await setDoc(statsRef, {
@@ -98,7 +103,8 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
             points: totalPoints,
             streak: 1,
             lastActiveDate: new Date().toISOString().split('T')[0],
-            earnedBadges: badgesToAward
+            earnedBadges: badgesToAward,
+            isPremium: isPremium
           });
         }
       } catch (error) {
