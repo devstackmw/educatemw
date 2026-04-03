@@ -139,3 +139,50 @@ export const ENGLISH_STARTER_QUIZ = {
     }
   ]
 };
+
+export const BIOLOGY_STARTER_QUIZ = {
+  id: "biology-starter-msce",
+  subject: "Biology",
+  topic: "Cell Structure & Function",
+  questionsCount: 5,
+  timeLimit: "10 mins",
+  color: "bg-emerald-600",
+  isPremiumOnly: false,
+  questions: [
+    {
+      id: "b1",
+      text: "Which organelle is known as the powerhouse of the cell?",
+      options: ["Nucleus", "Mitochondria", "Ribosome", "Golgi apparatus"],
+      correctAnswerIndex: 1,
+      explanation: "Mitochondria are the sites of cellular respiration, producing ATP."
+    },
+    {
+      id: "b2",
+      text: "Which of the following is found in plant cells but not animal cells?",
+      options: ["Cell membrane", "Chloroplast", "Nucleus", "Mitochondria"],
+      correctAnswerIndex: 1,
+      explanation: "Chloroplasts are responsible for photosynthesis in plant cells."
+    },
+    {
+      id: "b3",
+      text: "What is the function of the ribosome?",
+      options: ["Protein synthesis", "DNA replication", "Lipid storage", "Cell division"],
+      correctAnswerIndex: 0,
+      explanation: "Ribosomes are the sites where proteins are synthesized."
+    },
+    {
+      id: "b4",
+      text: "Which structure controls the activities of the cell?",
+      options: ["Cytoplasm", "Cell wall", "Nucleus", "Vacuole"],
+      correctAnswerIndex: 2,
+      explanation: "The nucleus contains genetic material and controls cellular activities."
+    },
+    {
+      id: "b5",
+      text: "What is the main component of the cell wall in plants?",
+      options: ["Chitin", "Cellulose", "Protein", "Lipid"],
+      correctAnswerIndex: 1,
+      explanation: "Cellulose provides structural support to plant cell walls."
+    }
+  ]
+};

@@ -7,7 +7,7 @@ import { db } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { CURRICULUM, Subject, Topic } from "@/lib/curriculum";
 
-export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: (quiz: any) => void }) {
+export default function AIQuizGenerator({ isPremium, onQuizGenerated }: { isPremium?: boolean, onQuizGenerated: (quiz: any) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<"form" | "subject" | "topic" | "generating">("form");
   const [selectedForm, setSelectedForm] = useState("");
@@ -27,6 +27,10 @@ export default function AIQuizGenerator({ onQuizGenerated }: { onQuizGenerated: 
   };
 
   const generateQuiz = async () => {
+    if (!isPremium) {
+      setError("AI Quiz Generation is a PRO feature. Upgrade to unlock!");
+      return;
+    }
     if (!selectedTopic || !selectedSubject || !selectedForm) return;
     setStep("generating");
     setLoading(true);

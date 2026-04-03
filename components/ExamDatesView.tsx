@@ -39,9 +39,12 @@ export default function ExamDatesView() {
                   <h3 className="text-xl font-bold mb-0.5">{exam.name}</h3>
                   <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest">{exam.date}</p>
                 </div>
-                <div className="p-2 bg-white/20 backdrop-blur-md rounded-lg">
+                <button 
+                  onClick={() => alert(`Reminder set for ${exam.name} on ${exam.date}`)}
+                  className="p-2 bg-white/20 backdrop-blur-md rounded-lg hover:bg-white/30 transition-colors"
+                >
                   <Bell size={16} />
-                </div>
+                </button>
               </div>
               
               <div className="flex items-end gap-2">

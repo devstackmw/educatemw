@@ -153,7 +153,7 @@ export default function App() {
     switch (activeTab) {
       case "home": return <HomeView onNavigate={navigateTo} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />;
       case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
-      case "quizzes": return <QuizzesView />;
+      case "quizzes": return <QuizzesView isPremium={userData?.isPremium} />;
       case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
       case "flashcards": return <FlashcardView />;

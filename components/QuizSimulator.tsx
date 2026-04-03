@@ -234,7 +234,7 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col">
+    <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col pt-10">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 p-4 flex items-center justify-between">
         <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-xl text-slate-400">
