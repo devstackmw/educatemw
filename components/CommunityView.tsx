@@ -36,18 +36,19 @@ interface Post {
 }
 
 export default function CommunityView({ isPremium, onNavigate }: { isPremium?: boolean, onNavigate?: (tab: string) => void }) {
+  const [limitCount, setLimitCount] = useState(20);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [newPostContent, setNewPostContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Increased limit to 50 since we're restricting to premium users (lower write volume)
     const q = query(
       collection(db, "posts"), 
       orderBy("createdAt", "desc"), 
-      limit(50)
+      limit(limitCount)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -57,13 +58,20 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
       })) as Post[];
       setPosts(postsData);
       setLoading(false);
+      setLoadingMore(false);
     }, (error) => {
       console.error("Community Snapshot error:", error);
       setLoading(false);
+      setLoadingMore(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [limitCount]);
+
+  const loadMore = () => {
+    setLoadingMore(true);
+    setLimitCount(prev => prev + 20);
+  };
 
   const handleCreatePost = async () => {
     if (!isPremium) {
@@ -170,62 +178,73 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
             </div>
           </div>
         ) : (
-          posts.map((post) => (
-            <div key={post.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3 hover:border-blue-200 transition-all">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-400 overflow-hidden relative">
-                    {post.authorPhoto ? (
-                      <Image 
-                        src={post.authorPhoto} 
-                        alt="" 
-                        fill 
-                        className="object-cover" 
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-full h-full p-1">
-                        {AVATARS.find(a => a.id === post.authorAvatarId)?.svg || <User size={16} />}
-                      </div>
-                    )}
+          <>
+            {posts.map((post) => (
+              <div key={post.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3 hover:border-blue-200 transition-all">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-400 overflow-hidden relative">
+                      {post.authorPhoto ? (
+                        <Image 
+                          src={post.authorPhoto} 
+                          alt="" 
+                          fill 
+                          className="object-cover" 
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-full h-full p-1">
+                          {AVATARS.find(a => a.id === post.authorAvatarId)?.svg || <User size={16} />}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-xs">{post.authorName}</h4>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(post.createdAt)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-xs">{post.authorName}</h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(post.createdAt)}</p>
-                  </div>
+                  {auth.currentUser?.uid === post.uid && (
+                    <button 
+                      onClick={() => handleDelete(post.id)}
+                      className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
-                {auth.currentUser?.uid === post.uid && (
+                
+                <p className="text-slate-600 text-xs leading-relaxed font-medium whitespace-pre-wrap">
+                  {post.content}
+                </p>
+                
+                <div className="flex items-center gap-5 pt-1">
                   <button 
-                    onClick={() => handleDelete(post.id)}
-                    className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                    onClick={() => handleLike(post.id, post.likes)}
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition-colors group"
                   >
-                    <Trash2 size={14} />
+                    <Heart size={16} className="group-active:scale-125 transition-transform" />
+                    <span className="text-[10px] font-bold">{post.likes}</span>
                   </button>
-                )}
+                  <button className="flex items-center gap-1.5 text-slate-400 hover:text-blue-500 transition-colors">
+                    <MessageSquare size={16} />
+                    <span className="text-[10px] font-bold">{post.commentsCount}</span>
+                  </button>
+                  <button className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors ml-auto">
+                    <Share2 size={16} />
+                  </button>
+                </div>
               </div>
-              
-              <p className="text-slate-600 text-xs leading-relaxed font-medium whitespace-pre-wrap">
-                {post.content}
-              </p>
-              
-              <div className="flex items-center gap-5 pt-1">
-                <button 
-                  onClick={() => handleLike(post.id, post.likes)}
-                  className="flex items-center gap-1.5 text-slate-400 hover:text-red-500 transition-colors group"
-                >
-                  <Heart size={16} className="group-active:scale-125 transition-transform" />
-                  <span className="text-[10px] font-bold">{post.likes}</span>
-                </button>
-                <button className="flex items-center gap-1.5 text-slate-400 hover:text-blue-500 transition-colors">
-                  <MessageSquare size={16} />
-                  <span className="text-[10px] font-bold">{post.commentsCount}</span>
-                </button>
-                <button className="flex items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors ml-auto">
-                  <Share2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))
+            ))}
+            {posts.length >= limitCount && (
+              <button 
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="w-full py-3 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+              >
+                {loadingMore ? "Loading..." : "Load More Posts"}
+              </button>
+            )}
+          </>
         )}
       </div>
 

@@ -119,8 +119,8 @@ export default function LandingView({ onGetStarted, onNavigate }: LandingViewPro
           <div className="space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Legal</h4>
             <ul className="space-y-2 text-sm font-bold text-slate-300">
-              <li><button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy Policy</button></li>
-              <li><button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms of Service</button></li>
+              <li><a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a></li>
+              <li><a href="/terms" className="hover:text-white transition-colors">Terms of Service</a></li>
             </ul>
           </div>
           <div className="space-y-4">
