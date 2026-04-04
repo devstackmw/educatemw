@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, updateDoc, onSnapshot, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase";
 import { User as FirebaseUser } from "firebase/auth";
 import { Loader2, Save, User, Trophy, Award, Star, Zap, Check, Camera, Upload } from "lucide-react";
@@ -12,7 +12,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
-  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "" });
+  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "", gender: "" });
   const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[], photoURL: "" });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,7 +29,8 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
           nickname: data.nickname || "", 
           realName: data.realName || "",
           avatarId: data.avatarId || "girl_1",
-          photoURL: data.photoURL || ""
+          photoURL: data.photoURL || "",
+          gender: data.gender || ""
         });
       }
       setLoading(false);
@@ -76,6 +77,20 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
 
   const handleSave = async () => {
     if (!user) return;
+    if (!profile.gender) {
+      alert("Gender selection is mandatory.");
+      return;
+    }
+    
+    // Check nickname uniqueness
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("nickname", "==", profile.nickname));
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.docs.some(doc => doc.id !== user.uid)) {
+      alert("Nickname is already taken.");
+      return;
+    }
+
     setSaving(true);
     setSaveStatus(null);
     try {
@@ -134,12 +149,12 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
       </div>
 
       {/* Stats Card */}
-      <div className="bg-slate-900 p-6 rounded-2xl text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse"></div>
+      <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 rounded-full -mr-12 -mt-12 blur-3xl animate-pulse"></div>
         
-        <div className="relative z-10 flex flex-col items-center text-center mb-6">
+        <div className="relative z-10 flex flex-col items-center text-center mb-4">
           <div className="relative group">
-            <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-xl mb-4 transition-transform hover:scale-105">
+            <div className="w-20 h-20 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-xl mb-2 transition-transform hover:scale-105">
               <div className="w-full h-full relative">
                 {profile.photoURL ? (
                   <Image 
@@ -150,8 +165,14 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-full h-full p-3">
-                    {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
+                  <div className="w-full h-full p-2">
+                    {profile.gender === "boy" ? (
+                      <Image src="/avatars/boy_student.svg" alt="Boy" width={80} height={80} />
+                    ) : profile.gender === "girl" ? (
+                      <Image src="/avatars/girl_student.svg" alt="Girl" width={80} height={80} />
+                    ) : (
+                      AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg
+                    )}
                   </div>
                 )}
               </div>
@@ -159,11 +180,11 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
             
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className={`absolute -bottom-1 -right-1 p-2 rounded-xl shadow-lg transition-all active:scale-90 ${
+              className={`absolute -bottom-1 -right-1 p-1.5 rounded-lg shadow-lg transition-all active:scale-90 ${
                 isPremium ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-700 text-slate-400"
               }`}
             >
-              {isPremium ? <Camera size={14} /> : <Zap size={14} fill="currentColor" className="text-amber-400" />}
+              {isPremium ? <Camera size={12} /> : <Zap size={12} fill="currentColor" className="text-amber-400" />}
             </button>
             <input 
               type="file" 
@@ -174,41 +195,23 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
             />
           </div>
 
-          <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
+          <h3 className="text-lg font-bold tracking-tight flex items-center gap-1">
             {profile.nickname || profile.realName || "Student"}
             {isPremium && (
-              <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[8px] font-black px-2 py-0.5 rounded-md shadow-lg shadow-orange-500/20 animate-pulse">PRO</span>
+              <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md shadow-lg shadow-orange-500/20 animate-pulse">PRO</span>
             )}
           </h3>
-          <p className="text-blue-400 font-bold text-[9px] uppercase tracking-[0.2em] mt-0.5">MSCE Candidate</p>
+          <p className="text-blue-400 font-bold text-[8px] uppercase tracking-[0.2em] mt-0.5">MSCE Candidate</p>
         </div>
 
-        <div className="relative z-10 grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
-            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Total Points</p>
-            <p className="text-lg font-mono font-bold text-blue-400">{stats.points.toLocaleString()}</p>
+        <div className="relative z-10 grid grid-cols-2 gap-2 mb-4">
+          <div className="bg-white/5 backdrop-blur-sm p-2 rounded-lg border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
+            <p className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Points</p>
+            <p className="text-sm font-mono font-bold text-blue-400">{stats.points.toLocaleString()}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
-            <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Badges</p>
-            <p className="text-lg font-mono font-bold text-amber-400">{stats.earnedBadges.length}</p>
-          </div>
-        </div>
-        
-        <div className="relative z-10 space-y-3">
-          <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest text-center">Badges Earned</p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {stats.earnedBadges.length === 0 ? (
-              <p className="text-[10px] text-white/20 font-bold italic">Complete quizzes to earn badges!</p>
-            ) : (
-              stats.earnedBadges.map(badgeId => (
-                <div key={badgeId} className="bg-white/5 border border-white/10 p-2 rounded-xl flex items-center gap-1.5 pr-3 shadow-lg">
-                  <div className="bg-white/10 p-1.5 rounded-lg">
-                    {getBadgeIcon(badgeId)}
-                  </div>
-                  <span className="text-[8px] font-bold uppercase tracking-widest">{getBadgeName(badgeId)}</span>
-                </div>
-              ))
-            )}
+          <div className="bg-white/5 backdrop-blur-sm p-2 rounded-lg border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
+            <p className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Badges</p>
+            <p className="text-sm font-mono font-bold text-amber-400">{stats.earnedBadges.length}</p>
           </div>
         </div>
       </div>
@@ -262,9 +265,21 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
                 value={profile.nickname}
                 onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-10 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
-                placeholder="How should we call you?"
+                placeholder="Choose a unique nickname"
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Gender</label>
+            <select
+              value={profile.gender}
+              onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+            >
+              <option value="">Select Gender</option>
+              <option value="boy">Boy</option>
+              <option value="girl">Girl</option>
+            </select>
           </div>
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Real Name</label>

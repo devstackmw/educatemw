@@ -1,7 +1,7 @@
 import { Download, Search, FileText, Lock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PapersSkeleton } from "./Skeleton";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "@/firebase";
 
 export default function PapersView({ isPremium, onNavigate }: { isPremium?: boolean, onNavigate?: (tab: string) => void }) {
@@ -40,6 +40,16 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
 
   const handleLockedClick = () => {
     window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+  };
+
+  const handleResourceClick = async (id: string) => {
+    try {
+      await updateDoc(doc(db, "resources", id), {
+        viewCount: increment(1)
+      });
+    } catch (error) {
+      console.error("Error updating view count:", error);
+    }
   };
 
   return (
@@ -92,6 +102,7 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
               color={getResourceColor(res.category)}
               isLocked={res.isPremium && !isPremium}
               onLockedClick={handleLockedClick}
+              onOpen={() => handleResourceClick(res.id)}
             />
           ))
         )}
@@ -100,7 +111,7 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
   );
 }
 
-function NoteLink({ title, url, color, isLocked, onLockedClick }: { title: string, url: string, color: string, isLocked: boolean, onLockedClick: () => void }) {
+function NoteLink({ title, url, color, isLocked, onLockedClick, onOpen }: { title: string, url: string, color: string, isLocked: boolean, onLockedClick: () => void, onOpen: () => void }) {
   const content = (
     <div className={`flex items-center justify-between p-5 rounded-2xl border transition-all ${isLocked ? 'bg-slate-50 text-slate-400 border-slate-200 grayscale' : `hover:shadow-md active:scale-[0.98] ${color} border-transparent`}`}>
       <div className="flex items-center gap-4">
@@ -137,6 +148,7 @@ function NoteLink({ title, url, color, isLocked, onLockedClick }: { title: strin
       target="_blank" 
       rel="noopener noreferrer"
       className="block"
+      onClick={onOpen}
     >
       {content}
     </a>

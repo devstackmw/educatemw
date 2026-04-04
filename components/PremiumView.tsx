@@ -56,7 +56,7 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
           email: user.email || "student@educatemw.com",
           firstName: user.displayName?.split(' ')[0] || "Student",
           lastName: user.displayName?.split(' ').slice(1).join(' ') || "",
-          amount: 100,
+          amount: 5000,
           userId: user.uid,
         }),
       });
@@ -154,7 +154,7 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
 
           <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 mb-6 border border-white/10">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white">K100</span>
+              <span className="text-3xl font-bold text-white">K5,000</span>
               <span className="text-slate-400 text-xs font-bold">/ month</span>
             </div>
             <p className="text-slate-400 text-[9px] font-medium mt-1.5">Payment is automatically processed. No manual verification needed.</p>

@@ -22,6 +22,13 @@ export async function POST(req: Request) {
         const userId = parts[1];
         
         console.log(`Unlocking premium for user: ${userId}`);
+        
+        // Check if payment already recorded
+        const existingPayment = await adminDb.collection('payments').where('tx_ref', '==', tx_ref).get();
+        if (!existingPayment.empty) {
+          console.log('Payment already recorded, skipping.');
+          return NextResponse.json({ received: true }, { status: 200 });
+        }
 
         // Update the user's document in Firestore to grant premium access
         await adminDb.collection('users').doc(userId).set({
@@ -29,6 +36,16 @@ export async function POST(req: Request) {
           premiumUnlockedAt: new Date().toISOString(),
           lastTxRef: tx_ref
         }, { merge: true });
+
+        // Record the payment for analytics
+        await adminDb.collection('payments').add({
+          userId,
+          amount: 5000, // Standard premium price
+          currency: 'MWK',
+          status: 'success',
+          tx_ref,
+          createdAt: new Date().toISOString(),
+        });
 
         // Also update publicProfiles
         await adminDb.collection('publicProfiles').doc(userId).set({
@@ -75,17 +92,31 @@ export async function GET(req: Request) {
             const userId = parts[1];
             console.log(`GET verification successful for user: ${userId}`);
             
-            // Update Firestore (same logic as POST webhook)
-            await adminDb.collection('users').doc(userId).set({
-              isPremium: true,
-              premiumUnlockedAt: new Date().toISOString(),
-              lastTxRef: tx_ref
-            }, { merge: true });
+            // Check if payment already recorded
+            const existingPayment = await adminDb.collection('payments').where('tx_ref', '==', tx_ref).get();
+            if (existingPayment.empty) {
+              // Update Firestore (same logic as POST webhook)
+              await adminDb.collection('users').doc(userId).set({
+                isPremium: true,
+                premiumUnlockedAt: new Date().toISOString(),
+                lastTxRef: tx_ref
+              }, { merge: true });
 
-            // Also update publicProfiles
-            await adminDb.collection('publicProfiles').doc(userId).set({
-              isPremium: true
-            }, { merge: true });
+              // Record the payment for analytics
+              await adminDb.collection('payments').add({
+                userId,
+                amount: 5000,
+                currency: 'MWK',
+                status: 'success',
+                tx_ref,
+                createdAt: new Date().toISOString(),
+              });
+
+              // Also update publicProfiles
+              await adminDb.collection('publicProfiles').doc(userId).set({
+                isPremium: true
+              }, { merge: true });
+            }
           }
         }
       } catch (verifyError) {
@@ -95,7 +126,9 @@ export async function GET(req: Request) {
 
     // Redirect back to the home page with the payment status
     const origin = new URL(req.url).origin;
-    const redirectStatus = status === 'failed' ? 'failed' : 'success';
+    // Only redirect to success if we actually verified it or if PayChangu explicitly says success
+    // (but verification is safer)
+    const redirectStatus = (status === 'success' || status === 'successful') ? 'success' : 'failed';
     return NextResponse.redirect(`${origin}/?payment=${redirectStatus}`);
   } catch (error) {
     console.error('GET redirect error:', error);

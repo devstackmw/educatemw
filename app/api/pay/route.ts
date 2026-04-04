@@ -28,8 +28,7 @@ export async function POST(req: Request) {
       first_name: firstName || "Student",
       last_name: lastName || "",
       callback_url: `${origin}/api/paychangu-webhook`,
-      return_url: `${origin}/?payment=success`,
-      redirect_url: `${origin}/?payment=success`, // Some versions of the API use redirect_url
+      return_url: `${origin}/api/paychangu-webhook`,
       tx_ref: tx_ref,
       customization: {
         title: "Educate MW Premium",

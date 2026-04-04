@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { AppIcon } from "./AppLogo";
-import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText } from "lucide-react";
+import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc, updateDoc, increment } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc, updateDoc, increment, orderBy, limit } from "firebase/firestore";
 import { db } from "@/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { motion } from "motion/react";
@@ -17,10 +17,29 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   const [photoURL, setPhotoURL] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [dailyChallenge, setDailyChallenge] = useState<{completed: boolean, date: string} | null>(null);
+  const [dailyTip, setDailyTip] = useState("Consistency is key to mastering complex subjects.");
+  const [showTipModal, setShowTipModal] = useState(false);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [examDates, setExamDates] = useState<any[]>([]);
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
   useEffect(() => {
     if (!user) return;
+
+    // Listen for daily tip
+    const unsubTip = onSnapshot(doc(db, "settings", "dailyTip"), (docSnap) => {
+      if (docSnap.exists()) setDailyTip(docSnap.data().text);
+    });
+
+    // Listen for announcements
+    const unsubAnnouncements = onSnapshot(query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(3)), (snapshot) => {
+      setAnnouncements(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Listen for exam dates
+    const unsubExamDates = onSnapshot(query(collection(db, "examDates"), orderBy("date", "asc"), limit(5)), (snapshot) => {
+      setExamDates(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
 
     // Fetch avatar and photo from users collection
     const fetchUser = async () => {
@@ -83,6 +102,32 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   return (
     <div className="p-6 md:p-8 pt-12 space-y-8 pb-32 max-w-3xl mx-auto">
 
+      {/* Announcements */}
+      {announcements.length > 0 && (
+        <div className="space-y-3">
+          {announcements.map((ann) => (
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              key={ann.id} 
+              className={`p-4 rounded-2xl border flex items-start gap-4 shadow-sm ${
+                ann.type === 'warning' ? 'bg-rose-50 border-rose-100 text-rose-800' : 
+                ann.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 
+                'bg-blue-50 border-blue-100 text-blue-800'
+              }`}
+            >
+              <div className={`p-2 rounded-xl bg-white/50`}>
+                <Bell size={18} />
+              </div>
+              <div className="space-y-1">
+                <h4 className="font-black text-xs uppercase tracking-tight">{ann.title}</h4>
+                <p className="text-xs font-medium opacity-80 leading-relaxed">{ann.content}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
       {/* Daily Engagement */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3">
@@ -102,14 +147,45 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
             <div className="p-3 bg-blue-50 text-blue-500 rounded-xl"><Sparkles size={24} /></div>
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Tip</p>
-              <p className="font-bold text-slate-800 text-xs leading-tight">Consistency is key to mastering complex subjects.</p>
+              <p className="font-bold text-slate-800 text-xs leading-tight line-clamp-2">{dailyTip}</p>
             </div>
           </div>
-          <button className="w-full bg-blue-50 text-blue-700 text-[10px] font-bold py-2 rounded-lg hover:bg-blue-100 transition-all">
+          <button 
+            onClick={() => setShowTipModal(true)}
+            className="w-full bg-blue-50 text-blue-700 text-[10px] font-bold py-2 rounded-lg hover:bg-blue-100 transition-all"
+          >
             View Tip
           </button>
         </div>
       </div>
+
+      {/* Daily Tip Modal */}
+      {showTipModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl p-8 w-full max-w-sm text-center space-y-6 shadow-2xl relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+            <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+              <Sparkles size={40} />
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Expert Tip</h3>
+              <p className="text-slate-600 font-medium leading-relaxed italic">
+                &quot;{dailyTip}&quot;
+              </p>
+            </div>
+            <button 
+              onClick={() => setShowTipModal(false)}
+              className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-sm"
+            >
+              Got it, thanks!
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       {/* Daily Challenge */}
       {!(dailyChallenge?.completed && dailyChallenge.date === new Date().toISOString().split('T')[0]) ? (
@@ -216,6 +292,40 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
           </div>
         </div>
       </div>
+
+      {/* Exam Countdown */}
+      {examDates.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Exam Countdown</h3>
+            <div className="flex items-center gap-1 text-blue-600">
+              <Calendar size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">2025 MSCE</span>
+            </div>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+            {examDates.map((exam) => {
+              const daysLeft = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+              return (
+                <div key={exam.id} className="min-w-[160px] bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="p-2 bg-slate-50 text-slate-600 rounded-lg">
+                      <BookOpen size={16} />
+                    </div>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${daysLeft < 30 ? 'bg-rose-100 text-rose-600' : 'bg-blue-100 text-blue-600'}`}>
+                      {daysLeft}d left
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-xs line-clamp-1">{exam.subject}</h4>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(exam.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Learning Modules - Bento Grid */}
       <div className="space-y-4">

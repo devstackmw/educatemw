@@ -50,7 +50,8 @@ service cloud.firestore {
              data.uid is string &&
              data.displayName is string && data.displayName.size() > 0 && data.displayName.size() < 100 &&
              data.isPremium is bool &&
-             data.createdAt is string;
+             data.createdAt is string &&
+             (!('paymentStatus' in data) || data.paymentStatus in ['pending', 'approved', 'failed']);
     }
 
     function isValidUserStats(data) {
@@ -79,10 +80,12 @@ service cloud.firestore {
 
     // User Profiles (Private)
     match /users/{userId} {
-      // Only the owner can read/write their own profile
-      allow read: if isOwner(userId);
+      // Only the owner can read/write their own profile, but admins can manage all
+      allow read: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUser(request.resource.data);
-      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && 
+                    (!request.resource.data.keys().hasAny(['nickname']) || 
+                     !exists(/databases/$(database)/documents/users/$(request.resource.data.nickname)));
     }
 
     // Public Profiles (For Leaderboard/Premium Students)
@@ -135,7 +138,7 @@ service cloud.firestore {
     }
 
     match /notes/{noteId} {
-      allow read: if isAuthenticated();
+      allow read: if resource.data.isPremiumOnly == false || isPremium();
     }
 
     match /flashcardSets/{setId} {
@@ -148,6 +151,31 @@ service cloud.firestore {
 
     match /dailyContent/{contentId} {
       allow read: if isAuthenticated();
+    }
+
+    match /resources/{resourceId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /announcements/{annId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /examDates/{examId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only via admin SDK (webhook)
+    }
+
+    match /settings/{settingId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
     
     // Default deny for everything else (including write access to content)

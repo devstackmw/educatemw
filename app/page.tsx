@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy } from "lucide-react";
+import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy, AlertCircle, ShieldAlert } from "lucide-react";
 import HomeView from "@/components/HomeView";
 import PapersView from "@/components/PapersView";
 import QuizzesView from "@/components/QuizzesView";
@@ -36,6 +36,8 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [showPaymentError, setShowPaymentError] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -72,8 +74,14 @@ export default function App() {
     
     // Check for payment success in URL
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment') === 'success') {
-      setShowPaymentSuccess(true);
+    const paymentStatus = urlParams.get('payment');
+    if (paymentStatus === 'success') {
+      // We don't show the modal immediately, we wait for the real-time listener to confirm premium
+      setIsVerifyingPayment(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'failed') {
+      setShowPaymentError(true);
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
@@ -104,7 +112,26 @@ export default function App() {
     // Listen for real-time updates to user data (important for premium status)
     const unsubUser = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
-        setUserData(docSnap.data());
+        const data = docSnap.data();
+        
+        // Handle banned users
+        if (data.isBanned) {
+          setLoading(false);
+          setUserData(data);
+          return;
+        }
+
+        // If user just became premium in this session, show the success modal
+        if (data.isPremium && (userData || isVerifyingPayment)) {
+          if (userData && !userData.isPremium) {
+            setShowPaymentSuccess(true);
+            setIsVerifyingPayment(false);
+          } else if (isVerifyingPayment) {
+            setShowPaymentSuccess(true);
+            setIsVerifyingPayment(false);
+          }
+        }
+        setUserData(data);
       } else {
         // Create initial user doc if it doesn't exist
         setDoc(userRef, {
@@ -143,10 +170,39 @@ export default function App() {
     testConnection();
 
     return () => unsubUser();
-  }, [user, activeTab]);
+  }, [user, activeTab, isVerifyingPayment, userData]);
 
   if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;
+  }
+
+  if (isVerifyingPayment && !userData?.isPremium) {
+    return <LoadingScreen message="Verifying your payment... Please wait." />;
+  }
+
+  if (userData?.isBanned) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-8 text-center">
+        <div className="space-y-6 max-w-xs">
+          <div className="w-20 h-20 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto">
+            <ShieldAlert size={40} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-white tracking-tight">Account Suspended</h2>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed">
+              Your account has been suspended due to a violation of our terms of service. 
+              If you believe this is a mistake, please contact support.
+            </p>
+          </div>
+          <button 
+            onClick={() => auth.signOut()}
+            className="w-full bg-white text-slate-900 font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-sm"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const renderView = () => {
@@ -284,6 +340,39 @@ export default function App() {
                 className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"
               >
                 Start Learning
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Error Modal */}
+      <AnimatePresence>
+        {showPaymentError && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 10 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-xs text-center space-y-4 shadow-2xl"
+            >
+              <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle size={32} fill="currentColor" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold text-slate-900">Payment Failed</h3>
+                <p className="text-slate-500 text-xs font-medium">
+                  We couldn&apos;t verify your payment. Please try again or contact support if you were charged.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowPaymentError(false);
+                  navigateTo("premium");
+                }}
+                className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"
+              >
+                Try Again
               </button>
             </motion.div>
           </div>

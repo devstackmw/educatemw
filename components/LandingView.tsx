@@ -72,7 +72,7 @@ export default function LandingView({ onGetStarted, onNavigate }: LandingViewPro
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Built for Malawian Students</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FeatureCard 
             icon={<BookOpen size={24} className="text-blue-600" />}
             title="Past Papers Library"
@@ -115,7 +115,7 @@ export default function LandingView({ onGetStarted, onNavigate }: LandingViewPro
           <span className="font-black text-xl tracking-tight">Educate MW</span>
         </div>
         
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Legal</h4>
             <ul className="space-y-2 text-sm font-bold text-slate-300">
@@ -124,9 +124,17 @@ export default function LandingView({ onGetStarted, onNavigate }: LandingViewPro
             </ul>
           </div>
           <div className="space-y-4">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Contact</h4>
+            <ul className="space-y-2 text-sm font-bold text-slate-300">
+              <li><a href="mailto:mscepreparation@gmail.com" className="hover:text-white transition-colors">mscepreparation@gmail.com</a></li>
+              <li><span className="text-slate-400">Business Calls/WhatsApp:</span></li>
+              <li className="text-white">+265 986 69 25 01</li>
+              <li className="text-white">+265 999 13 64 33</li>
+            </ul>
+          </div>
+          <div className="space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Support</h4>
             <ul className="space-y-2 text-sm font-bold text-slate-300">
-              <li><a href="mailto:devstackmw@gmail.com" className="hover:text-white transition-colors">Contact Us</a></li>
               <li><button onClick={onGetStarted} className="hover:text-white transition-colors">Help Center</button></li>
             </ul>
           </div>
