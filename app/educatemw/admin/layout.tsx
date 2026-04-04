@@ -1,3 +1,4 @@
+'use client';
 import { auth } from "@/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
