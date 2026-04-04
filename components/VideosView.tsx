@@ -20,6 +20,9 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
       }));
       setVideos(videoData);
       setLoading(false);
+    }, (error) => {
+      console.error("Firestore Error in VideosView:", error);
+      // Optional: handleFirestoreError(error, 'get', 'videos') if defined
     });
     return () => unsubscribe();
   }, []);

@@ -37,6 +37,9 @@ export default function LeaderboardView() {
       });
       setEntries(leaderboardData.slice(0, 20));
       setLoading(false);
+    }, (error) => {
+      console.error("Leaderboard Snapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

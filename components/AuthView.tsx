@@ -165,6 +165,8 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
           photoURL: user.photoURL || null,
           isPremium: false,
           createdAt: new Date().toISOString(),
+          referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          aiPoints: 5 // Initial points
         });
       }
     } catch (err) {

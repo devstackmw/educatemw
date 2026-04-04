@@ -24,6 +24,8 @@ export default function StudyHubView({ initialNotes = [] }: { initialNotes?: any
         ...doc.data()
       })) as Note[];
       setNotes(notesData);
+    }, (error) => {
+      console.error("Firestore Error in StudyHubView:", error);
     });
     return () => unsubscribe();
   }, []);

@@ -117,8 +117,11 @@ export default function App() {
     if (activeTab === "auth" || activeTab === "landing") {
       navigateTo("home", false);
     }
+  }, [user, activeTab]);
 
-    // Check if user document exists, if not create it
+  useEffect(() => {
+    if (!user) return;
+
     const userRef = doc(db, "users", user.uid);
     
     // Listen for real-time updates to user data (important for premium status)
@@ -134,16 +137,17 @@ export default function App() {
         }
 
         // If user just became premium in this session, show the success modal
-        if (data.isPremium && (userData || isVerifyingPayment)) {
-          if (userData && !userData.isPremium) {
+        // We use a functional update or check against the current state
+        setUserData(prev => {
+          if (data.isPremium && prev && !prev.isPremium) {
             setShowPaymentSuccess(true);
             setIsVerifyingPayment(false);
-          } else if (isVerifyingPayment) {
+          } else if (data.isPremium && isVerifyingPayment) {
             setShowPaymentSuccess(true);
             setIsVerifyingPayment(false);
           }
-        }
-        setUserData(data);
+          return data;
+        });
       } else {
         // Create initial user doc if it doesn't exist
         setDoc(userRef, {
@@ -170,8 +174,16 @@ export default function App() {
       setLoading(false);
     });
 
+    return () => unsubUser();
+  }, [user, isVerifyingPayment]);
+
+  useEffect(() => {
+    if (!user) return;
+
     // Handle Streak Logic and Stats
     const statsRef = doc(db, "userStats", user.uid);
+    let streakHandled = false;
+
     const unsubStats = onSnapshot(statsRef, async (statsSnap) => {
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];
@@ -182,6 +194,10 @@ export default function App() {
       if (statsSnap.exists()) {
         const data = statsSnap.data();
         setUserStats(data);
+        
+        // Only run streak logic once per session or when day changes
+        if (streakHandled) return;
+
         const lastActive = data.lastActiveDate;
         let newStreak = data.streak || 0;
         let shouldUpdate = false;
@@ -191,11 +207,16 @@ export default function App() {
           shouldUpdate = true;
           setStreakCount(newStreak);
           setShowStreakModal(true);
+          streakHandled = true;
         } else if (lastActive !== todayStr) {
           newStreak = 1;
           shouldUpdate = true;
           setStreakCount(newStreak);
           setShowStreakModal(true);
+          streakHandled = true;
+        } else {
+          // Already active today
+          streakHandled = true;
         }
 
         if (shouldUpdate) {
@@ -216,13 +237,15 @@ export default function App() {
           lastActiveDate: todayStr,
           isPremium: false
         });
+        streakHandled = true;
       }
     });
 
-    // Test connection to Firestore as recommended
+    // Test connection to Firestore
     const testConnection = async () => {
       try {
         const { getDocFromServer } = await import("firebase/firestore");
+        const userRef = doc(db, "users", user.uid);
         await getDocFromServer(userRef);
       } catch (error) {
         if (error instanceof Error && error.message.includes("offline")) {
@@ -232,11 +255,8 @@ export default function App() {
     };
     testConnection();
 
-    return () => {
-      unsubUser();
-      unsubStats();
-    };
-  }, [user, activeTab, isVerifyingPayment, userData]);
+    return () => unsubStats();
+  }, [user]);
 
   if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;
