@@ -21,16 +21,10 @@ interface Quiz {
 }
 
 export default function QuizzesView({ isPremium }: { isPremium?: boolean }) {
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([ENGLISH_STARTER_QUIZ as any, BIOLOGY_STARTER_QUIZ as any]);
+  const [loading, setLoading] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
-
-  useEffect(() => {
-    // Only show starter quizzes
-    setQuizzes([ENGLISH_STARTER_QUIZ as any, BIOLOGY_STARTER_QUIZ as any]);
-    setLoading(false);
-  }, []);
 
   return (
     <div className="p-4 space-y-6">

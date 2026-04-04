@@ -103,6 +103,7 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
             points: totalPoints,
             streak: 1,
             lastActiveDate: new Date().toISOString().split('T')[0],
+            dailyChallenge: { completed: false, date: "" },
             earnedBadges: badgesToAward,
             isPremium: isPremium
           });

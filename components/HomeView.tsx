@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { AppIcon } from "./AppLogo";
 import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc, updateDoc, increment } from "firebase/firestore";
 import { db } from "@/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { motion } from "motion/react";
@@ -11,10 +11,12 @@ import Image from "next/image";
 
 export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, isPremium?: boolean, onOpenSidebar: () => void }) {
   const [points, setPoints] = useState<number>(0);
+  const [streak, setStreak] = useState<number>(0);
   const [rank, setRank] = useState<number | string>("--");
   const [avatarId, setAvatarId] = useState<string>("girl_1");
   const [photoURL, setPhotoURL] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [dailyChallenge, setDailyChallenge] = useState<{completed: boolean, date: string} | null>(null);
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
   useEffect(() => {
@@ -35,12 +37,14 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     const statsRef = doc(db, "userStats", user.uid);
     const unsubscribe = onSnapshot(statsRef, async (snapshot) => {
       if (snapshot.exists()) {
-        const userPoints = snapshot.data().points || 0;
-        setPoints(userPoints);
+        const data = snapshot.data();
+        setPoints(data.points || 0);
+        setStreak(data.streak || 0);
+        setDailyChallenge(data.dailyChallenge || null);
 
         // Fetch rank
         try {
-          const rankQuery = query(collection(db, "userStats"), where("points", ">", userPoints));
+          const rankQuery = query(collection(db, "userStats"), where("points", ">", data.points || 0));
           const rankSnapshot = await getCountFromServer(rankQuery);
           setRank(rankSnapshot.data().count + 1);
         } catch (error) {
@@ -56,12 +60,73 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     return () => unsubscribe();
   }, [user]);
 
+  const completeChallenge = async () => {
+    if (!user) return;
+    const statsRef = doc(db, "userStats", user.uid);
+    try {
+      await updateDoc(statsRef, {
+        points: increment(50),
+        dailyChallenge: {
+          completed: true,
+          date: new Date().toISOString().split('T')[0]
+        }
+      });
+    } catch (error) {
+      console.error("Error completing challenge:", error);
+    }
+  };
+
   if (loading) {
     return <HomeSkeleton />;
   }
 
   return (
     <div className="p-4 pt-16 space-y-6 pb-28 max-w-2xl mx-auto">
+
+      {/* Daily Engagement */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
+          <div className="p-2 bg-orange-50 text-orange-500 rounded-lg"><Zap size={20} fill="currentColor" /></div>
+          <div>
+            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Streak</p>
+            <p className="font-bold text-slate-800 text-sm">{streak} Days</p>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
+          <div className="p-2 bg-blue-50 text-blue-500 rounded-lg"><Sparkles size={20} /></div>
+          <div>
+            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Daily Tip</p>
+            <p className="font-bold text-slate-800 text-[10px] leading-tight">Review relative clauses!</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Challenge */}
+      {!(dailyChallenge?.completed && dailyChallenge.date === new Date().toISOString().split('T')[0]) ? (
+        <div className="bg-emerald-600 rounded-xl p-4 text-white shadow-lg shadow-emerald-600/10 flex items-center justify-between">
+          <div>
+            <p className="text-[8px] font-bold uppercase tracking-widest opacity-80">Daily Challenge</p>
+            <h3 className="font-bold text-sm">Biology: Cell Structure</h3>
+          </div>
+          <button onClick={completeChallenge} className="bg-white text-emerald-600 px-3 py-1.5 rounded-lg text-[10px] font-black">Start</button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl p-4 border border-emerald-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><Trophy size={20} /></div>
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">Challenge Completed!</h3>
+              <p className="text-slate-500 text-[10px]">You earned 50 points!</p>
+            </div>
+          </div>
+          {!isPremium && (
+            <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 flex items-center justify-between gap-2">
+              <p className="text-indigo-900 text-[10px] font-medium">Want to generate a custom quiz on this topic? Upgrade to Pro to unlock AI generation.</p>
+              <button onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black whitespace-nowrap">Upgrade</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Hero Section */}
       <div className="relative bg-slate-900 rounded-xl p-5 text-white overflow-hidden shadow-lg border border-white/5">
@@ -222,6 +287,25 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
               <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 w-1/2 rounded-full"></div>
           </div>
           <p className="text-slate-400 text-[9px] mt-2 font-medium italic">&quot;The beautiful thing about learning is that no one can take it away from you.&quot;</p>
+      </div>
+
+      {/* Quick Resources */}
+      <div className="space-y-3">
+        <h3 className="font-bold text-slate-800 text-[10px] uppercase tracking-widest px-1">Quick Resources</h3>
+        <div className="grid grid-cols-1 gap-2">
+          <a href="https://www.nche.ac.mw/" target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
+            <span className="text-xs font-bold text-slate-700">NCHE Official Website</span>
+            <ChevronRight size={14} className="text-slate-400" />
+          </a>
+          <a href="https://selection.nche.ac.mw/" target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
+            <span className="text-xs font-bold text-slate-700">University Selection List</span>
+            <ChevronRight size={14} className="text-slate-400" />
+          </a>
+          <a href="https://www.myjobo.com/" target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
+            <span className="text-xs font-bold text-slate-700">Job Vacancies</span>
+            <ChevronRight size={14} className="text-slate-400" />
+          </a>
+        </div>
       </div>
     </div>
   );

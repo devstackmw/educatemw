@@ -104,18 +104,23 @@ function NoteLink({ title, url, color, isLocked, onLockedClick }: { title: strin
           {isLocked ? <Lock size={18} /> : <FileText size={18} />}
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-xs">{title}</span>
+          <span className={`font-bold text-xs ${isLocked ? 'text-slate-500' : ''}`}>{title}</span>
           {isLocked && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onLockedClick();
-              }}
-              className="mt-1 bg-amber-500 text-white text-[7px] font-black px-2 py-1 rounded-md shadow-sm shadow-amber-500/20 flex items-center gap-1 w-fit"
-            >
-              <Zap size={8} fill="currentColor" />
-              Pay to Unlock
-            </button>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                <Lock size={10} />
+                Premium Only
+              </span>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLockedClick();
+                }}
+                className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-lg shadow-sm shadow-blue-600/20 hover:bg-blue-700 transition-all"
+              >
+                Upgrade to Unlock
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -125,9 +130,9 @@ function NoteLink({ title, url, color, isLocked, onLockedClick }: { title: strin
 
   if (isLocked) {
     return (
-      <button onClick={onLockedClick} className="w-full text-left">
+      <div onClick={onLockedClick} className="w-full text-left cursor-pointer">
         {content}
-      </button>
+      </div>
     );
   }
 
