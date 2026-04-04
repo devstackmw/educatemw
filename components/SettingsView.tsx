@@ -33,8 +33,9 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
       ]
     },
     {
-      title: "Support",
+      title: "App",
       items: [
+        { id: "updates", label: "Check for Updates", icon: <Globe size={20} />, color: "text-blue-600 bg-blue-50", value: "v1.0.5" },
         { id: "help", label: "Help Center", icon: <HelpCircle size={20} />, color: "text-slate-600 bg-slate-50" },
       ]
     }
@@ -44,6 +45,11 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
     if (id === "profile") onNavigate("profile");
     if (id === "privacy") onNavigate("privacy");
     if (id === "terms") onNavigate("terms");
+    if (id === "updates") {
+      if (confirm("Check for the latest version of Educate MW? This will refresh the app.")) {
+        window.location.reload();
+      }
+    }
   };
 
   return (

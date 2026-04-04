@@ -53,12 +53,44 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js').then(
                   function(registration) {
-                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    console.log('ServiceWorker registration successful');
+                    
+                    // Check for updates every hour
+                    setInterval(() => {
+                      registration.update();
+                    }, 3600000);
+
+                    registration.onupdatefound = () => {
+                      const installingWorker = registration.installing;
+                      if (installingWorker == null) return;
+                      installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                          if (navigator.serviceWorker.controller) {
+                            // New content is available; please refresh.
+                            console.log('New content is available; please refresh.');
+                            if (window.confirm('A new version of Educate MW is available! Refresh now to get the latest features?')) {
+                              window.location.reload();
+                            }
+                          } else {
+                            // Content is cached for offline use.
+                            console.log('Content is cached for offline use.');
+                          }
+                        }
+                      };
+                    };
                   },
                   function(err) {
                     console.log('ServiceWorker registration failed: ', err);
                   }
                 );
+              });
+
+              // Handle controller change (e.g. after skipWaiting)
+              let refreshing = false;
+              navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
               });
             }
           `}

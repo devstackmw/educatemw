@@ -9,7 +9,9 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  linkWithCredential,
+  EmailAuthProvider
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle, Phone, Lock, User, AlertCircle } from "lucide-react";
@@ -64,11 +66,24 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
       setLoading(true);
       setError("");
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
+      
+      if (auth.currentUser?.isAnonymous) {
+        // Link anonymous account
+        const result = await linkWithCredential(auth.currentUser, provider as any);
+        await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
+      } else {
+        const result = await signInWithPopup(auth, provider);
+        await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
+      }
+      
       if (onLogin) onLogin();
     } catch (err: any) {
-      setError(err.message);
+      console.error("Google auth error:", err);
+      if (err.code === "auth/credential-already-in-use") {
+        setError("This Google account is already linked to another user. Please log in normally.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -105,9 +120,17 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
       
       if (authMode === "signup") {
         if (!name) throw new Error("Please enter your full name");
-        const result = await createUserWithEmailAndPassword(auth, pseudoEmail, password);
-        await updateProfile(result.user, { displayName: name });
-        await saveUserToFirestore(result.user, name, phone);
+        
+        if (auth.currentUser?.isAnonymous) {
+          const credential = EmailAuthProvider.credential(pseudoEmail, password);
+          const result = await linkWithCredential(auth.currentUser, credential);
+          await updateProfile(result.user, { displayName: name });
+          await saveUserToFirestore(result.user, name, phone);
+        } else {
+          const result = await createUserWithEmailAndPassword(auth, pseudoEmail, password);
+          await updateProfile(result.user, { displayName: name });
+          await saveUserToFirestore(result.user, name, phone);
+        }
       } else {
         await signInWithEmailAndPassword(auth, pseudoEmail, password);
       }
@@ -212,7 +235,11 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black text-blue-600 mb-2">Educate MW</h1>
-          <p className="text-gray-500 text-sm">Create a student account or sign in</p>
+          <p className="text-gray-500 text-sm">
+            {auth.currentUser?.isAnonymous 
+              ? "Link your account to save your progress permanently" 
+              : "Create a student account or sign in"}
+          </p>
         </div>
 
         {error && (

@@ -81,7 +81,14 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
 
             {/* User Profile Summary */}
             <div className="p-4 bg-slate-50/50">
-              <div className="flex items-center gap-3">
+              <button 
+                onClick={() => { onNavigate("profile"); onClose(); }}
+                className={`w-full flex items-center gap-3 p-2 rounded-xl transition-all ${
+                  activeTab === "profile" 
+                  ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100" 
+                  : "hover:bg-slate-100"
+                }`}
+              >
                 <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 overflow-hidden relative">
                   {userData?.photoURL ? (
                     <Image 
@@ -97,7 +104,7 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-bold text-slate-800 truncate text-sm">{userData?.nickname || userData?.realName || user?.displayName || "Student"}</h3>
                     {isPremium && (
@@ -106,14 +113,18 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
                   </div>
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{isPremium ? "Pro Account" : "Free Account"}</p>
                 </div>
-              </div>
+              </button>
               {!isPremium && (
                 <button 
                   onClick={() => {
-                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+                    onNavigate("premium");
                     onClose();
                   }}
-                  className="mt-3 w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white py-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/10 active:scale-95 transition-all"
+                  className={`mt-3 w-full py-2 rounded-lg text-[10px] font-bold flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all ${
+                    activeTab === "premium"
+                    ? "bg-amber-500 text-white shadow-amber-500/20"
+                    : "bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-orange-500/10"
+                  }`}
                 >
                   <Zap size={12} fill="currentColor" />
                   Upgrade to Pro
@@ -145,9 +156,13 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
             <div className="p-3 border-t border-slate-100 space-y-0.5">
               <button 
                 onClick={() => { onNavigate("settings"); onClose(); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                  activeTab === "settings" 
+                  ? "bg-blue-50 text-blue-600 shadow-sm shadow-blue-100" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                }`}
               >
-                <Settings size={18} className="text-slate-400" />
+                <Settings size={18} className={activeTab === "settings" ? "text-blue-600" : "text-slate-400"} />
                 <span className="font-bold text-xs">Settings</span>
               </button>
               <button 

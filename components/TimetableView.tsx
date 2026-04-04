@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Calendar, X, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, X, Sparkles, Save, Download } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -11,8 +11,32 @@ const SUBJECTS = [
 ];
 
 export default function TimetableView({ onClose }: { onClose: () => void }) {
-  const [schedule, setSchedule] = useState<Record<string, Record<string, string>>>({});
+  const [schedule, setSchedule] = useState<Record<string, Record<string, string>>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("student_timetable");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to parse saved timetable", e);
+        }
+      }
+    }
+    return {};
+  });
   const [activeDay, setActiveDay] = useState("Monday");
+  const [isSaved, setIsSaved] = useState(false);
+
+  const handleSave = () => {
+    localStorage.setItem("student_timetable", JSON.stringify(schedule));
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  const handleDownload = () => {
+    // Simple way to "download" is to trigger print which can be saved as PDF
+    window.print();
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -26,7 +50,23 @@ export default function TimetableView({ onClose }: { onClose: () => void }) {
           <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
             <Calendar className="text-blue-600" /> My Timetable
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} /></button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleSave}
+              className={`p-2 rounded-full transition-all ${isSaved ? 'bg-emerald-100 text-emerald-600' : 'hover:bg-slate-100 text-slate-600'}`}
+              title="Save to device"
+            >
+              <Save size={20} />
+            </button>
+            <button 
+              onClick={handleDownload}
+              className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600 print:hidden"
+              title="Download/Print"
+            >
+              <Download size={20} />
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600 print:hidden"><X size={20} /></button>
+          </div>
         </div>
 
         {/* Day Selector */}

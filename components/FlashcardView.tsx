@@ -18,7 +18,7 @@ interface FlashcardSet {
   fromCache?: boolean;
 }
 
-export default function FlashcardView() {
+export default function FlashcardView({ isPremium }: { isPremium?: boolean }) {
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
@@ -60,7 +60,7 @@ export default function FlashcardView() {
         {isOffline && <WifiOff size={18} className="text-amber-500" />}
       </div>
 
-      <AIFlashcardGenerator onSetGenerated={(set) => setSelectedSet(set)} />
+      <AIFlashcardGenerator isPremium={isPremium} onSetGenerated={(set) => setSelectedSet(set)} />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />

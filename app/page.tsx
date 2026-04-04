@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy, AlertCircle, ShieldAlert, Flame } from "lucide-react";
+import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy, AlertCircle, ShieldAlert, Flame, X } from "lucide-react";
 import HomeView from "@/components/HomeView";
 import PapersView from "@/components/PapersView";
 import QuizzesView from "@/components/QuizzesView";
@@ -44,6 +44,23 @@ export default function App() {
 
   const [showStreakModal, setShowStreakModal] = useState(false);
   const [streakCount, setStreakCount] = useState(0);
+  const [announcement, setAnnouncement] = useState<any>(null);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [showPromoModal, setShowPromoModal] = useState(false);
+
+  useEffect(() => {
+    // Promotion timer for free users
+    if (userData && !userData.isPremium && activeTab !== 'landing' && activeTab !== 'auth') {
+      const timer = setTimeout(() => {
+        const hasSeenPromo = window.sessionStorage.getItem('hasSeenPromo');
+        if (!hasSeenPromo) {
+          setShowPromoModal(true);
+          window.sessionStorage.setItem('hasSeenPromo', 'true');
+        }
+      }, 90000); // 1.5 minutes
+      return () => clearTimeout(timer);
+    }
+  }, [userData, activeTab]);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -138,7 +155,7 @@ export default function App() {
 
         // If user just became premium in this session, show the success modal
         // We use a functional update or check against the current state
-        setUserData(prev => {
+        setUserData((prev: any) => {
           if (data.isPremium && prev && !prev.isPremium) {
             setShowPaymentSuccess(true);
             setIsVerifyingPayment(false);
@@ -258,6 +275,26 @@ export default function App() {
     return () => unsubStats();
   }, [user]);
 
+  useEffect(() => {
+    // Listen for latest active announcement
+    const q = collection(db, "announcements");
+    const unsubAnn = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as any))
+        .filter(d => d.active)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      if (docs.length > 0) {
+        setAnnouncement(docs[0]);
+        setShowAnnouncement(true);
+      } else {
+        setAnnouncement(null);
+      }
+    });
+
+    return () => unsubAnn();
+  }, []);
+
   if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;
   }
@@ -300,7 +337,7 @@ export default function App() {
       case "study_hub": return <StudyHubView />;
       case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
-      case "flashcards": return <FlashcardView />;
+      case "flashcards": return <FlashcardView isPremium={userData?.isPremium} />;
       case "leaderboard": return <LeaderboardView />;
       case "exams": return <ExamDatesView />;
       case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
@@ -363,6 +400,36 @@ export default function App() {
           )}
         </header>
       )}
+
+      {/* Announcement Banner */}
+      <AnimatePresence>
+        {announcement && showAnnouncement && activeTab !== 'auth' && activeTab !== 'landing' && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className={`z-[55] relative mt-14 mx-3 rounded-xl p-3 flex items-start gap-3 shadow-sm border ${
+              announcement.type === 'warning' ? 'bg-amber-50 border-amber-100 text-amber-800' :
+              announcement.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' :
+              'bg-blue-50 border-blue-100 text-blue-800'
+            }`}
+          >
+            <div className="shrink-0 mt-0.5">
+              <AlertCircle size={16} />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-[11px] font-black uppercase tracking-wider mb-0.5">{announcement.title}</h4>
+              <p className="text-[10px] font-medium leading-relaxed opacity-90">{announcement.content}</p>
+            </div>
+            <button 
+              onClick={() => setShowAnnouncement(false)}
+              className="shrink-0 p-1 hover:bg-black/5 rounded-lg transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <Sidebar 
@@ -534,6 +601,48 @@ export default function App() {
               >
                 Continue Learning
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Promotion Modal */}
+      <AnimatePresence>
+        {showPromoModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 10 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-xs text-center space-y-5 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto">
+                <Sparkles size={32} fill="currentColor" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Unlock Your Potential!</h3>
+                <p className="text-slate-500 text-xs font-medium leading-relaxed">
+                  Join 1,000+ students using PRO to get better grades. Get unlimited AI help, all past papers, and expert quizzes!
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => {
+                    setShowPromoModal(false);
+                    navigateTo("premium");
+                  }}
+                  className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-all text-sm"
+                >
+                  Upgrade to PRO Now
+                </button>
+                <button 
+                  onClick={() => setShowPromoModal(false)}
+                  className="w-full bg-slate-50 text-slate-400 font-bold py-3 rounded-xl active:scale-95 transition-all text-[10px] uppercase tracking-widest"
+                >
+                  Maybe Later
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

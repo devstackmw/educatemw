@@ -6,13 +6,17 @@ import { motion, AnimatePresence } from "motion/react";
 import { db } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
 
-export default function AIFlashcardGenerator({ onSetGenerated }: { onSetGenerated: (set: any) => void }) {
+export default function AIFlashcardGenerator({ isPremium, onSetGenerated }: { isPremium?: boolean, onSetGenerated: (set: any) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const generateSet = async () => {
+    if (!isPremium) {
+      setError("AI Flashcard Generation is a PRO feature. Upgrade to unlock!");
+      return;
+    }
     if (!topic) return;
     setLoading(true);
     setError("");
@@ -22,6 +26,7 @@ export default function AIFlashcardGenerator({ onSetGenerated }: { onSetGenerate
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Generate a set of 10 flashcards for MSCE students in Malawi on the topic: ${topic}. 
+        The content should be based on the Malawi National Examinations Board (MANEB) standards.
         Return the set in JSON format with fields: subject, topic, cards (array of objects with front and back).`,
         config: {
           responseMimeType: "application/json",

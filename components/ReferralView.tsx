@@ -76,19 +76,31 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
       createdAt: new Date().toISOString()
     });
 
-    // Update referrer points in users collection
+    // Update referrer points in users collection (5 AI questions)
     batch.update(referrerDoc.ref, {
-      aiPoints: increment(2)
+      aiPoints: increment(5)
     });
 
-    // Update referrer points in userStats collection
-    const statsRef = doc(db, "userStats", referrerDoc.id);
-    batch.update(statsRef, {
-      points: increment(10) // Give 10 general points too
+    // Update referrer points in userStats collection (10 leaderboard points)
+    const referrerStatsRef = doc(db, "userStats", referrerDoc.id);
+    batch.update(referrerStatsRef, {
+      points: increment(10)
+    });
+
+    // Update referred user points in userStats collection (10 leaderboard points)
+    const referredStatsRef = doc(db, "userStats", user.uid);
+    batch.update(referredStatsRef, {
+      points: increment(10)
+    });
+
+    // Update referred user AI points (5 AI questions)
+    const referredUserRef = doc(db, "users", user.uid);
+    batch.update(referredUserRef, {
+      aiPoints: increment(5)
     });
 
     await batch.commit();
-    alert(`Referral successful! You were invited by ${referrerName}. They earned points!`);
+    alert(`Referral successful! You were invited by ${referrerName}. You both earned 5 AI questions and 10 points to keep your friendship strong! 🤝😁`);
   };
 
   const copyCode = () => {
@@ -109,8 +121,11 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Gift size={80} />
         </div>
-        <h2 className="text-xl font-black mb-2">Refer a Friend</h2>
-        <p className="text-blue-100 text-sm mb-6 leading-relaxed">Share your unique link and earn 2 AI questions for every friend who joins!</p>
+        <h2 className="text-xl font-black mb-2">Refer & Earn</h2>
+        <p className="text-blue-100 text-sm mb-6 leading-relaxed">
+          Invite a friend and you both win! You both get 5 AI questions + 10 points. 
+          Sharing is caring, and balanced points keep friendships strong! 🤝😁
+        </p>
         
         <div className="space-y-3">
           <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20">

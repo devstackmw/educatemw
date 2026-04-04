@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebase";
-import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database, Video, Link as LinkIcon } from "lucide-react";
+import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database, Video, Link as LinkIcon, Bell } from "lucide-react";
 import { seedInitialData } from "@/lib/seedData";
 
 export default function AdminView() {
@@ -29,6 +29,11 @@ export default function AdminView() {
   // Resource specific
   const [resUrl, setResUrl] = useState("");
   const [resCategory, setResCategory] = useState("Notes");
+
+  // Notification specific
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifContent, setNotifContent] = useState("");
+  const [notifType, setNotifType] = useState("info"); // info, warning, success
 
   // Paper specific
   const [year, setYear] = useState("");
@@ -58,6 +63,9 @@ export default function AdminView() {
     setQuestionsCount(10);
     setTimeLimit("10 min");
     setIsPremiumOnly(false);
+    setNotifTitle("");
+    setNotifContent("");
+    setNotifType("info");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -116,6 +124,14 @@ export default function AdminView() {
           isPremiumOnly,
           createdAt: new Date().toISOString()
         });
+      } else if (activeTab === "notification") {
+        await addDoc(collection(db, "announcements"), {
+          title: notifTitle,
+          content: notifContent,
+          type: notifType,
+          active: true,
+          createdAt: new Date().toISOString()
+        });
       }
       setSuccessMsg(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} added successfully!`);
       resetForm();
@@ -169,6 +185,7 @@ export default function AdminView() {
           { id: "link", label: "Link", icon: LinkIcon },
           { id: "paper", label: "Paper", icon: BookOpen },
           { id: "quiz", label: "Quiz", icon: BrainCircuit },
+          { id: "notification", label: "Notif", icon: Bell },
         ].map((tab) => (
           <button 
             key={tab.id}
@@ -409,6 +426,45 @@ export default function AdminView() {
                 <option value="bg-emerald-600">Emerald</option>
                 <option value="bg-violet-600">Violet</option>
                 <option value="bg-amber-600">Amber</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "notification" && (
+          <div className="space-y-4">
+            <div>
+              <label className={labelClass}>Notification Title</label>
+              <input 
+                required
+                type="text" 
+                value={notifTitle}
+                onChange={(e) => setNotifTitle(e.target.value)}
+                className={inputClass}
+                placeholder="e.g., New Past Papers Added!"
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Content</label>
+              <textarea 
+                required
+                value={notifContent}
+                onChange={(e) => setNotifContent(e.target.value)}
+                rows={3}
+                className={inputClass}
+                placeholder="Write the notification message here..."
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Type</label>
+              <select 
+                value={notifType}
+                onChange={(e) => setNotifType(e.target.value)}
+                className={inputClass}
+              >
+                <option value="info">Information (Blue)</option>
+                <option value="warning">Warning (Amber)</option>
+                <option value="success">Success (Emerald)</option>
               </select>
             </div>
           </div>
