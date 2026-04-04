@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy, AlertCircle, ShieldAlert } from "lucide-react";
+import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy, AlertCircle, ShieldAlert, Flame } from "lucide-react";
 import HomeView from "@/components/HomeView";
 import PapersView from "@/components/PapersView";
 import QuizzesView from "@/components/QuizzesView";
@@ -24,6 +24,8 @@ import PrivacyPolicyView from "@/components/PrivacyPolicyView";
 import TermsOfServiceView from "@/components/TermsOfServiceView";
 import LandingView from "@/components/LandingView";
 import { AnimatePresence, motion } from "motion/react";
+import StudyHubView from "@/components/StudyHubView";
+import VideosView from "@/components/VideosView";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
@@ -32,12 +34,16 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("landing");
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [userStats, setUserStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [showPaymentError, setShowPaymentError] = useState(false);
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+
+  const [showStreakModal, setShowStreakModal] = useState(false);
+  const [streakCount, setStreakCount] = useState(0);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
@@ -75,6 +81,12 @@ export default function App() {
     // Check for payment success in URL
     const urlParams = new URLSearchParams(window.location.search);
     const paymentStatus = urlParams.get('payment');
+    const refCode = urlParams.get('ref');
+    
+    if (refCode) {
+      window.localStorage.setItem('referralCodeFromUrl', refCode);
+    }
+
     if (paymentStatus === 'success') {
       // We don't show the modal immediately, we wait for the real-time listener to confirm premium
       setIsVerifyingPayment(true);
@@ -141,7 +153,9 @@ export default function App() {
           phoneNumber: user.phoneNumber || "",
           photoURL: user.photoURL || "",
           isPremium: false,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+          aiPoints: 5 // Initial points
         });
         setDoc(doc(db, "publicProfiles", user.uid), {
           uid: user.uid,
@@ -154,6 +168,55 @@ export default function App() {
     }, (error) => {
       console.error("User data snapshot error:", error);
       setLoading(false);
+    });
+
+    // Handle Streak Logic and Stats
+    const statsRef = doc(db, "userStats", user.uid);
+    const unsubStats = onSnapshot(statsRef, async (statsSnap) => {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (statsSnap.exists()) {
+        const data = statsSnap.data();
+        setUserStats(data);
+        const lastActive = data.lastActiveDate;
+        let newStreak = data.streak || 0;
+        let shouldUpdate = false;
+
+        if (lastActive === yesterdayStr) {
+          newStreak += 1;
+          shouldUpdate = true;
+          setStreakCount(newStreak);
+          setShowStreakModal(true);
+        } else if (lastActive !== todayStr) {
+          newStreak = 1;
+          shouldUpdate = true;
+          setStreakCount(newStreak);
+          setShowStreakModal(true);
+        }
+
+        if (shouldUpdate) {
+          const { updateDoc } = await import("firebase/firestore");
+          await updateDoc(statsRef, {
+            streak: newStreak,
+            lastActiveDate: todayStr
+          });
+        }
+      } else {
+        // Create initial stats
+        const { setDoc } = await import("firebase/firestore");
+        await setDoc(statsRef, {
+          uid: user.uid,
+          displayName: user.displayName || "Student",
+          points: 0,
+          streak: 1,
+          lastActiveDate: todayStr,
+          isPremium: false
+        });
+      }
     });
 
     // Test connection to Firestore as recommended
@@ -169,7 +232,10 @@ export default function App() {
     };
     testConnection();
 
-    return () => unsubUser();
+    return () => {
+      unsubUser();
+      unsubStats();
+    };
   }, [user, activeTab, isVerifyingPayment, userData]);
 
   if (!hasMounted || loading) {
@@ -210,6 +276,8 @@ export default function App() {
       case "home": return <HomeView onNavigate={navigateTo} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />;
       case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
       case "quizzes": return <QuizzesView isPremium={userData?.isPremium} />;
+      case "videos": return <VideosView isPremium={userData?.isPremium} />;
+      case "study_hub": return <StudyHubView />;
       case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
       case "flashcards": return <FlashcardView />;
@@ -225,36 +293,54 @@ export default function App() {
       case "terms": return <TermsOfServiceView onBack={() => navigateTo(user ? "settings" : "landing")} />;
       case "auth": return <AuthView onLogin={() => navigateTo("home")} />;
       case "landing": return <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />;
-      case "ai": return <AskTeacherAI isPremium={userData?.isPremium} />;
+      case "ai": return <AskTeacherAI isPremium={userData?.isPremium} aiPoints={userData?.aiPoints} />;
       default: return <HomeView onNavigate={navigateTo} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
     }
   };
 
-  const isMainTab = ["home", "papers", "leaderboard", "profile"].includes(activeTab);
+  const isMainTab = ["home", "papers", "leaderboard", "profile", "videos"].includes(activeTab);
 
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
       {/* Top Header */}
       {activeTab !== 'auth' && (
-        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-slate-100 p-3 flex items-center gap-3">
-          {activeTab === 'home' ? (
+        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-slate-100 p-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {activeTab === 'home' ? (
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+              >
+                <Menu size={18} />
+              </button>
+            ) : (
+              <button 
+                onClick={() => setActiveTab("home")}
+                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+              >
+                <ChevronLeft size={18} />
+              </button>
+            )}
+            <h1 className="font-bold text-slate-800 capitalize text-sm tracking-tight">
+              {activeTab === 'home' ? 'Educate MW' : activeTab.replace('_', ' ')}
+            </h1>
+          </div>
+          
+          {userStats && (
+            <div className="flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
+              <Flame size={14} className="text-orange-500" fill="currentColor" />
+              <span className="text-xs font-bold text-orange-600">{userStats.streak}</span>
+            </div>
+          )}
+
+          {user?.isAnonymous && (
             <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+              onClick={() => navigateTo("auth")}
+              className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-lg shadow-blue-200 active:scale-95 transition-all uppercase tracking-wider"
             >
-              <Menu size={18} />
-            </button>
-          ) : (
-            <button 
-              onClick={() => setActiveTab("home")}
-              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
-            >
-              <ChevronLeft size={18} />
+              Create Account
             </button>
           )}
-          <h1 className="font-bold text-slate-800 capitalize text-sm tracking-tight">
-            {activeTab === 'home' ? 'Educate MW' : activeTab.replace('_', ' ')}
-          </h1>
         </header>
       )}
 
@@ -378,6 +464,61 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Streak Celebration Modal */}
+      <AnimatePresence>
+        {showStreakModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              className="bg-white rounded-3xl p-8 w-full max-w-xs text-center space-y-6 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-orange-100 to-transparent"></div>
+              
+              <div className="relative">
+                <motion.div 
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
+                  className="w-24 h-24 bg-gradient-to-br from-orange-400 to-red-500 text-white rounded-full flex items-center justify-center mx-auto shadow-xl shadow-orange-500/30 border-4 border-white"
+                >
+                  <Flame size={48} fill="currentColor" />
+                </motion.div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-1 rounded-full text-sm font-black shadow-lg border-2 border-white whitespace-nowrap"
+                >
+                  {streakCount} {streakCount === 1 ? 'DAY' : 'DAYS'}
+                </motion.div>
+              </div>
+
+              <div className="space-y-2 pt-2 relative z-10">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                  {streakCount === 1 ? "Streak Started!" : "Streak Extended!"}
+                </h3>
+                <p className="text-slate-500 text-sm font-medium">
+                  {streakCount === 1 
+                    ? "You've taken the first step. Come back tomorrow to keep it going!" 
+                    : "You're on fire! Keep up the great work and don't break the chain."}
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setShowStreakModal(false)}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/25 active:scale-95 transition-all text-sm relative z-10"
+              >
+                Continue Learning
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { User as FirebaseUser } from "firebase/auth";
 import { Loader2, Save, User, Trophy, Award, Star, Zap, Check, Camera, Upload } from "lucide-react";
 import { AVATARS } from "@/lib/avatars";
 import { ProfileSkeleton } from "./Skeleton";
+import ReferralView from "./ReferralView";
 import Image from "next/image";
 
 export default function ProfileView({ user, isPremium }: { user: FirebaseUser | null, isPremium?: boolean }) {
@@ -14,6 +15,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "", gender: "" });
   const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[], photoURL: "" });
+  const [userData, setUserData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -25,6 +27,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const data = userSnap.data();
+        setUserData(data);
         setProfile({ 
           nickname: data.nickname || "", 
           realName: data.realName || "",
@@ -252,6 +255,8 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
           </div>
         </div>
       </div>
+      
+      {userData && <ReferralView user={user} userData={userData} />}
       
       <div className="space-y-3">
         <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-1">Settings</h3>

@@ -42,9 +42,28 @@
           "type": "string",
           "format": "date-time",
           "description": "The ISO 8601 timestamp when the user was created."
+        },
+        "referralCode": {
+          "type": "string",
+          "description": "Unique referral code for the user."
+        },
+        "aiPoints": {
+          "type": "number",
+          "description": "Number of AI questions available for free users."
         }
       },
-      "required": ["uid", "displayName", "isPremium", "createdAt"]
+      "required": ["uid", "displayName", "isPremium", "createdAt", "referralCode", "aiPoints"]
+    },
+    "Referral": {
+      "title": "Referral",
+      "description": "Tracks a referral from one user to another.",
+      "type": "object",
+      "properties": {
+        "referrerUid": { "type": "string" },
+        "referredUid": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["referrerUid", "referredUid", "createdAt"]
     },
     "Paper": {
       "title": "Past Paper",
@@ -164,6 +183,35 @@
       },
       "required": ["front", "back"]
     },
+    "Resource": {
+      "title": "External Resource",
+      "description": "A link to an external resource like a PDF on Google Drive or a YouTube video.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "category": { "type": "string", "enum": ["Notes", "Past Papers", "Videos"] },
+        "isPremium": { "type": "boolean" },
+        "viewCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "url", "category", "isPremium", "createdAt"]
+    },
+    "Video": {
+      "title": "Educational Video",
+      "description": "A YouTube video for learning.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "subject": { "type": "string" },
+        "topic": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "isPremiumOnly": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "subject", "topic", "videoUrl", "isPremiumOnly", "createdAt"]
+    },
     "Post": {
       "title": "Community Post",
       "description": "A post shared by a user in the community.",
@@ -181,6 +229,18 @@
     }
   },
   "firestore": {
+    "/referrals/{referralId}": {
+      "schema": { "$ref": "#/entities/Referral" },
+      "description": "Tracks referrals."
+    },
+    "/resources/{resourceId}": {
+      "schema": { "$ref": "#/entities/Resource" },
+      "description": "Stores links to external resources."
+    },
+    "/videos/{videoId}": {
+      "schema": { "$ref": "#/entities/Video" },
+      "description": "Stores educational videos."
+    },
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Stores user profiles."

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/firebase";
-import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database } from "lucide-react";
+import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database, Video, Link as LinkIcon } from "lucide-react";
 import { seedInitialData } from "@/lib/seedData";
 
 export default function AdminView() {
@@ -14,12 +14,21 @@ export default function AdminView() {
   // Form states
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
+  const [title, setTitle] = useState("");
   const [isPremiumOnly, setIsPremiumOnly] = useState(false);
 
   // Note specific
   const [content, setContent] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+
+  // Video specific
+  const [ytUrl, setYtUrl] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+
+  // Resource specific
+  const [resUrl, setResUrl] = useState("");
+  const [resCategory, setResCategory] = useState("Notes");
 
   // Paper specific
   const [year, setYear] = useState("");
@@ -35,9 +44,14 @@ export default function AdminView() {
   const resetForm = () => {
     setSubject("");
     setTopic("");
+    setTitle("");
     setContent("");
     setVideoUrl("");
     setImageUrl("");
+    setYtUrl("");
+    setThumbnailUrl("");
+    setResUrl("");
+    setResCategory("Notes");
     setYear("");
     setSize("");
     setDownloadUrl("");
@@ -60,7 +74,27 @@ export default function AdminView() {
           content,
           videoUrl: videoUrl || null,
           imageUrl: imageUrl || null,
-          isPremiumOnly
+          isPremiumOnly,
+          createdAt: new Date().toISOString()
+        });
+      } else if (activeTab === "video") {
+        await addDoc(collection(db, "videos"), {
+          title,
+          subject,
+          topic,
+          videoUrl: ytUrl,
+          thumbnailUrl: thumbnailUrl || `https://img.youtube.com/vi/${ytUrl.split('v=')[1]?.split('&')[0]}/maxresdefault.jpg`,
+          isPremiumOnly,
+          createdAt: new Date().toISOString()
+        });
+      } else if (activeTab === "link") {
+        await addDoc(collection(db, "resources"), {
+          title,
+          url: resUrl,
+          category: resCategory,
+          isPremium: isPremiumOnly,
+          viewCount: 0,
+          createdAt: new Date().toISOString()
         });
       } else if (activeTab === "paper") {
         await addDoc(collection(db, "papers"), {
@@ -69,7 +103,8 @@ export default function AdminView() {
           level,
           size,
           downloadUrl,
-          isPremiumOnly
+          isPremiumOnly,
+          createdAt: new Date().toISOString()
         });
       } else if (activeTab === "quiz") {
         await addDoc(collection(db, "quizzes"), {
@@ -78,7 +113,8 @@ export default function AdminView() {
           questionsCount: Number(questionsCount),
           timeLimit,
           color,
-          isPremiumOnly
+          isPremiumOnly,
+          createdAt: new Date().toISOString()
         });
       }
       setSuccessMsg(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} added successfully!`);
@@ -129,6 +165,8 @@ export default function AdminView() {
       <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner">
         {[
           { id: "note", label: "Note", icon: FileText },
+          { id: "video", label: "Video", icon: Video },
+          { id: "link", label: "Link", icon: LinkIcon },
           { id: "paper", label: "Paper", icon: BookOpen },
           { id: "quiz", label: "Quiz", icon: BrainCircuit },
         ].map((tab) => (
@@ -156,6 +194,19 @@ export default function AdminView() {
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {(activeTab === "video" || activeTab === "note" || activeTab === "quiz" || activeTab === "link") && (
+            <div className="md:col-span-2">
+              <label className={labelClass}>{activeTab === "video" || activeTab === "link" ? "Title" : "Topic"}</label>
+              <input 
+                required
+                type="text" 
+                value={activeTab === "video" || activeTab === "link" ? title : topic}
+                onChange={(e) => activeTab === "video" || activeTab === "link" ? setTitle(e.target.value) : setTopic(e.target.value)}
+                className={inputClass}
+                placeholder={activeTab === "video" || activeTab === "link" ? "e.g., Introduction to Photosynthesis" : "e.g., Algebra"}
+              />
+            </div>
+          )}
           <div>
             <label className={labelClass}>Subject</label>
             <input 
@@ -167,20 +218,73 @@ export default function AdminView() {
               placeholder="e.g., Mathematics"
             />
           </div>
-          {activeTab !== "paper" && (
+          {activeTab === "video" && (
             <div>
-              <label className={labelClass}>Topic</label>
+              <label className={labelClass}>Topic (Optional)</label>
               <input 
-                required
                 type="text" 
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 className={inputClass}
-                placeholder="e.g., Algebra"
+                placeholder="e.g., Biology"
               />
             </div>
           )}
         </div>
+
+        {activeTab === "video" && (
+          <div className="space-y-4">
+            <div>
+              <label className={labelClass}>YouTube URL</label>
+              <input 
+                required
+                type="url" 
+                value={ytUrl}
+                onChange={(e) => setYtUrl(e.target.value)}
+                className={inputClass}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Thumbnail URL (Optional)</label>
+              <input 
+                type="url" 
+                value={thumbnailUrl}
+                onChange={(e) => setThumbnailUrl(e.target.value)}
+                className={inputClass}
+                placeholder="Leave blank to auto-generate from YouTube"
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "link" && (
+          <div className="space-y-4">
+            <div>
+              <label className={labelClass}>Resource URL (YouTube/Drive)</label>
+              <input 
+                required
+                type="url" 
+                value={resUrl}
+                onChange={(e) => setResUrl(e.target.value)}
+                className={inputClass}
+                placeholder="https://..."
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Category</label>
+              <select 
+                value={resCategory}
+                onChange={(e) => setResCategory(e.target.value)}
+                className={inputClass}
+              >
+                <option value="Notes">Notes</option>
+                <option value="Past Papers">Past Papers</option>
+                <option value="Videos">Videos</option>
+              </select>
+            </div>
+          </div>
+        )}
 
         {activeTab === "note" && (
           <div className="space-y-4">

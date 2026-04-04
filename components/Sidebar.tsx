@@ -33,6 +33,7 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
 
   const menuItems = [
     { id: "home", label: "Dashboard", icon: <Home size={20} /> },
+    { id: "videos", label: "Video Lessons", icon: <PlayCircle size={20} /> },
     { id: "papers", label: "Past Papers", icon: <BookOpen size={20} /> },
     { id: "quizzes", label: "Quizzes", icon: <HelpCircle size={20} /> },
     { id: "flashcards", label: "Flashcards", icon: <Layers size={20} /> },

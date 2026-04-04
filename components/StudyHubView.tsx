@@ -12,7 +12,7 @@ interface Note {
   isPremiumOnly: boolean;
 }
 
-export default function StudyHubView({ initialNotes }: { initialNotes: any[] }) {
+export default function StudyHubView({ initialNotes = [] }: { initialNotes?: any[] }) {
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [searchTerm, setSearchTerm] = useState("");
 

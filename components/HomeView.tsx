@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AppIcon } from "./AppLogo";
-import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar } from "lucide-react";
+import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar, PlayCircle } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc, updateDoc, increment, orderBy, limit } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -349,11 +349,18 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
             onClickTab="flashcards" 
           />
           <BentoCard 
+            icon={<PlayCircle className="text-rose-500" size={24} />} 
+            label="Video Lessons" 
+            sub="Watch & Learn"
+            color="bg-rose-50 border-rose-100" 
+            onClickTab="videos" 
+          />
+          <BentoCard 
             icon={<BookOpen className="text-emerald-500" size={24} />} 
-            label="Study Notes" 
-            sub="Subject materials"
+            label="Study Hub" 
+            sub="Subject notes"
             color="bg-emerald-50 border-emerald-100" 
-            onClickTab="papers" 
+            onClickTab="study_hub" 
           />
           <BentoCard 
             icon={<FileText className="text-amber-500" size={24} />} 
@@ -361,6 +368,8 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
             sub="2025 MANEB Prep"
             color="bg-amber-50 border-amber-100" 
             onClickTab="papers" 
+            className="col-span-2"
+            horizontal
           />
         </div>
       </div>

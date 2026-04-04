@@ -3,8 +3,10 @@ import { GoogleGenAI } from "@google/genai";
 import { Send, Loader2, BrainCircuit, User, Copy, CheckCircle, AlertCircle, Zap } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { doc, updateDoc } from "firebase/firestore";
+import { auth, db } from "@/firebase";
 
-export default function AskTeacherAI({ isPremium }: { isPremium?: boolean }) {
+export default function AskTeacherAI({ isPremium, aiPoints }: { isPremium?: boolean, aiPoints?: number }) {
   const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
     { role: 'ai', text: "Muli bwanji! I'm Cleo AI, your smart teacher. I'm here to help you prepare for your MSCE, JCE, or PSLCE exams. Ask me any question related to your studies!" }
   ]);
@@ -13,10 +15,6 @@ export default function AskTeacherAI({ isPremium }: { isPremium?: boolean }) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Simple local counter for free users (resets on refresh, but good for UX)
-  const [freeQuestionsCount, setFreeQuestionsCount] = useState(0);
-  const FREE_LIMIT = 2;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -35,10 +33,10 @@ export default function AskTeacherAI({ isPremium }: { isPremium?: boolean }) {
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    if (!isPremium && freeQuestionsCount >= FREE_LIMIT) {
+    if (!isPremium && (aiPoints || 0) <= 0) {
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "You've reached your free limit of 2 questions. Upgrade to **Educate MW PRO** to have AI without limit on Cleo AI! [Upgrade Now](premium)" 
+        text: "You've run out of AI points. Refer a friend to earn more points, or upgrade to **Educate MW PRO** for unlimited access! [Upgrade Now](premium)" 
       }]);
       return;
     }
@@ -77,8 +75,14 @@ Use Markdown for clear formatting.`
       });
       
       setMessages(prev => [...prev, { role: 'ai', text: response.text || "Sorry, I couldn't understand that." }]);
+      
       if (!isPremium) {
-        setFreeQuestionsCount(prev => prev + 1);
+        if (auth.currentUser) {
+          const userRef = doc(db, "users", auth.currentUser.uid);
+          await updateDoc(userRef, {
+            aiPoints: (aiPoints || 0) - 1
+          });
+        }
       }
     } catch (error) {
       console.error("AI Error:", error);

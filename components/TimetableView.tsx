@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Calendar, X } from "lucide-react";
+import { Calendar, X, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -12,6 +12,7 @@ const SUBJECTS = [
 
 export default function TimetableView({ onClose }: { onClose: () => void }) {
   const [schedule, setSchedule] = useState<Record<string, Record<string, string>>>({});
+  const [activeDay, setActiveDay] = useState("Monday");
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -19,48 +20,60 @@ export default function TimetableView({ onClose }: { onClose: () => void }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-white rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl flex flex-col"
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
-            <Calendar className="text-blue-600" /> Student Timetable
+            <Calendar className="text-blue-600" /> My Timetable
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} /></button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left border-collapse">
-            <thead>
-              <tr>
-                <th className="p-2 border border-slate-200 bg-slate-50 font-bold">Time</th>
-                {DAYS.map(day => <th key={day} className="p-2 border border-slate-200 bg-slate-50 font-bold">{day}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {PERIODS.map(period => (
-                <tr key={period}>
-                  <td className="p-2 border border-slate-200 font-bold text-slate-500">{period}</td>
-                  {DAYS.map(day => (
-                    <td key={`${day}-${period}`} className="p-1 border border-slate-200">
-                      <select 
-                        className="w-full p-1 bg-transparent text-slate-700 font-medium focus:outline-none"
-                        value={schedule[day]?.[period] || ""}
-                        onChange={(e) => setSchedule(prev => ({
-                          ...prev,
-                          [day]: { ...(prev[day] || {}), [period]: e.target.value }
-                        }))}
-                      >
-                        <option value="">Select Subject</option>
-                        {SUBJECTS.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-                      </select>
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Day Selector */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
+          {DAYS.map(day => (
+            <button
+              key={day}
+              onClick={() => setActiveDay(day)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                activeDay === day 
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
+                : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+            >
+              {day}
+            </button>
+          ))}
         </div>
-        <p className="text-[10px] text-slate-400 mt-4 italic">Your timetable is saved locally on this device.</p>
+
+        <div className="flex-1 overflow-y-auto pr-1 space-y-3 no-scrollbar">
+          {PERIODS.map(period => (
+            <div key={period} className="flex items-center gap-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+              <div className="w-16 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                {period}
+              </div>
+              <div className="flex-1">
+                <select 
+                  className="w-full p-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+                  value={schedule[activeDay]?.[period] || ""}
+                  onChange={(e) => setSchedule(prev => ({
+                    ...prev,
+                    [activeDay]: { ...(prev[activeDay] || {}), [period]: e.target.value }
+                  }))}
+                >
+                  <option value="">Free Period</option>
+                  {SUBJECTS.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="mt-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+          <p className="text-[10px] text-blue-600 font-bold flex items-center gap-2">
+            <Sparkles size={12} /> Your timetable is saved locally on this device.
+          </p>
+        </div>
       </motion.div>
     </div>
   );

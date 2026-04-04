@@ -12,7 +12,7 @@ import {
   updateProfile
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle, Phone, Lock, User } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle, Phone, Lock, User, AlertCircle } from "lucide-react";
 
 export default function AuthView({ onLogin }: { onLogin?: () => void }) {
   const [method, setMethod] = useState<"select" | "email" | "phone">("select");
@@ -183,6 +183,17 @@ export default function AuthView({ onLogin }: { onLogin?: () => void }) {
           <p className="text-gray-600 mb-6">
             We&apos;ve sent a sign-in link to <strong>{email}</strong>. Click the link to complete your registration.
           </p>
+          
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6 flex items-start gap-3 text-left">
+            <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={18} />
+            <div>
+              <p className="text-amber-800 font-bold text-sm">Don&apos;t see the email?</p>
+              <p className="text-amber-700 text-xs leading-relaxed">
+                Please check your <strong>Spam</strong> or <strong>Junk</strong> folder. Sometimes magic links land there!
+              </p>
+            </div>
+          </div>
+
           <button 
             onClick={() => setEmailSent(false)}
             className="text-blue-600 font-medium hover:underline"
