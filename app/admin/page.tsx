@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useMemo } from "react";
-import { collection, query, where, getCountFromServer, addDoc, serverTimestamp, onSnapshot, orderBy, deleteDoc, doc, updateDoc, getDocs, limit } from "firebase/firestore";
+import { collection, query, where, getCountFromServer, addDoc, serverTimestamp, onSnapshot, orderBy, deleteDoc, doc, updateDoc, getDocs, limit, setDoc } from "firebase/firestore";
 import { db, auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,8 @@ import {
   Line,
   Cell,
   PieChart,
-  Pie
+  Pie,
+  Legend
 } from 'recharts';
 import { 
   Users, 

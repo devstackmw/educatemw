@@ -47,6 +47,16 @@ export default function App() {
   const [announcement, setAnnouncement] = useState<any>(null);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showPromoModal, setShowPromoModal] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+  useEffect(() => {
+    const unsubSettings = onSnapshot(doc(db, "settings", "app"), (docSnap) => {
+      if (docSnap.exists()) {
+        setMaintenanceMode(docSnap.data().maintenanceMode || false);
+      }
+    });
+    return () => unsubSettings();
+  }, []);
 
   useEffect(() => {
     // Promotion timer for free users
@@ -301,6 +311,24 @@ export default function App() {
 
   if (isVerifyingPayment && !userData?.isPremium) {
     return <LoadingScreen message="Verifying your payment... Please wait." />;
+  }
+
+  if (maintenanceMode && userData?.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-8 text-center">
+        <div className="space-y-6 max-w-xs">
+          <div className="w-20 h-20 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center mx-auto">
+            <AlertCircle size={40} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-white tracking-tight">Under Maintenance</h2>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed">
+              We are currently upgrading our systems to serve you better. Please check back later.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (userData?.isBanned) {
