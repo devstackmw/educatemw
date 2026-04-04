@@ -3,7 +3,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const ADMIN_EMAILS = ["devstackmw@gmail.com"];
+const ADMIN_EMAILS = ["devstackmw@gmail.com", "mscepreparation@gmail.com"];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);

@@ -45,7 +45,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} text-base md:text-lg`}>
         {children}
         <Script id="register-sw" strategy="afterInteractive">
           {`
