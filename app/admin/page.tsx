@@ -1,11 +1,14 @@
-"use client";
+'use client';
 import { useEffect, useState } from "react";
 import { collection, query, where, getCountFromServer, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/firebase";
+import { db, auth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState({ paidStudents: 0, totalUsers: 0, totalPosts: 0 });
   const [resource, setResource] = useState({ title: "", type: "Video", url: "" });
+  const router = useRouter();
 
   useEffect(() => {
     const fetchMetrics = async () => {
@@ -41,9 +44,17 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push("/admin/login");
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Dashboard</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Dashboard</h2>
+        <button onClick={handleSignOut} className="text-sm font-medium text-red-600 hover:text-red-700">Sign Out</button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-500">Total Users</p>
