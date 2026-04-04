@@ -207,8 +207,17 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
           </div>
           {!isPremium && (
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 flex items-center justify-between gap-4">
-              <p className="text-indigo-900 text-xs font-medium">Want to generate a custom quiz? Upgrade to Pro!</p>
-              <button onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))} className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap">Upgrade</button>
+              <p className="text-indigo-900 text-xs font-medium">
+                {user?.isAnonymous 
+                  ? "Save your points permanently by creating an account!" 
+                  : "Want to generate a custom quiz? Upgrade to Pro!"}
+              </p>
+              <button 
+                onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: user?.isAnonymous ? 'auth_signup' : 'premium' }))} 
+                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap"
+              >
+                {user?.isAnonymous ? "Create Account" : "Upgrade"}
+              </button>
             </div>
           )}
         </div>

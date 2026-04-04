@@ -349,6 +349,7 @@ export default function App() {
       case "privacy": return <PrivacyPolicyView onBack={() => navigateTo(user ? "settings" : "landing")} />;
       case "terms": return <TermsOfServiceView onBack={() => navigateTo(user ? "settings" : "landing")} />;
       case "auth": return <AuthView onLogin={() => navigateTo("home")} />;
+      case "auth_signup": return <AuthView onLogin={() => navigateTo("home")} initialMode="signup" />;
       case "landing": return <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />;
       case "ai": return <AskTeacherAI isPremium={userData?.isPremium} aiPoints={userData?.aiPoints} />;
       default: return <HomeView onNavigate={navigateTo} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
@@ -392,7 +393,7 @@ export default function App() {
 
           {user?.isAnonymous && (
             <button 
-              onClick={() => navigateTo("auth")}
+              onClick={() => navigateTo("auth_signup")}
               className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-lg shadow-blue-200 active:scale-95 transition-all uppercase tracking-wider"
             >
               Create Account
@@ -630,11 +631,11 @@ export default function App() {
                 <button 
                   onClick={() => {
                     setShowPromoModal(false);
-                    navigateTo("premium");
+                    navigateTo(user?.isAnonymous ? "auth_signup" : "premium");
                   }}
                   className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-all text-sm"
                 >
-                  Upgrade to PRO Now
+                  {user?.isAnonymous ? "Create Account & Save Progress" : "Upgrade to PRO Now"}
                 </button>
                 <button 
                   onClick={() => setShowPromoModal(false)}

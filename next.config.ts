@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   transpilePackages: ['motion'],
+  env: {
+    NEXT_PUBLIC_APP_VERSION: `v1.1.${process.env.VERCEL_GIT_COMMIT_SHA?.substring(0, 7) || new Date().toISOString().split('T')[0].replace(/-/g, '')}`,
+  },
   async redirects() {
     return [
       {

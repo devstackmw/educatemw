@@ -16,12 +16,12 @@ import {
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { Mail, Loader2, ArrowLeft, CheckCircle2, UserCircle, Phone, Lock, User, AlertCircle } from "lucide-react";
 
-export default function AuthView({ onLogin }: { onLogin?: () => void }) {
+export default function AuthView({ onLogin, initialMode = "signup" }: { onLogin?: () => void, initialMode?: "signup" | "login" }) {
   const [method, setMethod] = useState<"select" | "email" | "phone">("select");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
+  const [authMode, setAuthMode] = useState<"signup" | "login">(initialMode);
 
   // Form state
   const [email, setEmail] = useState("");

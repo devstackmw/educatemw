@@ -35,7 +35,7 @@ export default function SettingsView({ onNavigate }: { onNavigate: (tab: string)
     {
       title: "App",
       items: [
-        { id: "updates", label: "Check for Updates", icon: <Globe size={20} />, color: "text-blue-600 bg-blue-50", value: "v1.0.5" },
+        { id: "updates", label: "Check for Updates", icon: <Globe size={20} />, color: "text-blue-600 bg-blue-50", value: process.env.NEXT_PUBLIC_APP_VERSION || "v1.1.0" },
         { id: "help", label: "Help Center", icon: <HelpCircle size={20} />, color: "text-slate-600 bg-slate-50" },
       ]
     }
