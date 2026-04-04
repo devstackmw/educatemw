@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:is(.dark *));
+
 /* Custom animations if needed can be added here using standard CSS */
 @keyframes fadeIn {
   from { opacity: 0; }

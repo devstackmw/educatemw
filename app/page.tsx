@@ -387,22 +387,22 @@ export default function App() {
   const isMainTab = ["home", "papers", "leaderboard", "profile", "videos"].includes(activeTab);
 
   return (
-    <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200">
+    <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 dark:bg-slate-900 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200 dark:border-slate-800 transition-colors duration-300">
       {/* Top Header */}
       {activeTab !== 'auth' && (
-        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 backdrop-blur-xl border-b border-slate-100 p-3 flex items-center justify-between">
+        <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 p-3 flex items-center justify-between transition-colors duration-300">
           <div className="flex items-center gap-3">
             {activeTab === 'home' ? (
               <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
               >
                 <Menu size={18} />
               </button>
             ) : (
               <button 
                 onClick={() => setActiveTab("home")}
-                className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-600"
+                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
               >
                 <ChevronLeft size={18} />
               </button>

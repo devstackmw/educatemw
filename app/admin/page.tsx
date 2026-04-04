@@ -43,13 +43,15 @@ import {
   Bell,
   TrendingUp,
   DollarSign,
-  Eye
+  Eye,
+  Menu,
+  X
 } from "lucide-react";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [metrics, setMetrics] = useState({ paidStudents: 0, totalUsers: 0, totalPosts: 0 });
-  const [resource, setResource] = useState({ title: "", type: "Video", url: "", isPremium: false, category: "Notes" });
+  const [resource, setResource] = useState({ title: "", subject: "", type: "Video", url: "", isPremium: false, category: "Notes" });
   const [resources, setResources] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
@@ -59,6 +61,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({ title: "", content: "", type: "info" });
   const [newExamDate, setNewExamDate] = useState({ subject: "", date: "" });
   const router = useRouter();
@@ -204,11 +207,25 @@ export default function AdminDashboard() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await addDoc(collection(db, "resources"), {
+      const resourceData = {
         ...resource,
+        topic: resource.title,
+        isPremiumOnly: resource.isPremium,
         createdAt: serverTimestamp(),
-      });
-      setResource({ title: "", type: "Video", url: "", isPremium: false, category: "Notes" });
+      };
+      
+      await addDoc(collection(db, "resources"), resourceData);
+      
+      if (resource.category === "Notes") {
+        await addDoc(collection(db, "notes"), resourceData);
+      } else if (resource.category === "Videos") {
+        await addDoc(collection(db, "videos"), resourceData);
+      } else if (resource.category === "Past Papers") {
+        await addDoc(collection(db, "papers"), resourceData);
+      }
+
+      setResource({ title: "", subject: "", type: "Video", url: "", isPremium: false, category: "Notes" });
+      alert("Resource published successfully!");
     } catch (error) {
       console.error("Error adding resource:", error);
       alert("Failed to add resource.");
@@ -312,68 +329,92 @@ export default function AdminDashboard() {
   }, [payments]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-slate-900 text-white p-4 flex items-center justify-between sticky top-0 z-40">
+        <h1 className="text-xl font-black tracking-tight flex items-center gap-2">
+          EducateMW <span className="text-blue-400">Admin</span>
+        </h1>
+        <button 
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="p-2 bg-slate-800 rounded-lg text-white"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* Sidebar Overlay for Mobile */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white hidden md:flex flex-col fixed h-full z-50">
-        <div className="p-6 border-b border-white/10">
+      <aside className={`w-64 bg-slate-900 text-white flex flex-col fixed h-full z-50 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+        <div className="p-6 border-b border-white/10 flex justify-between items-center">
           <h1 className="text-xl font-black tracking-tight flex items-center gap-2">
             EducateMW <span className="text-blue-400">Admin</span>
           </h1>
+          <button className="md:hidden text-slate-400" onClick={() => setIsMobileSidebarOpen(false)}>
+             <X size={24} />
+          </button>
         </div>
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           <SidebarLink 
             icon={<LayoutDashboard size={20} />} 
             label="Dashboard" 
             isActive={activeTab === "dashboard"} 
-            onClick={() => setActiveTab("dashboard")} 
+            onClick={() => { setActiveTab("dashboard"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<Users size={20} />} 
             label="User Management" 
             isActive={activeTab === "users"} 
-            onClick={() => setActiveTab("users")} 
+            onClick={() => { setActiveTab("users"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<Sparkles size={20} />} 
             label="Daily Tips" 
             isActive={activeTab === "tips"} 
-            onClick={() => setActiveTab("tips")} 
+            onClick={() => { setActiveTab("tips"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<BookOpen size={20} />} 
             label="Resources" 
             isActive={activeTab === "resources"} 
-            onClick={() => setActiveTab("resources")} 
+            onClick={() => { setActiveTab("resources"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<TrendingUp size={20} />} 
             label="Revenue" 
             isActive={activeTab === "revenue"} 
-            onClick={() => setActiveTab("revenue")} 
+            onClick={() => { setActiveTab("revenue"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<BarChart3 size={20} />} 
             label="Analytics" 
             isActive={activeTab === "analytics"} 
-            onClick={() => setActiveTab("analytics")} 
+            onClick={() => { setActiveTab("analytics"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<Bell size={20} />} 
             label="Announcements" 
             isActive={activeTab === "announcements"} 
-            onClick={() => setActiveTab("announcements")} 
+            onClick={() => { setActiveTab("announcements"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<Calendar size={20} />} 
             label="Exam Dates" 
             isActive={activeTab === "exams"} 
-            onClick={() => setActiveTab("exams")} 
+            onClick={() => { setActiveTab("exams"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<Settings size={20} />} 
             label="Settings" 
             isActive={activeTab === "settings"} 
-            onClick={() => setActiveTab("settings")} 
+            onClick={() => { setActiveTab("settings"); setIsMobileSidebarOpen(false); }} 
           />
         </nav>
         <div className="p-4 border-t border-white/10">
@@ -388,7 +429,7 @@ export default function AdminDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-8">
+      <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-x-hidden">
         {activeTab === "revenue" && (
           <div className="space-y-8">
             <header>
@@ -683,7 +724,11 @@ export default function AdminDashboard() {
               <form onSubmit={handleAddResource} className="space-y-5">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Resource Title</label>
-                  <input type="text" placeholder="e.g. Biology Cell Structure Notes" value={resource.title} onChange={(e) => setResource({...resource, title: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                  <input type="text" placeholder="e.g. Cell Structure Notes" value={resource.title} onChange={(e) => setResource({...resource, title: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Subject</label>
+                  <input type="text" placeholder="e.g. Biology" value={resource.subject} onChange={(e) => setResource({...resource, subject: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
