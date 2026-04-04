@@ -252,34 +252,40 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
       
       <div className="space-y-3">
         <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-1">Settings</h3>
-        <div className="space-y-3 bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500">Nickname</label>
-            <input
-              type="text"
-              value={profile.nickname}
-              onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
-              className="w-full bg-slate-100 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 text-xs font-medium"
-              placeholder="How should we call you?"
-            />
+        <div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nickname</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                value={profile.nickname}
+                onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-10 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                placeholder="How should we call you?"
+              />
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500">Real Name</label>
-            <input
-              type="text"
-              value={profile.realName}
-              onChange={(e) => setProfile({ ...profile, realName: e.target.value })}
-              className="w-full bg-slate-100 border-none rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 text-xs font-medium"
-              placeholder="Your full name"
-            />
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Real Name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+                type="text"
+                value={profile.realName}
+                onChange={(e) => setProfile({ ...profile, realName: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-10 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                placeholder="Your full name"
+              />
+            </div>
           </div>
           
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold text-xs hover:bg-blue-700 disabled:opacity-50 shadow-md shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
+            className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"
           >
-            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
             Save Changes
           </button>
 

@@ -81,23 +81,33 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-8 pb-32 max-w-3xl mx-auto">
+    <div className="p-6 md:p-8 pt-12 space-y-8 pb-32 max-w-3xl mx-auto">
 
       {/* Daily Engagement */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-orange-50 text-orange-500 rounded-xl"><Zap size={24} fill="currentColor" /></div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Streak</p>
-            <p className="font-bold text-slate-800 text-lg">{streak} Days</p>
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-orange-50 text-orange-500 rounded-xl"><Zap size={24} fill="currentColor" /></div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Streak</p>
+              <p className="font-bold text-slate-800 text-lg">{streak} Days</p>
+            </div>
           </div>
+          <button className="w-full bg-orange-50 text-orange-700 text-[10px] font-bold py-2 rounded-lg hover:bg-orange-100 transition-all">
+            View Streak
+          </button>
         </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-blue-50 text-blue-500 rounded-xl"><Sparkles size={24} /></div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Tip</p>
-            <p className="font-bold text-slate-800 text-xs leading-tight">Review relative clauses!</p>
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-50 text-blue-500 rounded-xl"><Sparkles size={24} /></div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Tip</p>
+              <p className="font-bold text-slate-800 text-xs leading-tight">Consistency is key to mastering complex subjects.</p>
+            </div>
           </div>
+          <button className="w-full bg-blue-50 text-blue-700 text-[10px] font-bold py-2 rounded-lg hover:bg-blue-100 transition-all">
+            View Tip
+          </button>
         </div>
       </div>
 

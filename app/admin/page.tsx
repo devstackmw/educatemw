@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const [metrics, setMetrics] = useState({ paidStudents: 0, totalUsers: 0, totalPosts: 0 });
-  const [resource, setResource] = useState({ title: "", type: "Video", url: "" });
+  const [resource, setResource] = useState({ title: "", type: "Video", url: "", isPremium: false, category: "Notes" });
   const router = useRouter();
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
         ...resource,
         createdAt: serverTimestamp(),
       });
-      setResource({ title: "", type: "Video", url: "" });
+      setResource({ title: "", type: "Video", url: "", isPremium: false, category: "Notes" });
       alert("Resource added successfully!");
     } catch (error) {
       console.error("Error adding resource:", error);
@@ -79,6 +79,15 @@ export default function AdminDashboard() {
             <option>Picture</option>
             <option>Notes</option>
           </select>
+          <select value={resource.category} onChange={(e) => setResource({...resource, category: e.target.value})} className="w-full p-2 border rounded">
+            <option>Notes</option>
+            <option>Past Papers</option>
+            <option>Videos</option>
+          </select>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={resource.isPremium} onChange={(e) => setResource({...resource, isPremium: e.target.checked})} />
+            <span>Premium Only</span>
+          </label>
           <input type="url" placeholder="URL" value={resource.url} onChange={(e) => setResource({...resource, url: e.target.value})} className="w-full p-2 border rounded" required />
           <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-bold">Add Resource</button>
         </form>

@@ -1,37 +1,41 @@
 import { Download, Search, FileText, Lock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PapersSkeleton } from "./Skeleton";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { db } from "@/firebase";
 
 export default function PapersView({ isPremium, onNavigate }: { isPremium?: boolean, onNavigate?: (tab: string) => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("Notes");
+  const [resources, setResources] = useState<any[]>([]);
 
   useEffect(() => {
-    // Simulate loading for better UX transition
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    const q = query(collection(db, "resources"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setResources(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
-  const notes = [
-    { title: "Chemistry Notes", url: "https://drive.google.com/drive/folders/1oqBNZAKDbPm3Wv1K1CyzOIWSXclzM-YZ", color: "bg-emerald-50 text-emerald-600 border-emerald-100", premium: true, category: "Notes" },
-    { title: "Biology Notes", url: "https://drive.google.com/drive/folders/1IPDdImZt98qhBe-dZwTJK-JLXIvQ3gKs", color: "bg-rose-50 text-rose-600 border-rose-100", premium: true, category: "Notes" },
-    { title: "Mathematics Notes", url: "https://drive.google.com/drive/folders/1nAgjHKIKU1TWMMj7YCpGSG8j5WYxz5gv", color: "bg-indigo-50 text-indigo-600 border-indigo-100", premium: true, category: "Notes" },
-    { title: "Agriculture Notes", url: "https://drive.google.com/drive/folders/1--BbSZ9zbtiAXVKYhiaJ9FIjgl-Uxjt5", color: "bg-orange-50 text-orange-600 border-orange-100", premium: true, category: "Notes" },
-    { title: "Geography Notes", url: "https://drive.google.com/drive/folders/1jj64lf2kWEAhvrhmV-SKGGrHF67H6Mxg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", premium: true, category: "Notes" },
-    { title: "Social Studies Notes", url: "https://drive.google.com/drive/folders/1gKB6neWwy_XG2mujGu07asw7FDkgtX4I", color: "bg-blue-50 text-blue-600 border-blue-100", premium: true, category: "Notes" },
-    { title: "Physics Notes", url: "https://drive.google.com/drive/folders/1OMJ_UAboIvKS7frqnfk-Bm9mbbrrAYwT", color: "bg-purple-50 text-purple-600 border-purple-100", premium: true, category: "Notes" },
-    { title: "Life Skills Notes", url: "https://drive.google.com/drive/folders/1H2dQeiekRq903lDS8_Aa4LeQTxnw9Blj", color: "bg-pink-50 text-pink-600 border-pink-100", premium: true, category: "Notes" },
-    { title: "2025 MANEB Past Papers", url: "https://drive.google.com/drive/folders/181_aToIbTtDmA-_I2vGAyIWvraZKk6ne", color: "bg-amber-50 text-amber-600 border-amber-100", premium: true, category: "Past Papers" }
-  ];
+  const getResourceColor = (category: string) => {
+    switch (category) {
+      case "Notes": return "bg-emerald-50 text-emerald-600";
+      case "Past Papers": return "bg-amber-50 text-amber-600";
+      case "Videos": return "bg-purple-50 text-purple-600";
+      default: return "bg-slate-50 text-slate-600";
+    }
+  };
 
   if (loading) {
     return <PapersSkeleton />;
   }
 
-  const filteredNotes = notes.filter(note => 
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
-    (activeCategory === "All" || note.category === activeCategory)
+  const filteredResources = resources.filter(res => 
+    res.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    (activeCategory === "All" || res.category === activeCategory)
   );
 
   const handleLockedClick = () => {
@@ -52,7 +56,7 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {["Notes", "Past Papers", "All"].map((cat) => (
+        {["Notes", "Past Papers", "Videos", "All"].map((cat) => (
           <button 
             key={cat}
             onClick={() => setActiveCategory(cat)}
@@ -73,20 +77,20 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
           <p className="text-blue-100 text-[10px] font-medium opacity-80">Premium access to Google Drive study materials and past papers.</p>
         </div>
         
-        {filteredNotes.length === 0 ? (
+        {filteredResources.length === 0 ? (
           <div className="bg-white rounded-xl p-6 text-center border border-slate-100 shadow-sm">
             <FileText className="mx-auto text-slate-300 mb-2" size={32} />
             <h3 className="text-slate-800 font-bold text-sm mb-0.5">No materials found</h3>
             <p className="text-slate-500 text-xs">Try adjusting your search or category.</p>
           </div>
         ) : (
-          filteredNotes.map((note, idx) => (
+          filteredResources.map((res) => (
             <NoteLink 
-              key={idx}
-              title={note.title} 
-              url={note.url} 
-              color={note.color}
-              isLocked={note.premium && !isPremium}
+              key={res.id}
+              title={res.title} 
+              url={res.url} 
+              color={getResourceColor(res.category)}
+              isLocked={res.isPremium && !isPremium}
               onLockedClick={handleLockedClick}
             />
           ))
@@ -98,33 +102,24 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
 
 function NoteLink({ title, url, color, isLocked, onLockedClick }: { title: string, url: string, color: string, isLocked: boolean, onLockedClick: () => void }) {
   const content = (
-    <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${isLocked ? 'bg-slate-50 text-slate-400 border-slate-200 grayscale' : `hover:shadow-sm active:scale-[0.98] ${color}`}`}>
-      <div className="flex items-center gap-3">
-        <div className={`p-2.5 rounded-lg shadow-sm ${isLocked ? 'bg-slate-200' : 'bg-white'}`}>
-          {isLocked ? <Lock size={18} /> : <FileText size={18} />}
+    <div className={`flex items-center justify-between p-5 rounded-2xl border transition-all ${isLocked ? 'bg-slate-50 text-slate-400 border-slate-200 grayscale' : `hover:shadow-md active:scale-[0.98] ${color} border-transparent`}`}>
+      <div className="flex items-center gap-4">
+        <div className={`p-3 rounded-xl shadow-sm ${isLocked ? 'bg-slate-200' : 'bg-white'}`}>
+          {isLocked ? <Lock size={20} /> : <FileText size={20} />}
         </div>
         <div className="flex flex-col">
-          <span className={`font-bold text-xs ${isLocked ? 'text-slate-500' : ''}`}>{title}</span>
+          <span className={`font-bold text-sm ${isLocked ? 'text-slate-500' : 'text-slate-800'}`}>{title}</span>
           {isLocked && (
             <div className="mt-2 flex items-center gap-2">
-              <span className="bg-amber-100 text-amber-700 text-[8px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Lock size={10} />
                 Premium Only
               </span>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onLockedClick();
-                }}
-                className="bg-blue-600 text-white text-[8px] font-black px-3 py-1 rounded-lg shadow-sm shadow-blue-600/20 hover:bg-blue-700 transition-all"
-              >
-                Upgrade to Unlock
-              </button>
             </div>
           )}
         </div>
       </div>
-      {!isLocked && <Download size={16} />}
+      {!isLocked && <Download size={20} className="text-slate-400" />}
     </div>
   );
 
