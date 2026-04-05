@@ -979,7 +979,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Resource URL</label>
-                  <input type="url" placeholder="https://drive.google.com/..." value={resource.url} onChange={(e) => setResource({...resource, url: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                  <input type="url" placeholder={resource.category === "Videos" ? "https://youtube.com/watch?v=..." : "https://drive.google.com/..."} value={resource.url} onChange={(e) => setResource({...resource, url: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
                 </div>
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
                   <div className="flex items-center gap-3">

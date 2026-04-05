@@ -37,14 +37,42 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
   });
 
   const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    let videoId = '';
+    
     if (url.includes("youtube.com/watch?v=")) {
-      return url.replace("watch?v=", "embed/");
+      videoId = url.split("v=")[1]?.split("&")[0];
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1]?.split("?")[0];
+    } else if (url.includes("youtube.com/embed/")) {
+      return url; // Already an embed URL
     }
-    if (url.includes("youtu.be/")) {
-      return url.replace("youtu.be/", "youtube.com/embed/");
+    
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
     }
     return url;
   };
+
+  const getThumbnailUrl = (url: string, fallback: string) => {
+    if (!url) return fallback;
+    let videoId = '';
+    
+    if (url.includes("youtube.com/watch?v=")) {
+      videoId = url.split("v=")[1]?.split("&")[0];
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1]?.split("?")[0];
+    } else if (url.includes("youtube.com/embed/")) {
+      videoId = url.split("embed/")[1]?.split("?")[0];
+    }
+    
+    if (videoId) {
+      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    }
+    return fallback || "https://picsum.photos/seed/video/640/360";
+  };
+
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
   return (
     <div className="p-4 pt-6 space-y-6 pb-24">
@@ -106,27 +134,45 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
         <div className="grid gap-6">
           {filteredVideos.map((video) => (
             <div key={video.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm group">
-              <div className="relative aspect-video">
-                <Image 
-                  src={video.thumbnailUrl} 
-                  alt={video.title}
-                  fill
-                  className="object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center">
-                  <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-blue-600 shadow-xl transform group-hover:scale-110 transition-all">
-                    <Play size={24} fill="currentColor" />
-                  </div>
-                </div>
-                {video.isPremiumOnly && (
-                  <div className="absolute top-3 right-3 bg-amber-500 text-white px-2 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 shadow-lg">
-                    <Zap size={8} fill="currentColor" /> PRO
-                  </div>
+              <div className="relative aspect-video bg-slate-900">
+                {playingVideoId === video.id ? (
+                  <iframe 
+                    src={`${getEmbedUrl(video.url || video.videoUrl)}?autoplay=1&rel=0`}
+                    title={video.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  ></iframe>
+                ) : (
+                  <>
+                    <Image 
+                      src={getThumbnailUrl(video.url || video.videoUrl, video.thumbnailUrl)} 
+                      alt={video.title}
+                      fill
+                      className="object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div 
+                      className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center cursor-pointer"
+                      onClick={() => {
+                        if (video.isPremiumOnly && !isPremium) {
+                          window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+                        } else {
+                          setPlayingVideoId(video.id);
+                        }
+                      }}
+                    >
+                      <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center text-blue-600 shadow-xl transform group-hover:scale-110 transition-all">
+                        <Play size={24} fill="currentColor" className="ml-1" />
+                      </div>
+                    </div>
+                    {video.isPremiumOnly && (
+                      <div className="absolute top-3 right-3 bg-amber-500 text-white px-2 py-1 rounded-lg text-[8px] font-black flex items-center gap-1 shadow-lg">
+                        <Zap size={8} fill="currentColor" /> PRO
+                      </div>
+                    )}
+                  </>
                 )}
-                <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white px-2 py-1 rounded text-[8px] font-bold flex items-center gap-1">
-                  <Clock size={8} /> 15:00
-                </div>
               </div>
               <div className="p-4 space-y-2">
                 <div className="flex justify-between items-start gap-2">
@@ -148,17 +194,14 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
                   >
                     <Zap size={12} fill="currentColor" /> Unlock with PRO
                   </button>
-                ) : (
+                ) : playingVideoId !== video.id ? (
                   <button 
-                    onClick={() => {
-                      // Open video in a modal or new tab
-                      window.open(video.videoUrl, '_blank');
-                    }}
+                    onClick={() => setPlayingVideoId(video.id)}
                     className="w-full mt-2 bg-blue-600 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
                   >
                     Watch Now
                   </button>
-                )}
+                ) : null}
               </div>
             </div>
           ))}

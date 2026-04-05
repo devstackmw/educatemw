@@ -56,7 +56,7 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
           email: user.email || "student@educatemw.com",
           firstName: user.displayName?.split(' ')[0] || "Student",
           lastName: user.displayName?.split(' ').slice(1).join(' ') || "",
-          amount: 100,
+          amount: 5000,
           userId: user.uid,
         }),
       });
@@ -181,7 +181,7 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
 
           <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 mb-8 border border-white/10 shadow-inner">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-white tracking-tighter">K100</span>
+              <span className="text-4xl font-black text-white tracking-tighter">K5,000</span>
               <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">/ month</span>
             </div>
             <p className="text-slate-400 text-[10px] font-bold mt-3 leading-relaxed">
