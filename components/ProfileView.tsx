@@ -13,8 +13,11 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
-  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "", gender: "" });
+  const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "", gender: "", subjects: [] as string[], grade: "" });
   const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[], photoURL: "" });
+
+  const AVAILABLE_SUBJECTS = ["English", "Mathematics", "Biology", "Physical Science", "Geography", "History", "Chichewa", "Agriculture", "Social Studies", "Life Skills", "Bible Knowledge"];
+  const GRADES = ["Form 1", "Form 2", "Form 3", "Form 4 (MSCE)"];
   const [userData, setUserData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,7 +36,9 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
           realName: data.realName || "",
           avatarId: data.avatarId || "girl_1",
           photoURL: data.photoURL || "",
-          gender: data.gender || ""
+          gender: data.gender || "",
+          subjects: data.subjects || [],
+          grade: data.grade || ""
         });
       }
       setLoading(false);
@@ -271,6 +276,51 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
       
       {userData && <ReferralView user={user} userData={userData} />}
       
+      {/* Admin Reset Button */}
+      {user?.email === 'devstackmw@gmail.com' && (
+        <div className="space-y-4">
+          <h3 className="font-bold text-rose-600 text-xs uppercase tracking-widest px-2">Admin Controls</h3>
+          <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100 shadow-sm space-y-4">
+            <div className="space-y-2">
+              <h4 className="font-black text-rose-900 text-sm tracking-tight">Reset All Trial Data</h4>
+              <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest leading-relaxed">
+                This will delete all users, stats, posts, and payments from Firestore. 
+                Leaderboard will start again from zero.
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                if (window.confirm("Are you ABSOLUTELY sure? This will delete all student data and reset the leaderboard. This cannot be undone.")) {
+                  try {
+                    setSaving(true);
+                    const response = await fetch('/api/admin/reset', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ adminEmail: user.email })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                      setSaveStatus("All trial data cleared successfully! App is ready for real students.");
+                      setTimeout(() => window.location.reload(), 2000);
+                    } else {
+                      setSaveStatus("Reset failed: " + data.error);
+                    }
+                  } catch (err) {
+                    setSaveStatus("Reset failed. Check console.");
+                  } finally {
+                    setSaving(false);
+                  }
+                }
+              }}
+              disabled={saving}
+              className="w-full bg-rose-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-rose-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              Reset Database for Real Students
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-4">
         <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-2">Profile Settings</h3>
         <div className="space-y-5 bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-sm">
@@ -298,6 +348,42 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-12 py-4 focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-900 transition-all outline-none"
                 placeholder="Your full name"
               />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Grade / Form</label>
+            <select
+              value={profile.grade}
+              onChange={(e) => setProfile({ ...profile, grade: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-900 transition-all outline-none appearance-none"
+            >
+              <option value="">Select your grade</option>
+              {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">My Subjects</label>
+            <div className="grid grid-cols-2 gap-2">
+              {AVAILABLE_SUBJECTS.map(subject => (
+                <button
+                  key={subject}
+                  onClick={() => {
+                    const newSubjects = profile.subjects.includes(subject)
+                      ? profile.subjects.filter(s => s !== subject)
+                      : [...profile.subjects, subject];
+                    setProfile({ ...profile, subjects: newSubjects });
+                  }}
+                  className={`p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                    profile.subjects.includes(subject)
+                      ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                      : "bg-slate-50 border-slate-100 text-slate-400 hover:border-indigo-200"
+                  }`}
+                >
+                  {subject}
+                </button>
+              ))}
             </div>
           </div>
           

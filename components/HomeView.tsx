@@ -23,6 +23,13 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   const [examDates, setExamDates] = useState<any[]>([]);
   const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -41,17 +48,15 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
       setExamDates(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    // Fetch avatar and photo from users collection
-    const fetchUser = async () => {
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const data = userSnap.data();
+    // Listen for user document changes (avatar, photo)
+    const userRef = doc(db, "users", user.uid);
+    const unsubUser = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
         setAvatarId(data.avatarId || "girl_1");
         setPhotoURL(data.photoURL || "");
       }
-    };
-    fetchUser();
+    });
 
     const statsRef = doc(db, "userStats", user.uid);
     const unsubscribe = onSnapshot(statsRef, async (snapshot) => {
@@ -102,17 +107,28 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   return (
     <div className="p-6 md:p-8 pt-16 space-y-8 pb-32 max-w-3xl mx-auto font-sans">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Welcome back,</p>
-          <h2 className="text-3xl font-heading font-black text-slate-900 tracking-tight">{displayName}</h2>
+      <div className="flex items-center justify-between bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
+        <div className="absolute -top-12 -left-12 w-32 h-32 bg-indigo-50 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+        <div className="space-y-1 relative z-10">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{getGreeting()}</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{displayName.split(' ')[0]}</h2>
+          <div className="flex items-center gap-1.5 mt-1">
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Now</span>
+          </div>
         </div>
-        <div className="w-14 h-14 rounded-full bg-indigo-100 border-4 border-white shadow-md overflow-hidden relative">
+        <div 
+          onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}
+          className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-100 shadow-lg overflow-hidden relative cursor-pointer hover:scale-105 active:scale-95 transition-all hover:border-indigo-200 group/avatar"
+        >
           {photoURL ? (
             <Image src={photoURL} alt="Profile" fill className="object-cover" referrerPolicy="no-referrer" />
           ) : (
-            <Image src={`/avatars/${avatarId}.svg`} alt="Avatar" fill className="object-cover" />
+            <div className="w-full h-full p-1.5">
+              {AVATARS.find(a => a.id === avatarId)?.svg || AVATARS[0].svg}
+            </div>
           )}
+          <div className="absolute inset-0 bg-indigo-600/0 group-hover/avatar:bg-indigo-600/10 transition-colors"></div>
         </div>
       </div>
 

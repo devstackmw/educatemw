@@ -31,6 +31,51 @@ export const AVATARS = [
         />
       </div>
     )
+  },
+  {
+    id: 'boy_2',
+    gender: 'boy',
+    svg: (
+      <div className="w-full h-full relative">
+        <Image 
+          src="https://api.dicebear.com/7.x/micah/svg?seed=James&backgroundColor=dcfce7" 
+          alt="Boy Avatar 2" 
+          fill
+          className="object-cover" 
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    )
+  },
+  {
+    id: 'girl_2',
+    gender: 'girl',
+    svg: (
+      <div className="w-full h-full relative">
+        <Image 
+          src="https://api.dicebear.com/7.x/micah/svg?seed=Sarah&backgroundColor=fef9c3" 
+          alt="Girl Avatar 2" 
+          fill
+          className="object-cover" 
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    )
+  },
+  {
+    id: 'student_1',
+    gender: 'neutral',
+    svg: (
+      <div className="w-full h-full relative">
+        <Image 
+          src="https://api.dicebear.com/7.x/micah/svg?seed=Alex&backgroundColor=ffedd5" 
+          alt="Student Avatar" 
+          fill
+          className="object-cover" 
+          referrerPolicy="no-referrer"
+        />
+      </div>
+    )
   }
 ];
 

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         // Record the payment for analytics
         await adminDb.collection('payments').add({
           userId,
-          amount: 5000, // Standard premium price
+          amount: 100, // Standard premium price
           currency: 'MWK',
           status: 'success',
           tx_ref,
@@ -105,7 +105,7 @@ export async function GET(req: Request) {
               // Record the payment for analytics
               await adminDb.collection('payments').add({
                 userId,
-                amount: 5000,
+                amount: 100,
                 currency: 'MWK',
                 status: 'success',
                 tx_ref,

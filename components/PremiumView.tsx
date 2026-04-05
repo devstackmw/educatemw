@@ -68,7 +68,17 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
       }
 
       if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+        // Try to redirect the top window if in an iframe
+        try {
+          if (window.top) {
+            window.top.location.href = data.checkoutUrl;
+          } else {
+            window.location.href = data.checkoutUrl;
+          }
+        } catch (e) {
+          // Fallback if window.top is restricted
+          window.location.href = data.checkoutUrl;
+        }
       } else {
         throw new Error('No checkout URL returned');
       }
