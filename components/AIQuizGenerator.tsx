@@ -207,13 +207,27 @@ export default function AIQuizGenerator({ isPremium, onQuizGenerated }: { isPrem
 
   return (
     <>
-      <button 
+      <div 
         onClick={() => { setIsOpen(true); reset(); }}
-        className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 shadow-lg shadow-indigo-600/10 active:scale-95 transition-all"
+        className="bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-600/20 cursor-pointer group hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden"
       >
-        <Sparkles size={18} className="animate-pulse" />
-        Generate AI Quiz on any Topic
-      </button>
+        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-500">
+          <Sparkles size={100} />
+        </div>
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">New</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">AI Powered</span>
+            </div>
+            <h3 className="text-2xl font-heading font-black tracking-tight">Generate Custom Quizzes</h3>
+            <p className="text-indigo-100 text-sm font-medium max-w-[200px]">Test your knowledge on any topic instantly.</p>
+          </div>
+          <div className="w-12 h-12 bg-white text-indigo-600 rounded-full flex items-center justify-center shadow-lg group-hover:translate-x-2 transition-transform">
+            <ChevronRight size={24} />
+          </div>
+        </div>
+      </div>
 
       <AnimatePresence>
         {isOpen && (
@@ -229,25 +243,30 @@ export default function AIQuizGenerator({ isPremium, onQuizGenerated }: { isPrem
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white w-full max-w-md rounded-2xl p-6 relative z-10 shadow-2xl overflow-hidden"
+              className="bg-white w-full max-w-md rounded-3xl p-8 relative z-10 shadow-2xl overflow-hidden"
             >
               {step !== "generating" && (
-                <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 p-1.5 text-slate-400 hover:bg-slate-50 rounded-lg">
-                  <X size={18} />
+                <button onClick={() => setIsOpen(false)} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-full transition-colors">
+                  <X size={20} />
                 </button>
               )}
 
-              <div className="text-center space-y-1 mb-6">
-                <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Sparkles size={24} />
+              <div className="text-center space-y-2 mb-8">
+                <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                  <Sparkles size={32} />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800">AI Quiz Engine</h3>
-                <p className="text-slate-400 text-xs font-medium">Personalized for Malawi Secondary Curriculum</p>
+                <h3 className="text-2xl font-heading font-black text-slate-900 tracking-tight">AI Quiz Engine</h3>
+                <p className="text-slate-500 text-sm font-medium">Personalized for Malawi Secondary Curriculum</p>
               </div>
 
               {renderStep()}
 
-              {error && <p className="text-rose-500 text-xs font-bold text-center mt-4">{error}</p>}
+              {error && (
+                <div className="mt-6 p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-sm font-medium flex items-start gap-3">
+                  <div className="p-1 bg-white rounded-lg shrink-0"><X size={14} /></div>
+                  {error}
+                </div>
+              )}
             </motion.div>
           </div>
         )}

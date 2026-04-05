@@ -45,7 +45,8 @@ import {
   DollarSign,
   Eye,
   Menu,
-  X
+  X,
+  HelpCircle
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -64,6 +65,9 @@ export default function AdminDashboard() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({ title: "", content: "", type: "info" });
   const [newExamDate, setNewExamDate] = useState({ subject: "", date: "" });
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [newQuiz, setNewQuiz] = useState({ subject: "", topic: "", questionsCount: 10, timeLimit: "10", color: "bg-blue-500", isPremiumOnly: false });
+  const [newQuestions, setNewQuestions] = useState([{ text: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "" }]);
   const router = useRouter();
 
   useEffect(() => {
@@ -122,6 +126,11 @@ export default function AdminDashboard() {
         setPayments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
+      // Listen for quizzes
+      const unsubQuizzes = onSnapshot(query(collection(db, "quizzes"), orderBy("createdAt", "desc")), (snapshot) => {
+        setQuizzes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+
       fetchMetrics();
       
       // Cleanup
@@ -132,6 +141,7 @@ export default function AdminDashboard() {
         unsubAnnouncements();
         unsubExamDates();
         unsubPayments();
+        unsubQuizzes();
       };
     });
 
@@ -240,6 +250,44 @@ export default function AdminDashboard() {
       await deleteDoc(doc(db, "resources", id));
     } catch (error) {
       console.error("Error deleting resource:", error);
+    }
+  };
+
+  const handleAddQuiz = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const quizData = {
+        ...newQuiz,
+        createdAt: serverTimestamp(),
+      };
+      
+      const quizRef = await addDoc(collection(db, "quizzes"), quizData);
+      
+      // Add questions
+      for (const question of newQuestions) {
+        if (question.text && question.options.every(opt => opt !== "")) {
+          await addDoc(collection(db, `quizzes/${quizRef.id}/questions`), question);
+        }
+      }
+
+      setNewQuiz({ subject: "", topic: "", questionsCount: 10, timeLimit: "10", color: "bg-blue-500", isPremiumOnly: false });
+      setNewQuestions([{ text: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "" }]);
+      alert("Quiz published successfully!");
+    } catch (error) {
+      console.error("Error adding quiz:", error);
+      alert("Failed to add quiz.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteQuiz = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this quiz?")) return;
+    try {
+      await deleteDoc(doc(db, "quizzes", id));
+    } catch (error) {
+      console.error("Error deleting quiz:", error);
     }
   };
 
@@ -385,6 +433,12 @@ export default function AdminDashboard() {
             label="Resources" 
             isActive={activeTab === "resources"} 
             onClick={() => { setActiveTab("resources"); setIsMobileSidebarOpen(false); }} 
+          />
+          <SidebarLink 
+            icon={<HelpCircle size={20} />} 
+            label="Quizzes" 
+            isActive={activeTab === "quizzes"} 
+            onClick={() => { setActiveTab("quizzes"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<TrendingUp size={20} />} 
@@ -712,6 +766,185 @@ export default function AdminDashboard() {
               </section>
             </div>
           </>
+        )}
+
+        {activeTab === "quizzes" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><HelpCircle size={24} /></div>
+                <h3 className="text-xl font-bold text-slate-900">Publish New Quiz</h3>
+              </div>
+              <form onSubmit={handleAddQuiz} className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Subject</label>
+                    <input type="text" placeholder="e.g. Biology" value={newQuiz.subject} onChange={(e) => setNewQuiz({...newQuiz, subject: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Topic</label>
+                    <input type="text" placeholder="e.g. Cell Structure" value={newQuiz.topic} onChange={(e) => setNewQuiz({...newQuiz, topic: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Questions</label>
+                    <input type="number" min="1" value={newQuiz.questionsCount} onChange={(e) => setNewQuiz({...newQuiz, questionsCount: parseInt(e.target.value) || 10})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Time (mins)</label>
+                    <input type="text" placeholder="10" value={newQuiz.timeLimit} onChange={(e) => setNewQuiz({...newQuiz, timeLimit: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Color</label>
+                    <select value={newQuiz.color} onChange={(e) => setNewQuiz({...newQuiz, color: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium">
+                      <option value="bg-blue-500">Blue</option>
+                      <option value="bg-emerald-500">Emerald</option>
+                      <option value="bg-rose-500">Rose</option>
+                      <option value="bg-indigo-500">Indigo</option>
+                      <option value="bg-amber-500">Amber</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${newQuiz.isPremiumOnly ? 'bg-amber-100 text-amber-600' : 'bg-slate-200 text-slate-500'}`}><Star size={18} fill={newQuiz.isPremiumOnly ? "currentColor" : "none"} /></div>
+                    <div><p className="text-sm font-bold text-slate-800">Premium Content</p><p className="text-[10px] text-slate-500 font-medium">Only PRO students can access this.</p></div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={newQuiz.isPremiumOnly} onChange={(e) => setNewQuiz({...newQuiz, isPremiumOnly: e.target.checked})} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                  </label>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-slate-800">Questions</h4>
+                    <button 
+                      type="button" 
+                      onClick={() => setNewQuestions([...newQuestions, { text: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "" }])}
+                      className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      + Add Question
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2">
+                    {newQuestions.map((q, qIdx) => (
+                      <div key={qIdx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-4 relative">
+                        {newQuestions.length > 1 && (
+                          <button 
+                            type="button" 
+                            onClick={() => setNewQuestions(newQuestions.filter((_, i) => i !== qIdx))}
+                            className="absolute top-4 right-4 text-slate-400 hover:text-rose-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Question {qIdx + 1}</label>
+                          <textarea 
+                            placeholder="Enter question text..." 
+                            value={q.text} 
+                            onChange={(e) => {
+                              const updated = [...newQuestions];
+                              updated[qIdx].text = e.target.value;
+                              setNewQuestions(updated);
+                            }} 
+                            className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-medium text-sm resize-none h-20" 
+                            required 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Options</label>
+                          {q.options.map((opt, optIdx) => (
+                            <div key={optIdx} className="flex items-center gap-2">
+                              <input 
+                                type="radio" 
+                                name={`correct-${qIdx}`} 
+                                checked={q.correctAnswerIndex === optIdx}
+                                onChange={() => {
+                                  const updated = [...newQuestions];
+                                  updated[qIdx].correctAnswerIndex = optIdx;
+                                  setNewQuestions(updated);
+                                }}
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <input 
+                                type="text" 
+                                placeholder={`Option ${optIdx + 1}`} 
+                                value={opt} 
+                                onChange={(e) => {
+                                  const updated = [...newQuestions];
+                                  updated[qIdx].options[optIdx] = e.target.value;
+                                  setNewQuestions(updated);
+                                }} 
+                                className="flex-1 p-2 bg-white border border-slate-200 rounded-lg outline-none text-sm" 
+                                required 
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Explanation (Optional)</label>
+                          <input 
+                            type="text" 
+                            placeholder="Why is this correct?" 
+                            value={q.explanation || ""} 
+                            onChange={(e) => {
+                              const updated = [...newQuestions];
+                              updated[qIdx].explanation = e.target.value;
+                              setNewQuestions(updated);
+                            }} 
+                            className="w-full p-3 bg-white border border-slate-200 rounded-xl outline-none font-medium text-sm" 
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" disabled={submitting || newQuestions.length === 0} className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-indigo-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50">
+                  {submitting ? "Publishing..." : "Publish Quiz"}
+                  {!submitting && <CheckCircle2 size={20} />}
+                </button>
+              </form>
+            </section>
+
+            <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><HelpCircle size={24} /></div>
+                  <h3 className="text-xl font-bold text-slate-900">Recent Quizzes</h3>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto max-h-[800px] space-y-3">
+                {quizzes.map((quiz) => (
+                  <div key={quiz.id} className="group p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between hover:border-indigo-200 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl ${quiz.isPremiumOnly ? 'bg-amber-100 text-amber-600' : 'bg-white text-slate-400 border border-slate-100'}`}>
+                        <HelpCircle size={18} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm line-clamp-1">{quiz.topic}</h4>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{quiz.subject} • {quiz.questionsCount} Qs</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                      <button onClick={() => handleDeleteQuiz(quiz.id)} className="p-2 text-slate-400 hover:text-rose-600"><Trash2 size={18} /></button>
+                    </div>
+                  </div>
+                ))}
+                {quizzes.length === 0 && (
+                  <div className="text-center p-8 text-slate-500 font-medium">
+                    No quizzes found.
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
         )}
 
         {activeTab === "resources" && (

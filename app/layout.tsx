@@ -1,12 +1,20 @@
 import type {Metadata, Viewport} from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Outfit } from 'next/font/google';
 import './globals.css'; // Global styles
 import Script from 'next/script';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-heading',
+});
 
 export const viewport: Viewport = {
-  themeColor: '#2563eb',
+  themeColor: '#4f46e5', // Indigo-600
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -45,7 +53,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${inter.className} text-base md:text-lg`}>
+      <body className={`${inter.variable} ${outfit.variable} font-sans text-base md:text-lg bg-slate-50 text-slate-900`}>
         {children}
         <Script id="register-sw" strategy="afterInteractive">
           {`

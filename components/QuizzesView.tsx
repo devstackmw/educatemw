@@ -49,10 +49,10 @@ export default function QuizzesView({ isPremium }: { isPremium?: boolean }) {
   }, []);
 
   return (
-    <div className="p-4 space-y-6 pb-20">
+    <div className="p-6 md:p-8 space-y-8 pb-32 max-w-3xl mx-auto font-sans">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Quizzes</h2>
-        {isOffline && <WifiOff size={18} className="text-amber-500" />}
+        <h2 className="text-3xl font-heading font-black text-slate-900 tracking-tight">Quizzes</h2>
+        {isOffline && <WifiOff size={20} className="text-amber-500" />}
       </div>
 
       <AIQuizGenerator isPremium={isPremium} onQuizGenerated={(quiz) => setSelectedQuiz(quiz)} />
@@ -60,34 +60,34 @@ export default function QuizzesView({ isPremium }: { isPremium?: boolean }) {
       {loading ? (
         <QuizzesSkeleton />
       ) : (
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-4">
           {quizzes.map((quiz) => (
             <div 
               key={quiz.id} 
               onClick={() => setSelectedQuiz(quiz)}
-              className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer group active:scale-[0.98]"
+              className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer group active:scale-[0.98]"
             >
-              <div className="flex items-center gap-4">
-                <div className={`${quiz.color || 'bg-indigo-600'} w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform`}>
-                  <BookOpen size={20} />
+              <div className="flex items-center gap-5">
+                <div className={`${quiz.color || 'bg-indigo-600'} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform`}>
+                  <BookOpen size={24} />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[9px] font-bold text-indigo-600 uppercase tracking-wider">{quiz.subject}</span>
-                    {quiz.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[8px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">{quiz.subject}</span>
+                    {quiz.isPremiumOnly && <span className="bg-amber-100 text-amber-800 text-[9px] px-2 py-0.5 rounded-full font-bold">PRO</span>}
                   </div>
-                  <h4 className="font-bold text-slate-800 text-sm leading-tight mb-0.5">{quiz.topic}</h4>
-                  <div className="flex items-center gap-3">
-                    <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                      <Clock size={10} /> {quiz.timeLimit}
+                  <h4 className="font-bold text-slate-900 text-base leading-tight mb-1">{quiz.topic}</h4>
+                  <div className="flex items-center gap-4">
+                    <p className="text-[11px] text-slate-500 font-bold flex items-center gap-1.5">
+                      <Clock size={12} /> {quiz.timeLimit}
                     </p>
-                    <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={10} /> {quiz.questionsCount} Questions
+                    <p className="text-[11px] text-slate-500 font-bold flex items-center gap-1.5">
+                      <CheckCircle2 size={12} /> {quiz.questionsCount} Questions
                     </p>
                   </div>
                 </div>
-                <div className="p-1.5 bg-slate-50 rounded-lg text-slate-300 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
-                  <PlayCircle size={18} />
+                <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
+                  <PlayCircle size={24} />
                 </div>
               </div>
             </div>
