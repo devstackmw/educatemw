@@ -68,6 +68,10 @@ export default function StudyPlanView() {
         }
       });
 
+      if (!response.text) {
+        throw new Error("No response from AI");
+      }
+
       const generatedTasks = JSON.parse(response.text);
       
       // Add each task to Firestore

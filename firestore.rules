@@ -95,6 +95,11 @@ service cloud.firestore {
       allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) ||
                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['aiPoints']) &&
                      request.resource.data.aiPoints == resource.data.aiPoints + 2);
+
+      // Study Plan subcollection
+      match /studyPlan/{taskId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Referrals
