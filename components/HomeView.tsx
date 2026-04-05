@@ -100,7 +100,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   }
 
   return (
-    <div className="p-6 md:p-8 pt-12 space-y-8 pb-32 max-w-3xl mx-auto font-sans">
+    <div className="p-6 md:p-8 pt-16 space-y-8 pb-32 max-w-3xl mx-auto font-sans">
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">

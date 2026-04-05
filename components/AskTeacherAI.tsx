@@ -36,7 +36,7 @@ export default function AskTeacherAI({ isPremium, aiPoints }: { isPremium?: bool
     if (!isPremium && (aiPoints || 0) <= 0) {
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "You've run out of AI points. Refer a friend to earn more points, or upgrade to **Educate MW PRO** for unlimited access! [Upgrade Now](premium)" 
+        text: "### 🚀 You've run out of AI points!\n\nTo continue learning with **Cleo AI**, you can:\n\n1. **Upgrade to PRO**: Get unlimited questions, offline downloads, and more for just K100/month.\n2. **Refer a Friend**: Earn more points by inviting your classmates!\n\n[Upgrade to PRO Now](premium)" 
       }]);
       return;
     }

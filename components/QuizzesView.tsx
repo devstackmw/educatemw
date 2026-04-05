@@ -1,4 +1,4 @@
-import { PlayCircle, Clock, CheckCircle2, WifiOff, Sparkles, BookOpen } from "lucide-react";
+import { PlayCircle, Clock, CheckCircle2, WifiOff, Sparkles, BookOpen, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -64,12 +64,23 @@ export default function QuizzesView({ isPremium }: { isPremium?: boolean }) {
           {quizzes.map((quiz) => (
             <div 
               key={quiz.id} 
-              onClick={() => setSelectedQuiz(quiz)}
-              className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer group active:scale-[0.98]"
+              onClick={() => {
+                if (quiz.isPremiumOnly && !isPremium) {
+                  window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
+                } else {
+                  setSelectedQuiz(quiz);
+                }
+              }}
+              className={`bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer group active:scale-[0.98] ${quiz.isPremiumOnly && !isPremium ? 'opacity-70 grayscale-[0.5]' : ''}`}
             >
               <div className="flex items-center gap-5">
-                <div className={`${quiz.color || 'bg-indigo-600'} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform`}>
+                <div className={`${quiz.color || 'bg-indigo-600'} w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform relative`}>
                   <BookOpen size={24} />
+                  {quiz.isPremiumOnly && !isPremium && (
+                    <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white p-1 rounded-full shadow-lg">
+                      <Lock size={10} fill="currentColor" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -87,7 +98,7 @@ export default function QuizzesView({ isPremium }: { isPremium?: boolean }) {
                   </div>
                 </div>
                 <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-colors">
-                  <PlayCircle size={24} />
+                  {quiz.isPremiumOnly && !isPremium ? <Lock size={24} /> : <PlayCircle size={24} />}
                 </div>
               </div>
             </div>

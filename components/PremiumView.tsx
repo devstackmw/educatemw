@@ -1,4 +1,4 @@
-import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare } from "lucide-react";
+import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare, AlertCircle, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { User as FirebaseUser } from "firebase/auth";
 import { motion } from "motion/react";
@@ -80,44 +80,44 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
   };
 
   return (
-    <div className="p-4 pb-20 space-y-6 max-w-md mx-auto">
+    <div className="p-4 pb-24 space-y-8 max-w-md mx-auto">
       {/* Header Section */}
-      <div className="text-center space-y-1.5 pt-2">
+      <div className="text-center space-y-2 pt-4">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest mb-1"
+          className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-2 shadow-sm"
         >
-          <Star size={10} fill="currentColor" />
-          Upgrade Your Learning
+          <Zap size={12} fill="currentColor" />
+          Elevate Your Education
         </motion.div>
-        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Choose Your Plan</h2>
-        <p className="text-slate-500 text-xs font-medium">Invest in your future for less than a cup of coffee.</p>
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Unlock Your Potential</h2>
+        <p className="text-slate-500 text-xs font-bold max-w-[240px] mx-auto">Join thousands of students excelling with Educate MW PRO.</p>
       </div>
 
       {/* Comparison Section */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Free Plan Card */}
         <motion.div 
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm relative overflow-hidden"
+          className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm relative overflow-hidden"
         >
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-base font-bold text-slate-800">Free Learner</h3>
-              <p className="text-slate-400 text-[9px] font-bold uppercase tracking-wider">Basic Access</p>
+              <h3 className="text-lg font-black text-slate-800">Free Learner</h3>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Basic Access</p>
             </div>
             <div className="text-right">
-              <span className="text-xl font-bold text-slate-800">K0</span>
-              <p className="text-slate-400 text-[8px] font-bold">Forever</p>
+              <span className="text-2xl font-black text-slate-900 tracking-tighter">K0</span>
+              <p className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">Forever</p>
             </div>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3.5">
             <FeatureItem text="Limited Past Papers" included={true} />
-            <FeatureItem text="Basic AI Teacher (3 questions/day)" included={true} />
+            <FeatureItem text="Basic AI Teacher (5 points)" included={true} />
             <FeatureItem text="Online Quizzes" included={true} />
             <FeatureItem text="Offline Downloads" included={false} />
             <FeatureItem text="Video Explanations" included={false} />
@@ -127,66 +127,71 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
 
         {/* Pro Plan Card */}
         <motion.div 
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden ring-2 ring-amber-400/20"
+          transition={{ delay: 0.2, type: "spring", damping: 15 }}
+          className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-amber-400/10"
         >
           {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-blue-600/10 rounded-full -ml-10 -mb-10 blur-2xl"></div>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-amber-400/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-600/10 rounded-full -ml-16 -mb-16 blur-3xl"></div>
           
-          <div className="absolute top-4 right-6">
-            <div className="bg-amber-400 text-slate-900 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-md">
-              Best Value
-            </div>
-          </div>
-
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                Educate MW PRO
-                <Zap size={16} className="text-amber-400" fill="currentColor" />
-              </h3>
-              <p className="text-amber-400/80 text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5">Premium Access</p>
-            </div>
-          </div>
-
-          <div className="bg-white/5 backdrop-blur-md rounded-xl p-4 mb-6 border border-white/10">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-white">K100</span>
-              <span className="text-slate-400 text-xs font-bold">/ month</span>
-            </div>
-            <p className="text-slate-400 text-[9px] font-medium mt-1.5 leading-relaxed">
-              Payment is automatically processed. If it fails to verify, you can send a screenshot to our WhatsApp for manual approval.
-            </p>
-            <a 
-              href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Educate MW, I have made a payment for premium access. My username is ${user?.displayName || 'Student'}. Please verify my payment.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 py-2 rounded-lg text-[10px] font-bold hover:bg-emerald-500/30 transition-all"
+          <div className="absolute top-6 right-8">
+            <motion.div 
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="bg-amber-400 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-xl shadow-amber-400/20"
             >
-              <MessageSquare size={12} />
-              Manual Verification (WhatsApp)
-            </a>
+              Recommended
+            </motion.div>
           </div>
 
-          <div className="space-y-3 mb-8">
-            <ProFeatureItem icon={<Download size={14} />} text="Unlimited Offline Downloads" />
-            <ProFeatureItem icon={<Brain size={14} />} text="Unlimited AI Teacher Access" />
-            <ProFeatureItem icon={<Globe size={14} />} text="Step-by-step Video Lessons" />
-            <ProFeatureItem icon={<ShieldCheck size={14} />} text="Exclusive MANEB Exam Tips" />
-            <ProFeatureItem icon={<Clock size={14} />} text="Priority Support 24/7" />
-            <ProFeatureItem icon={<Zap size={14} />} text="100% Ad-Free Experience" />
+          <div className="space-y-1 mb-8">
+            <h3 className="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
+              Educate MW PRO
+              <Zap size={20} className="text-amber-400" fill="currentColor" />
+            </h3>
+            <p className="text-amber-400/80 text-[10px] font-black uppercase tracking-[0.25em]">Unlimited Access</p>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 mb-8 border border-white/10 shadow-inner">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-4xl font-black text-white tracking-tighter">K100</span>
+              <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">/ month</span>
+            </div>
+            <p className="text-slate-400 text-[10px] font-bold mt-3 leading-relaxed">
+              Unlock the full power of digital learning. One small payment for your academic success.
+            </p>
+            
+            <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
+              <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Manual Verification Option</p>
+              <a 
+                href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Educate MW, I have made a payment for premium access. My username is ${user?.displayName || 'Student'}. Please verify my payment.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all active:scale-95"
+              >
+                <MessageSquare size={14} />
+                WhatsApp Approval
+              </a>
+            </div>
+          </div>
+
+          <div className="space-y-4 mb-10">
+            <ProFeatureItem icon={<Download size={16} />} text="Unlimited Offline Downloads" />
+            <ProFeatureItem icon={<Brain size={16} />} text="Unlimited AI Teacher Access" />
+            <ProFeatureItem icon={<Globe size={16} />} text="Step-by-step Video Lessons" />
+            <ProFeatureItem icon={<ShieldCheck size={16} />} text="Exclusive MANEB Exam Tips" />
+            <ProFeatureItem icon={<Zap size={16} />} text="100% Ad-Free Experience" />
           </div>
 
           {error && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 p-3 bg-rose-500/20 border border-rose-500/30 text-rose-200 rounded-xl text-[10px] font-bold flex items-center gap-2"
+              className="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-300 rounded-2xl text-[10px] font-bold flex items-center gap-3"
             >
-              <X size={14} className="shrink-0" />
+              <AlertCircle size={16} className="shrink-0 text-rose-500" />
               {error}
             </motion.div>
           )}
@@ -194,37 +199,39 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
           <button 
             onClick={handlePayment}
             disabled={loading}
-            className="w-full bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-amber-400/10 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:active:scale-100 group text-sm"
+            className="w-full bg-amber-400 hover:bg-amber-300 text-slate-900 font-black py-5 rounded-[1.5rem] shadow-2xl shadow-amber-400/20 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:active:scale-100 group text-base uppercase tracking-widest"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={20} />
+              <Loader2 className="animate-spin" size={24} />
             ) : (
               <>
                 Upgrade Now
-                <Zap size={16} className="group-hover:animate-pulse" />
+                <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
           
-          <p className="text-center text-[10px] text-slate-500 font-bold mt-6 uppercase tracking-widest">
-            Secure Local Payment via PayChangu
-          </p>
+          <div className="mt-8 flex items-center justify-center gap-4 opacity-30">
+            <div className="h-px flex-1 bg-white/20"></div>
+            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white">Secure Payment</p>
+            <div className="h-px flex-1 bg-white/20"></div>
+          </div>
         </motion.div>
       </div>
 
       {/* Trust Badges */}
-      <div className="flex justify-center items-center gap-8 opacity-40 grayscale">
-        <div className="flex flex-col items-center gap-1">
-          <ShieldCheck size={24} />
-          <span className="text-[8px] font-black uppercase">Secure</span>
+      <div className="flex justify-center items-center gap-10 opacity-30 grayscale pt-4">
+        <div className="flex flex-col items-center gap-2">
+          <ShieldCheck size={28} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Secure</span>
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <Globe size={24} />
-          <span className="text-[8px] font-black uppercase">Malawi</span>
+        <div className="flex flex-col items-center gap-2">
+          <Globe size={28} />
+          <span className="text-[9px] font-black uppercase tracking-widest">Malawi</span>
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <BookOpen size={24} />
-          <span className="text-[8px] font-black uppercase">MANEB</span>
+        <div className="flex flex-col items-center gap-2">
+          <BookOpen size={28} />
+          <span className="text-[9px] font-black uppercase tracking-widest">MANEB</span>
         </div>
       </div>
     </div>
@@ -233,22 +240,22 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
 
 function FeatureItem({ text, included }: { text: string, included: boolean }) {
   return (
-    <div className={`flex items-center gap-3 ${included ? 'opacity-100' : 'opacity-40'}`}>
-      <div className={`p-1 rounded-full ${included ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-        {included ? <Check size={12} /> : <X size={12} />}
+    <div className="flex items-center gap-3">
+      <div className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${included ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-300'}`}>
+        {included ? <Check size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
       </div>
-      <span className={`text-xs font-bold ${included ? 'text-slate-700' : 'text-slate-400 line-through'}`}>{text}</span>
+      <span className={`text-[11px] font-bold ${included ? 'text-slate-700' : 'text-slate-400'}`}>{text}</span>
     </div>
   );
 }
 
 function ProFeatureItem({ icon, text }: { icon: React.ReactNode, text: string }) {
   return (
-    <div className="flex items-center gap-3 group">
-      <div className="bg-amber-400/10 text-amber-400 p-1.5 rounded-lg group-hover:bg-amber-400 group-hover:text-slate-900 transition-colors">
+    <div className="flex items-center gap-4 group">
+      <div className="shrink-0 w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-900 transition-all duration-300 border border-white/5">
         {icon}
       </div>
-      <span className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors">{text}</span>
+      <span className="text-xs font-bold text-white tracking-wide">{text}</span>
     </div>
   );
 }
