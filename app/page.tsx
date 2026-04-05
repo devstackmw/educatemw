@@ -28,7 +28,7 @@ import StudyHubView from "@/components/StudyHubView";
 import VideosView from "@/components/VideosView";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, writeBatch, onSnapshot, updateDoc } from "firebase/firestore";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("landing");
@@ -385,7 +385,7 @@ export default function App() {
       case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
       case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
       case "flashcards": return <FlashcardView isPremium={userData?.isPremium} />;
-      case "leaderboard": return <LeaderboardView />;
+      case "leaderboard": return <LeaderboardView currentUserStats={userStats} />;
       case "exams": return <ExamDatesView />;
       case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
       case "premium_students": return <PremiumStudentsView />;
@@ -436,15 +436,6 @@ export default function App() {
               <Flame size={14} className="text-orange-500" fill="currentColor" />
               <span className="text-xs font-bold text-orange-600">{userStats.streak}</span>
             </div>
-          )}
-
-          {user?.isAnonymous && (
-            <button 
-              onClick={() => navigateTo("auth_signup")}
-              className="bg-blue-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-lg shadow-blue-200 active:scale-95 transition-all uppercase tracking-wider"
-            >
-              Create Account
-            </button>
           )}
         </header>
       )}

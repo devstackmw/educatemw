@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, getCountFromServer, where } from "firebase/firestore";
 import { db } from "@/firebase";
-import { Trophy, Medal, Star, Crown, User } from "lucide-react";
+import { Trophy, Medal, Star, Crown, User, ArrowUp } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { AVATARS } from "@/lib/avatars";
@@ -17,14 +17,16 @@ interface LeaderboardEntry {
   streak: number;
 }
 
-export default function LeaderboardView() {
+export default function LeaderboardView({ currentUserStats }: { currentUserStats?: any }) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRank, setUserRank] = useState<number | string>("--");
 
   useEffect(() => {
     const q = query(
       collection(db, "userStats"),
-      orderBy("points", "desc")
+      orderBy("points", "desc"),
+      limit(20)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -35,7 +37,7 @@ export default function LeaderboardView() {
           leaderboardData.push({ uid: doc.id, ...data } as LeaderboardEntry);
         }
       });
-      setEntries(leaderboardData.slice(0, 20));
+      setEntries(leaderboardData);
       setLoading(false);
     }, (error) => {
       console.error("Leaderboard Snapshot error:", error);
@@ -45,6 +47,22 @@ export default function LeaderboardView() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!currentUserStats) return;
+
+    const fetchUserRank = async () => {
+      try {
+        const rankQuery = query(collection(db, "userStats"), where("points", ">", currentUserStats.points || 0));
+        const rankSnapshot = await getCountFromServer(rankQuery);
+        setUserRank(rankSnapshot.data().count + 1);
+      } catch (error) {
+        console.error("Error fetching user rank in leaderboard:", error);
+      }
+    };
+
+    fetchUserRank();
+  }, [currentUserStats]);
+
   if (loading) {
     return <LeaderboardSkeleton />;
   }
@@ -53,7 +71,7 @@ export default function LeaderboardView() {
   const others = entries.slice(3);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen bg-slate-50 pb-32">
       {/* Header Section */}
       <div className="bg-slate-900 text-white pt-8 pb-16 px-6 rounded-b-2xl shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-blue-600/20 rounded-full -mr-24 -mt-24 blur-3xl animate-pulse"></div>
@@ -182,7 +200,7 @@ export default function LeaderboardView() {
                 whileInView={{ x: 0, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors group"
+                className={`p-4 flex items-center gap-3 hover:bg-slate-50 transition-colors group ${entry.uid === currentUserStats?.uid ? 'bg-blue-50/50' : ''}`}
               >
                 <div className="w-5 font-mono text-[10px] font-bold text-slate-300 group-hover:text-blue-600 transition-colors">
                   {(index + 4).toString().padStart(2, '0')}
@@ -219,6 +237,33 @@ export default function LeaderboardView() {
           </div>
         </div>
       </div>
+
+      {/* Current User Rank Bar */}
+      {currentUserStats && (
+        <div className="fixed bottom-20 left-4 right-4 z-50">
+          <motion.div 
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/10"
+          >
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex flex-col items-center justify-center">
+              <span className="text-[8px] font-black uppercase tracking-tighter opacity-70">Rank</span>
+              <span className="text-sm font-black leading-none">#{userRank}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Your Standing</p>
+              <h4 className="font-black text-xs truncate">You are doing great!</h4>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Points</p>
+              <p className="font-mono font-black text-sm">{currentUserStats.points.toLocaleString()}</p>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+              <ArrowUp size={16} className="text-blue-400" />
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

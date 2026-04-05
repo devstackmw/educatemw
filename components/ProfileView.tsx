@@ -61,13 +61,13 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
     if (!file) return;
 
     if (!isPremium) {
-      alert("Profile picture upload is a PRO feature. Join your friends in premium to unlock this!");
+      setSaveStatus("Profile picture upload is a PRO feature. Join your friends in premium to unlock this!");
       window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
       return;
     }
 
     if (file.size > 500 * 1024) { // 500KB limit for base64 in Firestore
-      alert("Image is too large. Please choose an image smaller than 500KB.");
+      setSaveStatus("Image is too large. Please choose an image smaller than 500KB.");
       return;
     }
 
@@ -81,7 +81,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
   const handleSave = async () => {
     if (!user) return;
     if (!profile.gender) {
-      alert("Gender selection is mandatory.");
+      setSaveStatus("Gender selection is mandatory.");
       return;
     }
     
@@ -90,7 +90,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
     const q = query(usersRef, where("nickname", "==", profile.nickname));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.docs.some(doc => doc.id !== user.uid)) {
-      alert("Nickname is already taken.");
+      setSaveStatus("Nickname is already taken.");
       return;
     }
 

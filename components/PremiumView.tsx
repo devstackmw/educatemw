@@ -102,20 +102,28 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-white border border-slate-100 rounded-[2.5rem] p-6 shadow-sm relative overflow-hidden"
+          className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group hover:border-slate-200 transition-all"
         >
-          <div className="flex justify-between items-center mb-6">
+          <div className="absolute -top-12 -left-12 w-24 h-24 bg-slate-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
+          
+          <div className="relative z-10 flex justify-between items-start mb-8">
             <div>
-              <h3 className="text-lg font-black text-slate-800">Free Learner</h3>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Basic Access</p>
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[8px] font-black uppercase tracking-widest mb-2">
+                Standard
+              </div>
+              <h3 className="text-xl font-black text-slate-800 tracking-tight">Free Learner</h3>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Start your journey</p>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-black text-slate-900 tracking-tighter">K0</span>
-              <p className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">Forever</p>
+              <div className="flex items-baseline justify-end gap-0.5">
+                <span className="text-sm font-black text-slate-400">K</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tighter">0</span>
+              </div>
+              <p className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">Forever Free</p>
             </div>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="relative z-10 space-y-4 mb-8">
             <FeatureItem text="Limited Past Papers" included={true} />
             <FeatureItem text="Basic AI Teacher (5 points)" included={true} />
             <FeatureItem text="Online Quizzes" included={true} />
@@ -123,6 +131,13 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
             <FeatureItem text="Video Explanations" included={false} />
             <FeatureItem text="Ad-free Experience" included={false} />
           </div>
+
+          <button 
+            disabled
+            className="relative z-10 w-full bg-slate-50 text-slate-400 font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest border border-slate-100 cursor-not-allowed"
+          >
+            Current Plan
+          </button>
         </motion.div>
 
         {/* Pro Plan Card */}

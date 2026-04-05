@@ -75,7 +75,6 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
 
   const handleCreatePost = async () => {
     if (!isPremium) {
-      alert("Join your friends in premium to start sharing ideas and tips in the app, ask questions to AI, or ask community!");
       window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
       return;
     }
@@ -119,7 +118,6 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
   };
 
   const handleDelete = async (postId: string) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
     try {
       await deleteDoc(doc(db, "posts", postId));
     } catch (error) {

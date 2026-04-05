@@ -51,7 +51,6 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      alert("Invalid referral code.");
       return;
     }
 
@@ -59,7 +58,6 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
     const referrerData = referrerDoc.data();
 
     if (referrerDoc.id === user.uid) {
-      alert("You cannot refer yourself.");
       return;
     }
 
@@ -100,7 +98,6 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
     });
 
     await batch.commit();
-    alert(`Referral successful! You were invited by ${referrerName}. You both earned 5 AI questions and 10 points to keep your friendship strong! 🤝😁`);
   };
 
   const copyCode = () => {
