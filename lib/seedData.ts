@@ -106,3 +106,27 @@ export async function seedInitialData() {
 
   console.log("Seeding complete!");
 }
+
+export async function seedLeaderboard() {
+  console.log("Seeding leaderboard...");
+  const mockStudents = [
+    { displayName: "Chifundo Banda", points: 2450, streak: 12, isPremium: true, avatarId: "boy_1", isBanned: false },
+    { displayName: "Tiwonge Phiri", points: 2100, streak: 8, isPremium: true, avatarId: "girl_1", isBanned: false },
+    { displayName: "Kondwani Mwale", points: 1850, streak: 15, isPremium: false, avatarId: "boy_1", isBanned: false },
+    { displayName: "Lumbani Gondwe", points: 1600, streak: 5, isPremium: true, avatarId: "girl_1", isBanned: false },
+    { displayName: "Atusaye Nyirenda", points: 1450, streak: 3, isPremium: false, avatarId: "boy_1", isBanned: false },
+    { displayName: "Memory Chiumia", points: 1200, streak: 7, isPremium: true, avatarId: "girl_1", isBanned: false },
+    { displayName: "Blessings Kamanga", points: 950, streak: 2, isPremium: false, avatarId: "boy_1", isBanned: false },
+    { displayName: "Tamara Zimba", points: 800, streak: 4, isPremium: true, avatarId: "girl_1", isBanned: false },
+  ];
+
+  for (const student of mockStudents) {
+    const uid = "mock_" + Math.random().toString(36).substring(2, 8);
+    await setDoc(doc(db, "userStats", uid), {
+      uid,
+      ...student,
+      lastActiveDate: new Date().toISOString().split('T')[0]
+    });
+  }
+  console.log("Leaderboard seeding complete!");
+}

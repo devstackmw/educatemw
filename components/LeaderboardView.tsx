@@ -31,7 +31,7 @@ export default function LeaderboardView() {
       const leaderboardData: LeaderboardEntry[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.isPremium) {
+        if (!data.isBanned) {
           leaderboardData.push({ uid: doc.id, ...data } as LeaderboardEntry);
         }
       });
@@ -197,10 +197,17 @@ export default function LeaderboardView() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-800 text-xs truncate">{entry.displayName}</h4>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-bold text-slate-800 text-xs truncate">{entry.displayName}</h4>
+                    {(entry as any).isPremium && (
+                      <Crown size={10} className="text-amber-500" fill="currentColor" />
+                    )}
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Active Student</p>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                      {(entry as any).isPremium ? 'Premium Student' : 'Active Student'}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">

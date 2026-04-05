@@ -145,19 +145,20 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
   if (loading) return <ProfileSkeleton />;
 
   return (
-    <div className="p-4 pt-6 space-y-6 pb-24">
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl"><User size={24} /></div>
-        <h2 className="font-bold text-xl text-slate-800 tracking-tight">My Profile</h2>
+    <div className="p-6 md:p-8 pt-12 space-y-8 pb-32 max-w-3xl mx-auto font-sans">
+      <div className="flex items-center gap-4">
+        <div className="p-4 bg-indigo-100 text-indigo-600 rounded-2xl"><User size={28} /></div>
+        <h2 className="font-heading font-black text-3xl text-slate-900 tracking-tight">My Profile</h2>
       </div>
 
       {/* Stats Card */}
-      <div className="bg-slate-900 p-4 rounded-2xl text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 rounded-full -mr-12 -mt-12 blur-3xl animate-pulse"></div>
+      <div className="bg-slate-900 p-6 rounded-3xl text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/20 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-600/20 rounded-full -ml-12 -mb-12 blur-2xl"></div>
         
-        <div className="relative z-10 flex flex-col items-center text-center mb-4">
+        <div className="relative z-10 flex flex-col items-center text-center mb-6">
           <div className="relative group">
-            <div className="w-20 h-20 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-xl mb-2 transition-transform hover:scale-105">
+            <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-3xl flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-2xl mb-3 transition-transform hover:scale-105">
               <div className="w-full h-full relative">
                 {profile.photoURL ? (
                   <Image 
@@ -169,13 +170,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
                   />
                 ) : (
                   <div className="w-full h-full p-2">
-                    {profile.gender === "boy" ? (
-                      <Image src="/avatars/boy_student.svg" alt="Boy" width={80} height={80} />
-                    ) : profile.gender === "girl" ? (
-                      <Image src="/avatars/girl_student.svg" alt="Girl" width={80} height={80} />
-                    ) : (
-                      AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg
-                    )}
+                    {AVATARS.find(a => a.id === profile.avatarId)?.svg || AVATARS[0].svg}
                   </div>
                 )}
               </div>
@@ -183,11 +178,11 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
             
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className={`absolute -bottom-1 -right-1 p-1.5 rounded-lg shadow-lg transition-all active:scale-90 ${
-                isPremium ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-slate-700 text-slate-400"
+              className={`absolute -bottom-2 -right-2 p-2 rounded-xl shadow-lg transition-all active:scale-90 ${
+                isPremium ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-slate-800 text-slate-400 border border-slate-700"
               }`}
             >
-              {isPremium ? <Camera size={12} /> : <Zap size={12} fill="currentColor" className="text-amber-400" />}
+              {isPremium ? <Camera size={14} /> : <Zap size={14} fill="currentColor" className="text-amber-400" />}
             </button>
             <input 
               type="file" 
@@ -198,103 +193,109 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
             />
           </div>
 
-          <h3 className="text-lg font-bold tracking-tight flex items-center gap-1">
+          <h3 className="text-2xl font-heading font-black tracking-tight flex items-center gap-2">
             {profile.nickname || profile.realName || "Student"}
             {isPremium && (
-              <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md shadow-lg shadow-orange-500/20 animate-pulse">PRO</span>
+              <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-1 rounded-lg shadow-lg shadow-orange-500/20 animate-pulse">PRO</span>
             )}
           </h3>
-          <p className="text-blue-400 font-bold text-[8px] uppercase tracking-[0.2em] mt-0.5">MSCE Candidate</p>
+          <p className="text-indigo-300 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">MSCE Candidate</p>
         </div>
 
-        <div className="relative z-10 grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-white/5 backdrop-blur-sm p-2 rounded-lg border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
-            <p className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Points</p>
-            <p className="text-sm font-mono font-bold text-blue-400">{stats.points.toLocaleString()}</p>
+        <div className="relative z-10 grid grid-cols-2 gap-3 mb-2">
+          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Points</p>
+            <p className="text-2xl font-heading font-black text-indigo-400">{stats.points.toLocaleString()}</p>
           </div>
-          <div className="bg-white/5 backdrop-blur-sm p-2 rounded-lg border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
-            <p className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Badges</p>
-            <p className="text-sm font-mono font-bold text-amber-400">{stats.earnedBadges.length}</p>
+          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition-all" onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'leaderboard' }))}>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Badges</p>
+            <p className="text-2xl font-heading font-black text-amber-400">{stats.earnedBadges.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Account Details */}
+      <div className="space-y-4">
+        <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-2">Account Details</h3>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+          <div className="flex justify-between items-center pb-4 border-b border-slate-50">
+            <span className="text-sm font-bold text-slate-500">Email Address</span>
+            <span className="text-sm font-bold text-slate-900">{user?.email || "Not provided"}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-bold text-slate-500">Member Since</span>
+            <span className="text-sm font-bold text-slate-900">
+              {user?.metadata.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "Unknown"}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Avatar Selection */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between px-2">
           <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Choose Your Avatar</h3>
-          <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">10 Styles</span>
+          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded-lg">2 Styles</span>
         </div>
         
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-lg">
-          <div className="grid grid-cols-5 gap-3">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="grid grid-cols-2 gap-4">
             {AVATARS.map((avatar) => (
               <button
                 key={avatar.id}
-                onClick={() => setProfile({ ...profile, avatarId: avatar.id })}
-                className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                onClick={() => setProfile({ ...profile, avatarId: avatar.id, gender: avatar.gender })}
+                className={`relative aspect-square rounded-2xl overflow-hidden border-4 transition-all ${
                   profile.avatarId === avatar.id 
-                  ? "border-blue-600 bg-blue-50 shadow-md shadow-blue-600/20" 
-                  : "border-transparent bg-slate-50 hover:bg-slate-100"
+                  ? "border-indigo-600 bg-indigo-50 shadow-lg shadow-indigo-600/20 scale-105 z-10" 
+                  : "border-transparent bg-slate-50 hover:bg-slate-100 hover:scale-105"
                 }`}
               >
-                <div className="w-full h-full p-1.5">
+                <div className="w-full h-full p-2">
                   {avatar.svg}
                 </div>
                 {profile.avatarId === avatar.id && (
-                  <div className="absolute top-0.5 right-0.5 bg-blue-600 text-white p-0.5 rounded-full shadow-lg">
-                    <Check size={6} />
+                  <div className="absolute top-2 right-2 bg-indigo-600 text-white p-1 rounded-full shadow-lg">
+                    <Check size={12} />
                   </div>
                 )}
+                <div className="absolute bottom-2 left-0 right-0 text-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg text-slate-800 shadow-sm">
+                    {avatar.gender}
+                  </span>
+                </div>
               </button>
             ))}
-          </div>
-          <div className="flex justify-between mt-4 px-1">
-            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Girls (1-5)</span>
-            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Boys (6-10)</span>
           </div>
         </div>
       </div>
       
       {userData && <ReferralView user={user} userData={userData} />}
       
-      <div className="space-y-3">
-        <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-1">Settings</h3>
-        <div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+      <div className="space-y-4">
+        <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest px-2">Profile Settings</h3>
+        <div className="space-y-5 bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-sm">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nickname</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nickname</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
                 value={profile.nickname}
                 onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-10 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-12 py-4 focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-900 transition-all outline-none"
                 placeholder="Choose a unique nickname"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Gender</label>
-            <select
-              value={profile.gender}
-              onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
-            >
-              <option value="">Select Gender</option>
-              <option value="boy">Boy</option>
-              <option value="girl">Girl</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Real Name</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Real Name</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
                 value={profile.realName}
                 onChange={(e) => setProfile({ ...profile, realName: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-10 py-3 focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-12 py-4 focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-900 transition-all outline-none"
                 placeholder="Your full name"
               />
             </div>
@@ -303,14 +304,14 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black text-sm hover:bg-indigo-700 disabled:opacity-50 shadow-xl shadow-indigo-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-6"
           >
-            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-            Save Changes
+            {saving ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+            {saving ? "Saving Changes..." : "Save Changes"}
           </button>
 
           {saveStatus && (
-            <p className={`text-center text-sm font-bold mt-2 ${saveStatus.includes("successfully") ? "text-green-600" : "text-red-600"}`}>
+            <p className={`text-center text-sm font-bold mt-4 p-3 rounded-xl ${saveStatus.includes("successfully") ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
               {saveStatus}
             </p>
           )}

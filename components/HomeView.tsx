@@ -107,11 +107,11 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Welcome back,</p>
           <h2 className="text-3xl font-heading font-black text-slate-900 tracking-tight">{displayName}</h2>
         </div>
-        <div className="w-14 h-14 rounded-full bg-indigo-100 border-4 border-white shadow-md overflow-hidden">
+        <div className="w-14 h-14 rounded-full bg-indigo-100 border-4 border-white shadow-md overflow-hidden relative">
           {photoURL ? (
-            <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
+            <Image src={photoURL} alt="Profile" fill className="object-cover" referrerPolicy="no-referrer" />
           ) : (
-            <img src={`/avatars/${avatarId}.svg`} alt="Avatar" className="w-full h-full object-cover" />
+            <Image src={`/avatars/${avatarId}.svg`} alt="Avatar" fill className="object-cover" />
           )}
         </div>
       </div>
@@ -239,7 +239,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
               <AppIcon size={36} className="shadow-lg shadow-indigo-500/20" />
               <div className="flex flex-col">
                 <span className="font-heading font-black text-xl tracking-tight leading-none">Educate MW</span>
-                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-1">Malawi's #1 Study App</span>
+                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mt-1">Malawi&apos;s #1 Study App</span>
               </div>
             </div>
             

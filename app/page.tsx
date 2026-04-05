@@ -152,10 +152,24 @@ export default function App() {
     const userRef = doc(db, "users", user.uid);
     
     // Listen for real-time updates to user data (important for premium status)
-    const unsubUser = onSnapshot(userRef, (docSnap) => {
+    const unsubUser = onSnapshot(userRef, async (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         
+        // Sync premium status to userStats
+        const statsRef = doc(db, "userStats", user.uid);
+        const statsSnap = await getDoc(statsRef);
+        if (statsSnap.exists()) {
+          const statsData = statsSnap.data();
+          if (statsData.isPremium !== data.isPremium || statsData.isBanned !== data.isBanned || statsData.displayName !== (data.nickname || data.displayName)) {
+            await updateDoc(statsRef, {
+              isPremium: data.isPremium,
+              isBanned: data.isBanned || false,
+              displayName: data.nickname || data.displayName || "Student"
+            });
+          }
+        }
+
         // Handle banned users
         if (data.isBanned) {
           setLoading(false);
@@ -168,9 +182,11 @@ export default function App() {
         setUserData((prev: any) => {
           if (data.isPremium && prev && !prev.isPremium) {
             setShowPaymentSuccess(true);
+            setShowPaymentError(false); // Fix: Hide error if success detected
             setIsVerifyingPayment(false);
           } else if (data.isPremium && isVerifyingPayment) {
             setShowPaymentSuccess(true);
+            setShowPaymentError(false); // Fix: Hide error if success detected
             setIsVerifyingPayment(false);
           }
           return data;
@@ -243,6 +259,7 @@ export default function App() {
           streakHandled = true;
         } else {
           // Already active today
+          setStreakCount(newStreak);
           streakHandled = true;
         }
 
@@ -250,7 +267,8 @@ export default function App() {
           const { updateDoc } = await import("firebase/firestore");
           await updateDoc(statsRef, {
             streak: newStreak,
-            lastActiveDate: todayStr
+            lastActiveDate: todayStr,
+            isPremium: userData?.isPremium || false // Sync on update too
           });
         }
       } else {
@@ -258,11 +276,12 @@ export default function App() {
         const { setDoc } = await import("firebase/firestore");
         await setDoc(statsRef, {
           uid: user.uid,
-          displayName: user.displayName || "Student",
+          displayName: userData?.nickname || userData?.displayName || user.displayName || "Student",
           points: 0,
           streak: 1,
           lastActiveDate: todayStr,
-          isPremium: false
+          isPremium: userData?.isPremium || false,
+          isBanned: userData?.isBanned || false
         });
         streakHandled = true;
       }
@@ -283,7 +302,7 @@ export default function App() {
     testConnection();
 
     return () => unsubStats();
-  }, [user]);
+  }, [user, userData?.isPremium, userData?.isBanned, userData?.nickname, userData?.displayName]);
 
   useEffect(() => {
     // Listen for latest active announcement
@@ -437,7 +456,7 @@ export default function App() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className={`z-[55] relative mt-14 mx-3 rounded-xl p-3 flex items-start gap-3 shadow-sm border ${
+            className={`z-[55] relative mt-16 mx-3 rounded-xl p-3 flex items-start gap-3 shadow-sm border ${
               announcement.type === 'warning' ? 'bg-amber-50 border-amber-100 text-amber-800' :
               announcement.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' :
               'bg-blue-50 border-blue-100 text-blue-800'
@@ -472,7 +491,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' && activeTab !== 'home' ? 'pt-16' : ''} ${isMainTab ? 'pb-16' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <main className={`flex-1 overflow-y-auto relative ${activeTab !== 'auth' ? 'pt-16' : ''} ${isMainTab ? 'pb-16' : ''}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -564,18 +583,43 @@ export default function App() {
               <div className="space-y-1">
                 <h3 className="text-xl font-bold text-slate-900">Payment Failed</h3>
                 <p className="text-slate-500 text-xs font-medium">
-                  We couldn&apos;t verify your payment. Please try again or contact support if you were charged.
+                  We couldn&apos;t verify your payment automatically.
                 </p>
               </div>
-              <button 
-                onClick={() => {
-                  setShowPaymentError(false);
-                  navigateTo("premium");
-                }}
-                className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"
-              >
-                Try Again
-              </button>
+
+              <div className="bg-blue-50 p-4 rounded-xl text-left space-y-2 border border-blue-100">
+                <p className="text-[10px] font-bold text-blue-800 uppercase tracking-wider">Manual Verification</p>
+                <p className="text-[11px] text-blue-700 leading-relaxed">
+                  If you have already paid, please capture a <strong>screenshot</strong> of your payment message and send it to us on WhatsApp for manual approval.
+                </p>
+                <a 
+                  href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Educate MW, I have made a payment for premium access. My username is ${userData?.nickname || userData?.displayName || user?.displayName || 'Student'}. Please verify my payment.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 bg-emerald-500 text-white py-2 rounded-lg text-xs font-bold hover:bg-emerald-600 transition-all shadow-md shadow-emerald-500/20"
+                >
+                  <MessageSquare size={14} />
+                  Send to WhatsApp
+                </a>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => {
+                    setShowPaymentError(false);
+                    navigateTo("premium");
+                  }}
+                  className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-all text-sm"
+                >
+                  Try Again
+                </button>
+                <button 
+                  onClick={() => setShowPaymentError(false)}
+                  className="w-full bg-slate-100 text-slate-500 font-bold py-2 rounded-xl active:scale-95 transition-all text-[10px] uppercase tracking-widest"
+                >
+                  Close
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

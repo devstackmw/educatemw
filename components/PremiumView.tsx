@@ -1,4 +1,4 @@
-import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock } from "lucide-react";
+import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { User as FirebaseUser } from "firebase/auth";
 import { motion } from "motion/react";
@@ -157,7 +157,18 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
               <span className="text-3xl font-bold text-white">K100</span>
               <span className="text-slate-400 text-xs font-bold">/ month</span>
             </div>
-            <p className="text-slate-400 text-[9px] font-medium mt-1.5">Payment is automatically processed. No manual verification needed.</p>
+            <p className="text-slate-400 text-[9px] font-medium mt-1.5 leading-relaxed">
+              Payment is automatically processed. If it fails to verify, you can send a screenshot to our WhatsApp for manual approval.
+            </p>
+            <a 
+              href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Educate MW, I have made a payment for premium access. My username is ${user?.displayName || 'Student'}. Please verify my payment.`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 py-2 rounded-lg text-[10px] font-bold hover:bg-emerald-500/30 transition-all"
+            >
+              <MessageSquare size={12} />
+              Manual Verification (WhatsApp)
+            </a>
           </div>
 
           <div className="space-y-3 mb-8">

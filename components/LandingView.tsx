@@ -37,7 +37,7 @@ export default function LandingView({ onGetStarted, onNavigate }: LandingViewPro
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-widest mb-2">
               <GraduationCap size={14} />
-              <span>Malawi's #1 Study App</span>
+              <span>Malawi&apos;s #1 Study App</span>
             </div>
             <h1 className="text-5xl font-heading font-black text-slate-900 tracking-tight leading-[1.1]">
               Master Your <br/>

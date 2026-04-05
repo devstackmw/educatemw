@@ -5,23 +5,24 @@ import { signOut, sendPasswordResetEmail } from "firebase/auth";
 import { useState, useEffect } from "react";
 
 export default function SettingsView({ onNavigate }: { onNavigate: (tab: string) => void }) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') || 
+             localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission === 'granted';
+    }
+    return false;
+  });
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
   useEffect(() => {
-    // Check initial dark mode state
-    if (typeof window !== 'undefined') {
-      const isDark = document.documentElement.classList.contains('dark') || 
-                     localStorage.getItem('theme') === 'dark';
-      setIsDarkMode(isDark);
-      
-      // Check notification permission
-      if ('Notification' in window) {
-        setNotificationsEnabled(Notification.permission === 'granted');
-      }
-    }
+    // This effect is now empty or can be removed if not needed for other things
   }, []);
 
   const handleLogout = async () => {

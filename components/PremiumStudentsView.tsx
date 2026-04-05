@@ -25,7 +25,10 @@ export default function PremiumStudentsView() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const premiumStudents: PremiumStudent[] = [];
       snapshot.forEach((doc) => {
-        premiumStudents.push({ uid: doc.id, ...doc.data() } as PremiumStudent);
+        const data = doc.data();
+        if (!data.isBanned) {
+          premiumStudents.push({ uid: doc.id, ...data } as PremiumStudent);
+        }
       });
       setStudents(premiumStudents);
       setLoading(false);
