@@ -1,34 +1,55 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu, Trophy, AlertCircle, ShieldAlert, Flame, X } from "lucide-react";
-import HomeView from "@/components/HomeView";
-import PapersView from "@/components/PapersView";
-import QuizzesView from "@/components/QuizzesView";
-import PremiumView from "@/components/PremiumView";
-import AuthView from "@/components/AuthView";
-import ProfileView from "@/components/ProfileView";
-import AskTeacherAI from "@/components/AskTeacherAI";
-import FlashcardView from "@/components/FlashcardView";
-import LeaderboardView from "@/components/LeaderboardView";
-import ExamDatesView from "@/components/ExamDatesView";
-import CommunityView from "@/components/CommunityView";
-import PremiumStudentsView from "@/components/PremiumStudentsView";
-import TimetableView from "@/components/TimetableView";
-import SettingsView from "@/components/SettingsView";
-import StudyPlanView from "@/components/StudyPlanView";
-import ResourcesView from "@/components/ResourcesView";
+import dynamic from "next/dynamic";
+import { auth, db } from "@/firebase";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { doc, getDoc, setDoc, collection, onSnapshot, updateDoc, increment } from "firebase/firestore";
+import { AnimatePresence, motion } from "motion/react";
+import { memo, useMemo } from "react";
+
+// Dynamic imports for performance optimization
+const HomeView = dynamic(() => import("@/components/HomeView"), { loading: () => <LoadingScreen message="Loading Home..." /> });
+const PapersView = dynamic(() => import("@/components/PapersView"), { loading: () => <LoadingScreen message="Loading Papers..." /> });
+const QuizzesView = dynamic(() => import("@/components/QuizzesView"), { loading: () => <LoadingScreen message="Loading Quizzes..." /> });
+const PremiumView = dynamic(() => import("@/components/PremiumView"), { loading: () => <LoadingScreen message="Loading Premium..." /> });
+const AuthView = dynamic(() => import("@/components/AuthView"), { loading: () => <LoadingScreen message="Loading Auth..." /> });
+const ProfileView = dynamic(() => import("@/components/ProfileView"), { loading: () => <LoadingScreen message="Loading Profile..." /> });
+const AskTeacherAI = dynamic(() => import("@/components/AskTeacherAI"), { loading: () => <LoadingScreen message="Loading AI Teacher..." /> });
+const FlashcardView = dynamic(() => import("@/components/FlashcardView"), { loading: () => <LoadingScreen message="Loading Flashcards..." /> });
+const LeaderboardView = dynamic(() => import("@/components/LeaderboardView"), { loading: () => <LoadingScreen message="Loading Leaderboard..." /> });
+const ExamDatesView = dynamic(() => import("@/components/ExamDatesView"), { loading: () => <LoadingScreen message="Loading Exams..." /> });
+const CommunityView = dynamic(() => import("@/components/CommunityView"), { loading: () => <LoadingScreen message="Loading Community..." /> });
+const PremiumStudentsView = dynamic(() => import("@/components/PremiumStudentsView"), { loading: () => <LoadingScreen message="Loading Students..." /> });
+const TimetableView = dynamic(() => import("@/components/TimetableView"), { loading: () => <LoadingScreen message="Loading Timetable..." /> });
+const SettingsView = dynamic(() => import("@/components/SettingsView"), { loading: () => <LoadingScreen message="Loading Settings..." /> });
+const StudyPlanView = dynamic(() => import("@/components/StudyPlanView"), { loading: () => <LoadingScreen message="Loading Study Plan..." /> });
+const ResourcesView = dynamic(() => import("@/components/ResourcesView"), { loading: () => <LoadingScreen message="Loading Resources..." /> });
+const StudyHubView = dynamic(() => import("@/components/StudyHubView"), { loading: () => <LoadingScreen message="Loading Study Hub..." /> });
+const VideosView = dynamic(() => import("@/components/VideosView"), { loading: () => <LoadingScreen message="Loading Videos..." /> });
+const PrivacyPolicyView = dynamic(() => import("@/components/PrivacyPolicyView"), { loading: () => <LoadingScreen message="Loading Privacy..." /> });
+const TermsOfServiceView = dynamic(() => import("@/components/TermsOfServiceView"), { loading: () => <LoadingScreen message="Loading Terms..." /> });
+const LandingView = dynamic(() => import("@/components/LandingView"), { loading: () => <LoadingScreen message="Loading..." /> });
+const OnboardingView = dynamic(() => import("@/components/OnboardingView"), { loading: () => <LoadingScreen message="Loading Onboarding..." /> });
+
+// Static components
 import Sidebar from "@/components/Sidebar";
 import LoadingScreen from "@/components/LoadingScreen";
 import InstallPWA from "@/components/InstallPWA";
-import PrivacyPolicyView from "@/components/PrivacyPolicyView";
-import TermsOfServiceView from "@/components/TermsOfServiceView";
-import LandingView from "@/components/LandingView";
-import { AnimatePresence, motion } from "motion/react";
-import StudyHubView from "@/components/StudyHubView";
-import VideosView from "@/components/VideosView";
-import { auth, db } from "@/firebase";
-import { onAuthStateChanged, User as FirebaseUser, isSignInWithEmailLink } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, getDocs, writeBatch, onSnapshot, updateDoc } from "firebase/firestore";
+
+const NavItem = memo(({ icon, label, isActive, onClick }: any) => {
+  return (
+    <button onClick={onClick} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
+      <div className="mb-0.5">
+        {icon}
+      </div>
+      <span className="text-[8px] font-bold uppercase tracking-tight">{label}</span>
+      {isActive && <motion.div layoutId="nav-dot" className="w-1 h-1 bg-blue-500 rounded-full mt-0.5" />}
+    </button>
+  );
+});
+
+NavItem.displayName = "NavItem";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("landing");
@@ -200,6 +221,7 @@ export default function App() {
           phoneNumber: user.phoneNumber || "",
           photoURL: user.photoURL || "",
           isPremium: false,
+          hasCompletedOnboarding: false,
           createdAt: new Date().toISOString(),
           referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
           aiPoints: 5 // Initial points
@@ -324,6 +346,36 @@ export default function App() {
     return () => unsubAnn();
   }, []);
 
+  // Memoize views to prevent unnecessary re-renders
+  const views = useMemo(() => ({
+    home: <HomeView onNavigate={navigateTo} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />,
+    papers: <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />,
+    quizzes: <QuizzesView isPremium={userData?.isPremium} />,
+    videos: <VideosView isPremium={userData?.isPremium} />,
+    study_hub: <StudyHubView />,
+    profile: <ProfileView user={user} isPremium={userData?.isPremium} />,
+    premium: <PremiumView user={user} isPremium={userData?.isPremium} />,
+    flashcards: <FlashcardView isPremium={userData?.isPremium} />,
+    leaderboard: <LeaderboardView currentUserStats={userStats} />,
+    exams: <ExamDatesView />,
+    community: <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />,
+    premium_students: <PremiumStudentsView />,
+    timetable: <TimetableView onClose={() => navigateTo("home")} />,
+    study_plan: <StudyPlanView />,
+    resources: <ResourcesView />,
+    settings: <SettingsView onNavigate={navigateTo} />,
+    privacy: <PrivacyPolicyView onBack={() => navigateTo(user ? "settings" : "landing")} />,
+    terms: <TermsOfServiceView onBack={() => navigateTo(user ? "settings" : "landing")} />,
+    auth: <AuthView onLogin={() => navigateTo("home")} />,
+    auth_signup: <AuthView onLogin={() => navigateTo("home")} initialMode="signup" />,
+    landing: <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />,
+    ai: <AskTeacherAI isPremium={userData?.isPremium} aiPoints={userData?.aiPoints} />,
+  }), [user, userData, userStats, isSidebarOpen]);
+
+  const renderView = () => {
+    return (views as any)[activeTab] || views.home;
+  };
+
   if (!hasMounted || loading) {
     return <LoadingScreen message="Loading Educate MW..." />;
   }
@@ -375,35 +427,34 @@ export default function App() {
     );
   }
 
-  const renderView = () => {
-    switch (activeTab) {
-      case "home": return <HomeView onNavigate={navigateTo} user={user} isPremium={userData?.isPremium} onOpenSidebar={() => setIsSidebarOpen(true)} />;
-      case "papers": return <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
-      case "quizzes": return <QuizzesView isPremium={userData?.isPremium} />;
-      case "videos": return <VideosView isPremium={userData?.isPremium} />;
-      case "study_hub": return <StudyHubView />;
-      case "profile": return <ProfileView user={user} isPremium={userData?.isPremium} />;
-      case "premium": return <PremiumView user={user} isPremium={userData?.isPremium} />;
-      case "flashcards": return <FlashcardView isPremium={userData?.isPremium} />;
-      case "leaderboard": return <LeaderboardView currentUserStats={userStats} />;
-      case "exams": return <ExamDatesView />;
-      case "community": return <CommunityView isPremium={userData?.isPremium} onNavigate={navigateTo} />;
-      case "premium_students": return <PremiumStudentsView />;
-      case "timetable": return <TimetableView onClose={() => navigateTo("home")} />;
-      case "study_plan": return <StudyPlanView />;
-      case "resources": return <ResourcesView />;
-      case "settings": return <SettingsView onNavigate={navigateTo} />;
-      case "privacy": return <PrivacyPolicyView onBack={() => navigateTo(user ? "settings" : "landing")} />;
-      case "terms": return <TermsOfServiceView onBack={() => navigateTo(user ? "settings" : "landing")} />;
-      case "auth": return <AuthView onLogin={() => navigateTo("home")} />;
-      case "auth_signup": return <AuthView onLogin={() => navigateTo("home")} initialMode="signup" />;
-      case "landing": return <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />;
-      case "ai": return <AskTeacherAI isPremium={userData?.isPremium} aiPoints={userData?.aiPoints} />;
-      default: return <HomeView onNavigate={navigateTo} user={user} onOpenSidebar={() => setIsSidebarOpen(true)} />;
+  const handlePWAInstall = async () => {
+    if (!user || !userData) return;
+    
+    const isRewarded = localStorage.getItem("pwa_install_rewarded");
+    if (isRewarded) return;
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        aiPoints: increment(10)
+      });
+      localStorage.setItem("pwa_install_rewarded", "true");
+      // Optional: Show a success toast or message
+      console.log("PWA Install Reward Granted: +10 AI Points");
+    } catch (error) {
+      console.error("Error rewarding PWA install:", error);
     }
   };
 
   const isMainTab = ["home", "papers", "leaderboard", "profile", "videos"].includes(activeTab);
+
+  if (user && userData && !userData.hasCompletedOnboarding && activeTab !== 'landing' && activeTab !== 'auth' && activeTab !== 'auth_signup') {
+    return (
+      <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 dark:bg-slate-900 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200 dark:border-slate-800 transition-colors duration-300">
+        <OnboardingView user={user} onComplete={() => setUserData({...userData, hasCompletedOnboarding: true})} onNavigate={navigateTo} />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-md h-[100dvh] bg-gray-50 dark:bg-slate-900 flex flex-col relative overflow-hidden shadow-2xl sm:border-x sm:border-gray-200 dark:border-slate-800 transition-colors duration-300">
@@ -523,7 +574,7 @@ export default function App() {
       )}
 
       {/* PWA Install Prompt */}
-      <InstallPWA />
+      <InstallPWA onInstall={handlePWAInstall} />
 
       {/* Payment Success Modal */}
       <AnimatePresence>
@@ -713,17 +764,5 @@ export default function App() {
       </AnimatePresence>
 
     </div>
-  );
-}
-
-function NavItem({ icon, label, isActive, onClick }: any) {
-  return (
-    <button onClick={onClick} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'text-white' : 'text-slate-500 hover:text-slate-300'}`}>
-      <div className="mb-0.5">
-        {icon}
-      </div>
-      <span className="text-[8px] font-bold uppercase tracking-tight">{label}</span>
-      {isActive && <motion.div layoutId="nav-dot" className="w-1 h-1 bg-blue-500 rounded-full mt-0.5" />}
-    </button>
   );
 }

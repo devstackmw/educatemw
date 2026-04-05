@@ -1,5 +1,6 @@
 "use client";
-import { motion } from "motion/react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, BookOpen, Trophy, Users, Shield, FileText, ChevronRight, Zap, GraduationCap, ArrowRight } from "lucide-react";
 import { AppIcon } from "./AppLogo";
 
@@ -75,37 +76,77 @@ export default function LandingView({ onGetStarted, onNavigate }: LandingViewPro
       </section>
 
       {/* Features Grid */}
-      <section className="py-16 px-6 space-y-10">
-        <div className="text-center space-y-2">
-          <h2 className="text-3xl font-heading font-black text-slate-900 tracking-tight">Everything you need</h2>
-          <p className="text-slate-500 text-sm font-medium">Powerful tools to boost your grades</p>
+      <section className="py-16 px-6 space-y-10 bg-white">
+        <div className="text-center space-y-2 max-w-xs mx-auto">
+          <h2 className="text-3xl font-heading font-black text-slate-900 tracking-tight leading-tight">Everything you need to excel</h2>
+          <p className="text-slate-500 text-sm font-medium">Powerful tools designed specifically for the Malawi MSCE curriculum.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FeatureCard 
             icon={<BookOpen size={24} className="text-blue-600" />}
             color="bg-blue-50"
-            title="Past Papers Library"
-            description="Comprehensive collection of MANEB past papers for all subjects."
+            title="MSCE Past Papers"
+            description="Access thousands of MANEB past papers from 2010 to 2025 for all subjects including Mathematics, English, Biology, and more."
           />
           <FeatureCard 
             icon={<Sparkles size={24} className="text-indigo-600" />}
             color="bg-indigo-50"
-            title="Cleo AI Teacher"
-            description="Get instant help with difficult concepts from our AI assistant."
+            title="Cleo AI Tutor"
+            description="Our advanced AI teacher provides step-by-step explanations for complex problems in Science and Humanities."
           />
           <FeatureCard 
             icon={<Zap size={24} className="text-amber-600" />}
             color="bg-amber-50"
-            title="Interactive Quizzes"
-            description="Test your knowledge with curriculum-aligned quizzes."
+            title="Interactive MSCE Quizzes"
+            description="Test your knowledge with thousands of curriculum-aligned multiple choice questions and track your progress."
           />
           <FeatureCard 
             icon={<Users size={24} className="text-emerald-600" />}
             color="bg-emerald-50"
             title="Student Community"
-            description="Connect with fellow students to share tips and study together."
+            description="Join a vibrant community of Malawian students. Share notes, ask questions, and study together for better results."
           />
+        </div>
+      </section>
+
+      {/* SEO Content Section */}
+      <section className="py-16 px-6 bg-slate-50 border-y border-slate-100">
+        <div className="max-w-md mx-auto space-y-12">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-heading font-black text-slate-900 tracking-tight">Why Choose Educate MW?</h2>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Educate MW is Malawi&apos;s premier digital learning platform, built specifically to help secondary school students prepare for their MSCE exams. We understand the challenges of finding quality study materials, which is why we&apos;ve centralized everything you need in one easy-to-use app.
+            </p>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <div className="text-2xl font-black text-indigo-600 mb-1">10k+</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Students</div>
+              </div>
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <div className="text-2xl font-black text-blue-600 mb-1">5k+</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Past Papers</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xl font-heading font-black text-slate-900 tracking-tight">Frequently Asked Questions</h3>
+            <div className="space-y-4">
+              <FAQItem 
+                question="Is Educate MW free to use?"
+                answer="Yes! You can access many past papers and basic features for free. We also offer a Premium plan for unlimited AI assistance and exclusive study notes."
+              />
+              <FAQItem 
+                question="Does it work offline?"
+                answer="Absolutely. Once you've opened a paper or quiz, it's saved to your device so you can study even without an internet connection."
+              />
+              <FAQItem 
+                question="Which subjects are covered?"
+                answer="We cover all major MSCE subjects including Mathematics, English, Biology, Physical Science, Geography, History, Agriculture, and more."
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -148,5 +189,32 @@ function FeatureCard({ icon, title, description, color }: { icon: React.ReactNod
         <p className="text-sm text-slate-500 font-medium leading-relaxed">{description}</p>
       </div>
     </motion.div>
+  );
+}
+
+function FAQItem({ question, answer }: { question: string, answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-4 text-left flex items-center justify-between gap-4"
+      >
+        <span className="font-bold text-slate-900 text-sm">{question}</span>
+        <ChevronRight size={18} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-4 pb-4"
+          >
+            <p className="text-slate-500 text-xs font-medium leading-relaxed">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

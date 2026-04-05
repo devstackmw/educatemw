@@ -1,12 +1,14 @@
+import dynamic from "next/dynamic";
 import { PlayCircle, Clock, CheckCircle2, WifiOff, Sparkles, BookOpen, Lock } from "lucide-react";
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/firebase";
-import QuizSimulator from "@/components/QuizSimulator";
-import AIQuizGenerator from "@/components/AIQuizGenerator";
 import { handleFirestoreError, OperationType } from "@/lib/firestoreError";
 import { QuizzesSkeleton } from "./Skeleton";
 import { ENGLISH_STARTER_QUIZ, BIOLOGY_STARTER_QUIZ } from "@/lib/starterQuizzes";
+
+const QuizSimulator = dynamic(() => import("@/components/QuizSimulator"), { loading: () => <QuizzesSkeleton /> });
+const AIQuizGenerator = dynamic(() => import("@/components/AIQuizGenerator"), { loading: () => <div className="p-4 bg-slate-50 rounded-2xl animate-pulse h-24" /> });
 
 interface Quiz {
   id: string;
@@ -27,7 +29,8 @@ export default function QuizzesView({ isPremium }: { isPremium?: boolean }) {
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
 
   useEffect(() => {
-    const q = query(collection(db, "quizzes"), orderBy("createdAt", "desc"));
+    // Limit to 20 quizzes initially for better performance
+    const q = query(collection(db, "quizzes"), orderBy("createdAt", "desc"), limit(20));
     
     const unsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
       const fetchedQuizzes: Quiz[] = [ENGLISH_STARTER_QUIZ as any, BIOLOGY_STARTER_QUIZ as any];

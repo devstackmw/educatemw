@@ -1,13 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useMemo } from "react";
 import { AppIcon } from "./AppLogo";
 import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar, PlayCircle } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
-import { doc, onSnapshot, collection, query, where, getCountFromServer, getDoc, updateDoc, increment, orderBy, limit } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, getCountFromServer, orderBy, limit } from "firebase/firestore";
 import { db } from "@/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { motion } from "motion/react";
 import { HomeSkeleton } from "./Skeleton";
 import Image from "next/image";
+
+// Memoized components for performance
+const BentoCard = memo(({ icon, label, sub, color, onClickTab, className = "", horizontal = false }: any) => (
+  <div 
+    onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: onClickTab }))} 
+    className={`${color} ${className} p-5 rounded-3xl border cursor-pointer transition-all hover:shadow-md active:scale-[0.98] group flex ${horizontal ? 'flex-row items-center gap-4' : 'flex-col items-start'}`}
+  >
+    <div className={`p-3 bg-white rounded-2xl shadow-sm mb-3 transition-transform group-hover:scale-110 ${horizontal ? 'mb-0' : ''}`}>
+      {icon}
+    </div>
+    <div>
+      <h4 className="font-bold text-slate-900 text-sm leading-tight">{label}</h4>
+      <p className="text-slate-500 text-[9px] font-bold uppercase tracking-wider mt-1">{sub}</p>
+    </div>
+  </div>
+));
+
+BentoCard.displayName = "BentoCard";
 
 export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }: { onNavigate: (tab: string) => void, user?: FirebaseUser | null, isPremium?: boolean, onOpenSidebar: () => void }) {
   const [points, setPoints] = useState<number>(0);
@@ -21,14 +39,17 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   const [showTipModal, setShowTipModal] = useState(false);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [examDates, setExamDates] = useState<any[]>([]);
-  const displayName = user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
 
-  const getGreeting = () => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good Morning";
     if (hour < 17) return "Good Afternoon";
     return "Good Evening";
-  };
+  }, []);
+
+  const displayName = useMemo(() => {
+    return user?.displayName || user?.email?.split('@')[0] || user?.phoneNumber || "Student";
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -39,7 +60,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     });
 
     // Listen for announcements
-    const unsubAnnouncements = onSnapshot(query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(3)), (snapshot) => {
+    const unsubAnnouncements = onSnapshot(query(collection(db, "announcements"), where("active", "==", true), orderBy("createdAt", "desc"), limit(3)), (snapshot) => {
       setAnnouncements(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
@@ -59,21 +80,12 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     });
 
     const statsRef = doc(db, "userStats", user.uid);
-    const unsubscribe = onSnapshot(statsRef, async (snapshot) => {
+    const unsubscribe = onSnapshot(statsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setPoints(data.points || 0);
         setStreak(data.streak || 0);
         setDailyChallenge(data.dailyChallenge || null);
-
-        // Fetch rank
-        try {
-          const rankQuery = query(collection(db, "userStats"), where("points", ">", data.points || 0));
-          const rankSnapshot = await getCountFromServer(rankQuery);
-          setRank(rankSnapshot.data().count + 1);
-        } catch (error) {
-          console.error("Error fetching rank:", error);
-        }
       }
       setLoading(false);
     }, (error) => {
@@ -81,11 +93,36 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubTip();
+      unsubAnnouncements();
+      unsubExamDates();
+      unsubUser();
+      unsubscribe();
+    };
   }, [user]);
+
+  // Separate effect for rank to avoid frequent heavy queries
+  useEffect(() => {
+    if (!user || points === 0) return;
+
+    const fetchRank = async () => {
+      try {
+        const rankQuery = query(collection(db, "userStats"), where("points", ">", points));
+        const rankSnapshot = await getCountFromServer(rankQuery);
+        setRank(rankSnapshot.data().count + 1);
+      } catch (error) {
+        console.error("Error fetching rank:", error);
+      }
+    };
+
+    const timer = setTimeout(fetchRank, 1000); // Debounce rank fetch
+    return () => clearTimeout(timer);
+  }, [user, points]);
 
   const completeChallenge = async () => {
     if (!user) return;
+    const { updateDoc, increment } = await import("firebase/firestore");
     const statsRef = doc(db, "userStats", user.uid);
     try {
       await updateDoc(statsRef, {
@@ -110,7 +147,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
       <div className="flex items-center justify-between bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
         <div className="absolute -top-12 -left-12 w-32 h-32 bg-indigo-50 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
         <div className="space-y-1 relative z-10">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{getGreeting()}</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{greeting}</p>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{displayName.split(' ')[0]}</h2>
           <div className="flex items-center gap-1.5 mt-1">
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -423,18 +460,3 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     </div>
   );
 }
-
-const BentoCard = ({ icon, label, sub, color, onClickTab, className = "", horizontal = false }: any) => (
-  <div 
-    onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: onClickTab }))} 
-    className={`${color} ${className} p-5 rounded-3xl border cursor-pointer transition-all hover:shadow-md active:scale-[0.98] group flex ${horizontal ? 'flex-row items-center gap-4' : 'flex-col items-start'}`}
-  >
-    <div className={`p-3 bg-white rounded-2xl shadow-sm mb-3 transition-transform group-hover:scale-110 ${horizontal ? 'mb-0' : ''}`}>
-      {icon}
-    </div>
-    <div>
-      <h4 className="font-bold text-slate-900 text-sm leading-tight">{label}</h4>
-      <p className="text-slate-500 text-[9px] font-bold uppercase tracking-wider mt-1">{sub}</p>
-    </div>
-  </div>
-);

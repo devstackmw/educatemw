@@ -1,7 +1,7 @@
 import { Download, Search, FileText, Lock, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PapersSkeleton } from "./Skeleton";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, increment } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, increment, limit } from "firebase/firestore";
 import { db } from "@/firebase";
 
 export default function PapersView({ isPremium, onNavigate }: { isPremium?: boolean, onNavigate?: (tab: string) => void }) {
@@ -11,7 +11,8 @@ export default function PapersView({ isPremium, onNavigate }: { isPremium?: bool
   const [resources, setResources] = useState<any[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, "resources"), orderBy("createdAt", "desc"));
+    // Limit to 50 resources for initial load
+    const q = query(collection(db, "resources"), orderBy("createdAt", "desc"), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setResources(data);
