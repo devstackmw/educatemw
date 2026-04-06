@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useMemo } from "react";
-import { collection, query, where, getCountFromServer, addDoc, serverTimestamp, onSnapshot, orderBy, deleteDoc, doc, updateDoc, getDocs, limit, setDoc } from "firebase/firestore";
+import { collection, query, where, getCountFromServer, addDoc, serverTimestamp, onSnapshot, orderBy, deleteDoc, doc, updateDoc, getDocs, limit, setDoc, startAfter, endBefore, limitToLast } from "firebase/firestore";
 import { db, auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -46,7 +46,9 @@ import {
   Eye,
   Menu,
   X,
-  HelpCircle
+  HelpCircle,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -54,6 +56,11 @@ export default function AdminDashboard() {
   const [metrics, setMetrics] = useState({ paidStudents: 0, totalUsers: 0, totalPosts: 0 });
   const [resource, setResource] = useState({ title: "", subject: "", type: "Video", url: "", isPremium: false, category: "Notes" });
   const [resources, setResources] = useState<any[]>([]);
+  const [resourcePage, setResourcePage] = useState(1);
+  const [lastResourceDoc, setLastResourceDoc] = useState<any>(null);
+  const [firstResourceDoc, setFirstResourceDoc] = useState<any>(null);
+  const [hasMoreResources, setHasMoreResources] = useState(true);
+  const resourcesPerPage = 10;
   const [users, setUsers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -63,6 +70,7 @@ export default function AdminDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [resourceSearchTerm, setResourceSearchTerm] = useState("");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({ title: "", content: "", type: "info" });
   const [newExamDate, setNewExamDate] = useState({ subject: "", date: "" });
@@ -93,12 +101,6 @@ export default function AdminDashboard() {
         router.push("/admin/login");
         return;
       }
-
-      // Listen for resources
-      const qResources = query(collection(db, "resources"), orderBy("createdAt", "desc"));
-      const unsubResources = onSnapshot(qResources, (snapshot) => {
-        setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      });
 
       // Listen for users
       const qUsers = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(50));
@@ -136,7 +138,6 @@ export default function AdminDashboard() {
       
       // Cleanup
       return () => {
-        unsubResources();
         unsubUsers();
         unsubTip();
         unsubAnnouncements();
@@ -149,8 +150,90 @@ export default function AdminDashboard() {
     return () => unsubscribeAuth();
   }, [router]);
 
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    let q = query(
+      collection(db, "resources"),
+      orderBy("createdAt", "desc"),
+      limit(resourcesPerPage)
+    );
+
+    // This is a bit tricky with onSnapshot and pagination
+    // For now, let's use a simpler approach for the admin dashboard
+    // We'll use getDocs for paginated resources to avoid complex cursor management with onSnapshot
+    const fetchResources = async () => {
+      let qResources;
+      if (resourcePage === 1) {
+        qResources = query(collection(db, "resources"), orderBy("createdAt", "desc"), limit(resourcesPerPage));
+      } else {
+        // We'll need to handle this in the next/prev functions
+        return; 
+      }
+
+      const snapshot = await getDocs(qResources);
+      setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLastResourceDoc(snapshot.docs[snapshot.docs.length - 1]);
+      setFirstResourceDoc(snapshot.docs[0]);
+      setHasMoreResources(snapshot.docs.length === resourcesPerPage);
+    };
+
+    // If we want real-time for the first page only:
+    if (resourcePage === 1) {
+      const unsub = onSnapshot(q, (snapshot) => {
+        setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLastResourceDoc(snapshot.docs[snapshot.docs.length - 1]);
+        setFirstResourceDoc(snapshot.docs[0]);
+        setHasMoreResources(snapshot.docs.length === resourcesPerPage);
+      });
+      return () => unsub();
+    } else {
+      // For other pages, we'll use one-time fetch or manage cursors
+      // To keep it simple and functional, let's implement the handleNext/Prev logic
+    }
+  }, [resourcePage]);
+
+  const handleNextResources = async () => {
+    if (!lastResourceDoc || !hasMoreResources) return;
+    
+    const q = query(
+      collection(db, "resources"),
+      orderBy("createdAt", "desc"),
+      startAfter(lastResourceDoc),
+      limit(resourcesPerPage)
+    );
+    
+    const snapshot = await getDocs(q);
+    if (snapshot.docs.length > 0) {
+      setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLastResourceDoc(snapshot.docs[snapshot.docs.length - 1]);
+      setFirstResourceDoc(snapshot.docs[0]);
+      setResourcePage(prev => prev + 1);
+      setHasMoreResources(snapshot.docs.length === resourcesPerPage);
+    } else {
+      setHasMoreResources(false);
+    }
+  };
+
+  const handlePrevResources = async () => {
+    if (!firstResourceDoc || resourcePage === 1) return;
+    
+    const q = query(
+      collection(db, "resources"),
+      orderBy("createdAt", "desc"),
+      endBefore(firstResourceDoc),
+      limitToLast(resourcesPerPage)
+    );
+    
+    const snapshot = await getDocs(q);
+    setResources(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    setLastResourceDoc(snapshot.docs[snapshot.docs.length - 1]);
+    setFirstResourceDoc(snapshot.docs[0]);
+    setResourcePage(prev => prev - 1);
+    setHasMoreResources(true);
+  };
+
   const handleAddAnnouncement = async (e: React.FormEvent) => {
-    e.preventDefault();
     if (!newAnnouncement.title || !newAnnouncement.content) return;
     setSubmitting(true);
     try {
@@ -362,6 +445,14 @@ export default function AdminDashboard() {
     u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredResources = useMemo(() => {
+    return resources.filter(res => 
+      res.title?.toLowerCase().includes(resourceSearchTerm.toLowerCase()) || 
+      res.subject?.toLowerCase().includes(resourceSearchTerm.toLowerCase()) ||
+      res.category?.toLowerCase().includes(resourceSearchTerm.toLowerCase())
+    );
+  }, [resources, resourceSearchTerm]);
 
   // Analytics Calculations
   const revenueData = useMemo(() => {
@@ -1035,14 +1126,24 @@ export default function AdminDashboard() {
             </section>
 
             <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl"><FileText size={24} /></div>
                   <h3 className="text-xl font-bold text-slate-900">Recent Uploads</h3>
                 </div>
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input 
+                    type="text" 
+                    placeholder="Search resources..." 
+                    value={resourceSearchTerm}
+                    onChange={(e) => setResourceSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium text-sm"
+                  />
+                </div>
               </div>
               <div className="flex-1 overflow-y-auto max-h-[500px] space-y-3">
-                {resources.map((res) => (
+                {filteredResources.map((res) => (
                   <div key={res.id} className="group p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between hover:border-blue-200 transition-all">
                     <div className="flex items-center gap-4">
                       <div className={`p-3 rounded-xl ${res.isPremium ? 'bg-amber-100 text-amber-600' : 'bg-white text-slate-400 border border-slate-100'}`}>
@@ -1060,6 +1161,33 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+                {filteredResources.length === 0 && (
+                  <div className="text-center p-8 text-slate-500 font-medium">
+                    No resources found.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-100">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Page {resourcePage}</p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={handlePrevResources} 
+                    disabled={resourcePage === 1}
+                    className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-all"
+                    title="Previous Page"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button 
+                    onClick={handleNextResources} 
+                    disabled={!hasMoreResources}
+                    className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-all"
+                    title="Next Page"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
               </div>
             </section>
           </div>

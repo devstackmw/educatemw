@@ -392,7 +392,7 @@ export default function App() {
     auth_signup: <AuthView onLogin={() => navigateTo("home")} initialMode="signup" />,
     landing: <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />,
     ai: <AskTeacherAI isPremium={userData?.isPremium} aiPoints={userData?.aiPoints} />,
-  }), [user, userData, userStats, isSidebarOpen]);
+  }), [user, userData, userStats]);
 
   const renderView = () => {
     return (views as any)[activeTab] || views.home;

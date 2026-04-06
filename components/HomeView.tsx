@@ -460,7 +460,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
             {!isPremium && (
               <div className="mt-4 pt-4 border-t border-slate-200">
                 <p className="text-slate-700 text-xs font-bold mb-3">
-                  Don't risk failing—we have something special for you as exams approach. Upgrade to Premium to unlock exclusive video lessons and advanced study materials!
+                  Don&apos;t risk failing—we have something special for you as exams approach. Upgrade to Premium to unlock exclusive video lessons and advanced study materials!
                 </p>
                 <button 
                   onClick={() => onNavigate('premium')}
