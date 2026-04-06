@@ -5,6 +5,7 @@ import { db, auth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   BarChart, 
   Bar, 
@@ -79,6 +80,9 @@ export default function AdminDashboard() {
   const [newQuestions, setNewQuestions] = useState([{ text: "", options: ["", "", "", ""], correctAnswerIndex: 0, explanation: "" }]);
   const router = useRouter();
 
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const AUTHORIZED_EMAILS = ["devstackmw@gmail.com", "mscepreparation@gmail.com"];
+
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -96,16 +100,41 @@ export default function AdminDashboard() {
       }
     };
 
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       if (!user) {
         router.push("/admin/login");
         return;
       }
 
+      // Verify admin status
+      let adminStatus = AUTHORIZED_EMAILS.includes(user.email?.toLowerCase() || "");
+      
+      if (!adminStatus) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().role === 'admin') {
+            adminStatus = true;
+          }
+        } catch (err) {
+          console.error("Error checking admin role:", err);
+        }
+      }
+
+      if (!adminStatus) {
+        setIsAuthorized(false);
+        setLoading(false);
+        return;
+      }
+
+      setIsAuthorized(true);
+
       // Listen for users
       const qUsers = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(50));
       const unsubUsers = onSnapshot(qUsers, (snapshot) => {
         setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setLoading(false);
+      }, (err) => {
+        console.error("Error fetching users:", err);
         setLoading(false);
       });
 
@@ -491,6 +520,67 @@ export default function AdminDashboard() {
   const totalEarnings = useMemo(() => {
     return payments.reduce((acc, curr) => acc + 5000, 0);
   }, [payments]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-10 text-center relative z-10">
+          <div className="space-y-4">
+            <div className="relative w-24 h-24 mx-auto">
+              <div className="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+              <div className="relative w-24 h-24 bg-slate-800 rounded-3xl border border-slate-700 flex items-center justify-center">
+                <Loader2 className="text-blue-500 animate-spin" size={48} strokeWidth={3} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-white">Please wait loading</h2>
+              <p className="text-blue-400 font-bold animate-pulse tracking-wide uppercase text-xs">Initializing Admin Dashboard...</p>
+            </div>
+          </div>
+          <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 2, ease: "easeInOut" }}
+              className="h-full bg-blue-600 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthorized === false) {
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          className="bg-red-950/40 backdrop-blur-2xl p-12 rounded-[3rem] border-2 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.2)] w-full max-w-md text-center space-y-8 relative z-10"
+        >
+          <div className="w-28 h-28 bg-red-500 text-white rounded-full flex items-center justify-center mx-auto shadow-2xl shadow-red-500/40 animate-bounce">
+            <UserX size={56} strokeWidth={3} />
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-4xl font-black text-red-500 tracking-tighter uppercase italic">Access Denied</h1>
+            <p className="text-red-200 text-xl font-bold leading-tight">
+              &quot;hoops you&apos;re fake 🤥 go away&quot;
+            </p>
+            <p className="text-red-400/60 text-sm font-mono">UNAUTHORIZED_ACCESS_ATTEMPT_LOGGED</p>
+          </div>
+          <button 
+            onClick={() => {
+              auth.signOut();
+              router.push("/admin/login");
+            }}
+            className="w-full bg-red-500 text-white py-4 rounded-2xl font-black hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+          >
+            Go Back
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
