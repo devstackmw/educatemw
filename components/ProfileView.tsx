@@ -15,6 +15,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [profile, setProfile] = useState({ nickname: "", realName: "", avatarId: "girl_1", photoURL: "", gender: "", subjects: [] as string[], grade: "" });
   const [stats, setStats] = useState({ points: 0, earnedBadges: [] as string[], photoURL: "" });
+  const [referralCount, setReferralCount] = useState(0);
 
   const AVAILABLE_SUBJECTS = ["English", "Mathematics", "Biology", "Physical Science", "Geography", "History", "Chichewa", "Agriculture", "Social Studies", "Life Skills", "Bible Knowledge"];
   const GRADES = ["Form 1", "Form 2", "Form 3", "Form 4 (MSCE)"];
@@ -47,7 +48,7 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
 
     // Fetch user stats
     const statsRef = doc(db, "userStats", user.uid);
-    const unsubscribe = onSnapshot(statsRef, (snapshot) => {
+    const unsubscribeStats = onSnapshot(statsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setStats({
@@ -58,7 +59,22 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
       }
     });
 
-    return () => unsubscribe();
+    // Fetch referral count
+    const fetchReferrals = async () => {
+      try {
+        const referralsRef = collection(db, "referrals");
+        const q = query(referralsRef, where("referrerUid", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        setReferralCount(querySnapshot.size);
+      } catch (error) {
+        console.error("Error fetching referrals:", error);
+      }
+    };
+    fetchReferrals();
+
+    return () => {
+      unsubscribeStats();
+    };
   }, [user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,6 +232,21 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Badges</p>
             <p className="text-2xl font-heading font-black text-amber-400">{stats.earnedBadges.length}</p>
           </div>
+        </div>
+        
+        {/* Referral Tracking Bar */}
+        <div className="relative z-10 mt-4 bg-white/5 backdrop-blur-sm p-4 rounded-2xl border border-white/5">
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Students Invited</p>
+            <p className="text-sm font-bold text-emerald-400">{referralCount} Registered</p>
+          </div>
+          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-1000"
+              style={{ width: `${Math.min((referralCount / 10) * 100, 100)}%` }}
+            ></div>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2 text-center">Invite friends to earn more AI credits!</p>
         </div>
       </div>
 

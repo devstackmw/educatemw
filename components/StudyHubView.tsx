@@ -12,7 +12,7 @@ interface Note {
   isPremiumOnly: boolean;
 }
 
-export default function StudyHubView({ initialNotes = [], isPremium }: { initialNotes?: any[], isPremium?: boolean }) {
+export default function StudyHubView({ initialNotes = [], isPremium, onNavigate }: { initialNotes?: any[], isPremium?: boolean, onNavigate?: (tab: string) => void }) {
   const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function StudyHubView({ initialNotes = [], isPremium }: { initial
   );
 
   if (selectedNoteId) {
-    return <NoteDetailView noteId={selectedNoteId} onBack={() => setSelectedNoteId(null)} isPremium={isPremium} />;
+    return <NoteDetailView noteId={selectedNoteId} onBack={() => setSelectedNoteId(null)} isPremium={isPremium} onNavigate={onNavigate} />;
   }
 
   return (

@@ -120,23 +120,6 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     return () => clearTimeout(timer);
   }, [user, points]);
 
-  const completeChallenge = async () => {
-    if (!user) return;
-    const { updateDoc, increment } = await import("firebase/firestore");
-    const statsRef = doc(db, "userStats", user.uid);
-    try {
-      await updateDoc(statsRef, {
-        points: increment(50),
-        dailyChallenge: {
-          completed: true,
-          date: new Date().toISOString().split('T')[0]
-        }
-      });
-    } catch (error) {
-      console.error("Error completing challenge:", error);
-    }
-  };
-
   if (loading) {
     return <HomeSkeleton />;
   }
@@ -250,9 +233,9 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
         <div className="bg-emerald-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-600/20 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Daily Challenge</p>
-            <h3 className="font-bold text-lg">Biology: Cell Structure</h3>
+            <h3 className="font-bold text-lg">Take a Quiz</h3>
           </div>
-          <button onClick={completeChallenge} className="bg-white text-emerald-600 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-50 transition-colors">Start</button>
+          <button onClick={() => onNavigate('quizzes')} className="bg-white text-emerald-600 px-5 py-2.5 rounded-xl text-xs font-black hover:bg-emerald-50 transition-colors">Start</button>
         </div>
       ) : (
         <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm flex flex-col gap-4">
@@ -441,7 +424,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
           <BentoCard 
             icon={<FileText className="text-amber-500" size={28} />} 
             label="Past Papers" 
-            sub="2025 MANEB Prep"
+            sub="2026 MANEB Prep"
             color="bg-amber-50 border-amber-100" 
             onClickTab="papers" 
             className="col-span-2"
@@ -459,12 +442,36 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
                 </div>
                 <h3 className="font-bold text-slate-900 text-sm">Daily Goal</h3>
               </div>
-              <span className="text-indigo-600 font-bold text-sm">50%</span>
+              <span className="text-indigo-600 font-bold text-sm">
+                {(dailyChallenge?.completed && dailyChallenge.date === new Date().toISOString().split('T')[0]) ? '100%' : '25%'}
+              </span>
           </div>
-          <div className="h-3 bg-slate-100 rounded-full w-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 w-1/2 rounded-full"></div>
+          <div className="h-3 bg-slate-100 rounded-full w-full overflow-hidden mb-6">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full transition-all duration-1000"
+                style={{ width: (dailyChallenge?.completed && dailyChallenge.date === new Date().toISOString().split('T')[0]) ? '100%' : '25%' }}
+              ></div>
           </div>
-          <p className="text-slate-500 text-xs mt-4 font-medium italic text-center">&quot;The beautiful thing about learning is that no one can take it away from you.&quot;</p>
+          
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <p className="text-slate-600 text-xs leading-relaxed font-medium mb-3">
+              Consistent daily practice is the key to passing your exams with flying colors! Stay active: ask Cleo AI questions, engage in the Student Forum, take quizzes, practice past papers, use flashcards, and read notes offline.
+            </p>
+            {!isPremium && (
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <p className="text-slate-700 text-xs font-bold mb-3">
+                  Don't risk failing—we have something special for you as exams approach. Upgrade to Premium to unlock exclusive video lessons and advanced study materials!
+                </p>
+                <button 
+                  onClick={() => onNavigate('premium')}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm shadow-amber-500/20 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Zap size={14} fill="currentColor" />
+                  Pay Now to Unlock Everything
+                </button>
+              </div>
+            )}
+          </div>
       </div>
     </div>
   );

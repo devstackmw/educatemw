@@ -139,6 +139,44 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
             <Copy size={18} />
             Copy Referral Link
           </button>
+          
+          <div className="pt-4 border-t border-white/20">
+            <p className="text-xs text-center font-bold mb-3 text-blue-100">Share directly to earn AI credits faster!</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button 
+                onClick={() => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Join me on Educate MW to prepare for MSCE exams. Use my code ${userData.referralCode} to get 5 free AI questions! ${referralLink}`)}`, '_blank')}
+                className="bg-[#25D366] hover:bg-[#128C7E] text-white py-2 rounded-xl flex items-center justify-center font-bold text-xs transition-colors"
+              >
+                WhatsApp
+              </button>
+              <button 
+                onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}&quote=${encodeURIComponent(`Use my code ${userData.referralCode} on Educate MW!`)}`, '_blank')}
+                className="bg-[#1877F2] hover:bg-[#166FE5] text-white py-2 rounded-xl flex items-center justify-center font-bold text-xs transition-colors"
+              >
+                Facebook
+              </button>
+              <button 
+                onClick={async () => {
+                  if (navigator.share) {
+                    try {
+                      await navigator.share({
+                        title: 'Educate MW',
+                        text: `Join me on Educate MW to prepare for MSCE exams. Use my code ${userData.referralCode} to get 5 free AI questions!`,
+                        url: referralLink,
+                      });
+                    } catch (err) {
+                      console.error("Error sharing:", err);
+                    }
+                  } else {
+                    copyLink();
+                  }
+                }}
+                className="bg-slate-900 hover:bg-black text-white py-2 rounded-xl flex items-center justify-center font-bold text-xs transition-colors"
+              >
+                More (TikTok)
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

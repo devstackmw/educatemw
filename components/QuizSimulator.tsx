@@ -93,7 +93,11 @@ export default function QuizSimulator({ quiz, onClose }: { quiz: Quiz, onClose: 
             points: increment(totalPoints),
             lastActiveDate: new Date().toISOString().split('T')[0],
             earnedBadges: arrayUnion(...badgesToAward),
-            isPremium: isPremium
+            isPremium: isPremium,
+            dailyChallenge: {
+              completed: true,
+              date: new Date().toISOString().split('T')[0]
+            }
           });
         } else {
           await setDoc(statsRef, {

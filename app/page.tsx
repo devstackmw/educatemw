@@ -69,6 +69,28 @@ export default function App() {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showPromoModal, setShowPromoModal] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [showMenuHint, setShowMenuHint] = useState(false);
+
+  useEffect(() => {
+    if (user && activeTab === 'home') {
+      const hasSeenHint = window.localStorage.getItem('hasSeenMenuHint');
+      if (!hasSeenHint) {
+        const timer1 = setTimeout(() => setShowMenuHint(true), 2000);
+        const timer2 = setTimeout(() => setShowMenuHint(false), 5000);
+        const timer3 = setTimeout(() => setShowMenuHint(true), 8000);
+        const timer4 = setTimeout(() => {
+          setShowMenuHint(false);
+          window.localStorage.setItem('hasSeenMenuHint', 'true');
+        }, 11000);
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+          clearTimeout(timer3);
+          clearTimeout(timer4);
+        };
+      }
+    }
+  }, [user, activeTab]);
 
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, "settings", "app"), (docSnap) => {
@@ -352,7 +374,7 @@ export default function App() {
     papers: <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />,
     quizzes: <QuizzesView isPremium={userData?.isPremium} />,
     videos: <VideosView isPremium={userData?.isPremium} />,
-    study_hub: <StudyHubView isPremium={userData?.isPremium} />,
+    study_hub: <StudyHubView isPremium={userData?.isPremium} onNavigate={navigateTo} />,
     profile: <ProfileView user={user} isPremium={userData?.isPremium} />,
     premium: <PremiumView user={user} isPremium={userData?.isPremium} />,
     flashcards: <FlashcardView isPremium={userData?.isPremium} />,
@@ -463,12 +485,27 @@ export default function App() {
         <header className="absolute top-0 left-0 right-0 z-[60] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 p-3 flex items-center justify-between transition-colors duration-300">
           <div className="flex items-center gap-3">
             {activeTab === 'home' ? (
-              <button 
-                onClick={() => setIsSidebarOpen(true)}
-                className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-300"
-              >
-                <Menu size={18} />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="p-2 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-all text-slate-700 dark:text-slate-200 flex items-center justify-center"
+                >
+                  <Menu size={22} />
+                </button>
+                <AnimatePresence>
+                  {showMenuHint && (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className="absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap bg-indigo-600 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-lg flex items-center gap-2 z-[70]"
+                    >
+                      <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-indigo-600 rotate-45 rounded-sm"></div>
+                      Click here for new users
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             ) : (
               <button 
                 onClick={() => setActiveTab("home")}
