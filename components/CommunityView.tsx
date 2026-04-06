@@ -74,10 +74,6 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
   };
 
   const handleCreatePost = async () => {
-    if (!isPremium) {
-      window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
-      return;
-    }
     if (!newPostContent.trim() || !auth.currentUser) return;
     
     setSubmitting(true);
@@ -145,23 +141,23 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl shadow-sm"><Users size={20} /></div>
           <div>
-            <h2 className="font-black text-lg text-slate-800 leading-tight">Community</h2>
+            <h2 className="font-black text-lg text-slate-800 leading-tight">Student Forum</h2>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Connect with Students</p>
           </div>
         </div>
         <button 
-          onClick={() => {
-            if (isPremium) {
-              setIsPosting(true);
-            } else {
-              window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
-            }
-          }}
+          onClick={() => setIsPosting(true)}
           className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2"
         >
-          {!isPremium && <Zap size={14} fill="currentColor" className="text-amber-400" />}
           <Plus size={18} />
         </button>
+      </div>
+
+      <div className="bg-amber-50 border-b border-amber-100 p-3 px-4 flex items-start gap-3">
+        <Zap className="text-amber-500 shrink-0 mt-0.5" size={16} />
+        <p className="text-amber-800 text-xs font-medium leading-relaxed">
+          <strong>Group Rules:</strong> Only educational content is allowed here. Please keep discussions focused on MSCE preparation, study tips, and academic questions.
+        </p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -248,22 +244,14 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
 
       <div className="p-4 bg-white border-t border-slate-100 sticky bottom-0">
         <div 
-          onClick={() => {
-            if (isPremium) {
-              setIsPosting(true);
-            } else {
-              window.dispatchEvent(new CustomEvent('navigate', { detail: 'premium' }));
-            }
-          }}
-          className={`p-3 rounded-xl flex items-center gap-3 cursor-pointer transition-colors ${
-            isPremium ? "bg-slate-100 text-slate-400 hover:bg-slate-200" : "bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 text-amber-700"
-          }`}
+          onClick={() => setIsPosting(true)}
+          className="p-3 rounded-xl flex items-center gap-3 cursor-pointer transition-colors bg-slate-100 text-slate-400 hover:bg-slate-200"
         >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isPremium ? "bg-white text-slate-300" : "bg-amber-500 text-white"}`}>
-            {isPremium ? <Plus size={14} /> : <Zap size={14} fill="currentColor" />}
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white text-slate-300">
+            <Plus size={14} />
           </div>
           <span className="text-xs font-bold">
-            {isPremium ? "Share something with the community..." : "Join PRO to start sharing ideas and tips"}
+            Share what&apos;s on your mind...
           </span>
         </div>
       </div>

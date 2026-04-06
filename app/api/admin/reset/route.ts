@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { adminEmail } = await req.json();
 
     // Verify admin email
-    if (adminEmail !== 'devstackmw@gmail.com') {
+    if (adminEmail !== 'devstackmw@gmail.com' && adminEmail !== 'mscepreparation@gmail.com') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

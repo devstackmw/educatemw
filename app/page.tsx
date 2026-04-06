@@ -352,7 +352,7 @@ export default function App() {
     papers: <PapersView isPremium={userData?.isPremium} onNavigate={navigateTo} />,
     quizzes: <QuizzesView isPremium={userData?.isPremium} />,
     videos: <VideosView isPremium={userData?.isPremium} />,
-    study_hub: <StudyHubView />,
+    study_hub: <StudyHubView isPremium={userData?.isPremium} />,
     profile: <ProfileView user={user} isPremium={userData?.isPremium} />,
     premium: <PremiumView user={user} isPremium={userData?.isPremium} />,
     flashcards: <FlashcardView isPremium={userData?.isPremium} />,

@@ -3,6 +3,8 @@ import { auth, db } from "@/firebase";
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
@@ -66,13 +68,26 @@ export default function AuthView({ onLogin, initialMode = "signup" }: { onLogin?
       setError("");
       const provider = new GoogleAuthProvider();
       
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+        return; // Execution stops here as the page redirects
+      }
+      
       const result = await signInWithPopup(auth, provider);
       await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
       
       if (onLogin) onLogin();
     } catch (err: any) {
       console.error("Google auth error:", err);
-      if (err.code === "auth/credential-already-in-use") {
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithRedirect(auth, provider);
+        } catch (redirectErr) {
+          setError("Failed to login with Google. Please try another method.");
+        }
+      } else if (err.code === "auth/credential-already-in-use") {
         setError("This Google account is already linked to another user. Please log in normally.");
       } else {
         setError(err.message);
@@ -81,6 +96,21 @@ export default function AuthView({ onLogin, initialMode = "signup" }: { onLogin?
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Check for redirect result
+    getRedirectResult(auth).then(async (result) => {
+      if (result?.user) {
+        setLoading(true);
+        await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
+        if (onLogin) onLogin();
+        setLoading(false);
+      }
+    }).catch((err) => {
+      console.error("Redirect auth error:", err);
+      setError(err.message);
+    });
+  }, [onLogin]);
 
   const handlePhonePasswordAuth = async (e: React.FormEvent) => {
     e.preventDefault();

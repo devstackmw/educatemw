@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+      if (!user || !ADMIN_EMAILS.includes(user.email?.toLowerCase() || "")) {
         if (pathname !== "/admin/login") {
           router.push("/admin/login");
         }

@@ -276,46 +276,16 @@ export default function ProfileView({ user, isPremium }: { user: FirebaseUser | 
       
       {userData && <ReferralView user={user} userData={userData} />}
       
-      {/* Admin Reset Button */}
-      {user?.email === 'devstackmw@gmail.com' && (
+      {/* Admin Controls */}
+      {(user?.email === 'devstackmw@gmail.com' || user?.email === 'mscepreparation@gmail.com') && (
         <div className="space-y-4">
           <h3 className="font-bold text-rose-600 text-xs uppercase tracking-widest px-2">Admin Controls</h3>
           <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100 shadow-sm space-y-4">
-            <div className="space-y-2">
-              <h4 className="font-black text-rose-900 text-sm tracking-tight">Reset All Trial Data</h4>
-              <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest leading-relaxed">
-                This will delete all users, stats, posts, and payments from Firestore. 
-                Leaderboard will start again from zero.
-              </p>
-            </div>
             <button
-              onClick={async () => {
-                if (window.confirm("Are you ABSOLUTELY sure? This will delete all student data and reset the leaderboard. This cannot be undone.")) {
-                  try {
-                    setSaving(true);
-                    const response = await fetch('/api/admin/reset', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ adminEmail: user.email })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                      setSaveStatus("All trial data cleared successfully! App is ready for real students.");
-                      setTimeout(() => window.location.reload(), 2000);
-                    } else {
-                      setSaveStatus("Reset failed: " + data.error);
-                    }
-                  } catch (err) {
-                    setSaveStatus("Reset failed. Check console.");
-                  } finally {
-                    setSaving(false);
-                  }
-                }
-              }}
-              disabled={saving}
-              className="w-full bg-rose-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-rose-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+              onClick={() => window.location.href = '/admin'}
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-slate-900/20 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              Reset Database for Real Students
+              Open Admin Dashboard
             </button>
           </div>
         </div>

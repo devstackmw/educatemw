@@ -1,6 +1,6 @@
 'use client';
 import { auth } from "@/firebase";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
@@ -10,11 +10,24 @@ export default function AdminLogin() {
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push("/admin");
-    } catch (error) {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+        router.push("/admin");
+      }
+    } catch (error: any) {
       console.error("Login error:", error);
-      alert("Failed to login. Please ensure you are using an authorized admin email.");
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+        try {
+          await signInWithRedirect(auth, provider);
+        } catch (redirectError) {
+          alert("Failed to login. Please ensure you are using an authorized admin email.");
+        }
+      } else {
+        alert("Failed to login. Please ensure you are using an authorized admin email.");
+      }
     }
   };
 

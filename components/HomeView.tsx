@@ -1,6 +1,6 @@
 import { useState, useEffect, memo, useMemo } from "react";
 import { AppIcon } from "./AppLogo";
-import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar, PlayCircle } from "lucide-react";
+import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar, PlayCircle, Users } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 import { doc, onSnapshot, collection, query, where, getCountFromServer, orderBy, limit } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -60,8 +60,8 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
     });
 
     // Listen for announcements
-    const unsubAnnouncements = onSnapshot(query(collection(db, "announcements"), where("active", "==", true), orderBy("createdAt", "desc"), limit(3)), (snapshot) => {
-      setAnnouncements(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const unsubAnnouncements = onSnapshot(query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(3)), (snapshot) => {
+      setAnnouncements(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter((ann: any) => ann.active !== false));
     });
 
     // Listen for exam dates
@@ -401,6 +401,15 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
           <button onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'papers' }))} className="text-indigo-600 text-[10px] font-bold uppercase tracking-widest hover:underline">View All</button>
         </div>
         <div className="grid grid-cols-2 gap-4">
+          <BentoCard 
+            icon={<Users className="text-indigo-500" size={28} />} 
+            label="Student Forum" 
+            sub="Discuss & Share"
+            color="bg-indigo-50 border-indigo-100" 
+            onClickTab="community" 
+            className="col-span-2"
+            horizontal
+          />
           <BentoCard 
             icon={<HelpCircle className="text-orange-500" size={28} />} 
             label="Quizzes" 

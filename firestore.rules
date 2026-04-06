@@ -118,8 +118,8 @@ service cloud.firestore {
     match /posts/{postId} {
       // All authenticated users can read posts
       allow read: if isAuthenticated();
-      // Only premium users can create posts
-      allow create: if isPremium() && isValidPost(request.resource.data);
+      // All authenticated users can create posts
+      allow create: if isAuthenticated() && isValidPost(request.resource.data);
       // Only the owner or an admin can delete a post
       allow delete: if isAuthenticated() && (request.auth.uid == resource.data.uid || isAdmin());
       // Users can update likes (only increment/decrement)
