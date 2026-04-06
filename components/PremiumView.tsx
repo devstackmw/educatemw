@@ -1,11 +1,12 @@
-import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare, AlertCircle, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare, AlertCircle, ChevronRight, ChevronDown, Quote, HelpCircle, Users } from "lucide-react";
+import { useState, useRef } from "react";
 import { User as FirebaseUser } from "firebase/auth";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 export default function PremiumView({ user, isPremium }: { user?: FirebaseUser | null, isPremium?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const comparisonRef = useRef<HTMLDivElement>(null);
 
   if (isPremium) {
     return (
@@ -89,10 +90,34 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
     }
   };
 
+  const scrollToComparison = () => {
+    comparisonRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <div className="p-4 pb-24 space-y-8 max-w-md mx-auto">
+    <div className="p-4 pb-24 space-y-12 max-w-md mx-auto">
+      {/* Limited Time Offer Banner - IMPROVEMENT */}
+      <motion.div 
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-gradient-to-r from-amber-500 to-orange-600 p-4 rounded-3xl text-white shadow-lg shadow-orange-500/20 relative overflow-hidden group"
+      >
+        <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:scale-125 transition-transform duration-700">
+          <Clock size={80} />
+        </div>
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
+            <Star size={24} fill="currentColor" className="text-amber-200" />
+          </div>
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-black uppercase tracking-tight">Special Exam Offer</h4>
+            <p className="text-[10px] font-bold opacity-90 leading-tight">Upgrade now and get exclusive 2026 MSCE Predicted Papers for FREE!</p>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Header Section */}
-      <div className="text-center space-y-2 pt-4">
+      <div className="text-center space-y-4 pt-4">
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -101,60 +126,29 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
           <Zap size={12} fill="currentColor" />
           Elevate Your Education
         </motion.div>
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Unlock Your Potential</h2>
-        <p className="text-slate-500 text-xs font-bold max-w-[240px] mx-auto">Join thousands of students excelling with Educate MW PRO.</p>
+        <h2 className="text-4xl font-black text-slate-900 tracking-tight leading-tight">Unlock Your Potential</h2>
+        <p className="text-slate-500 text-sm font-bold max-w-[280px] mx-auto leading-relaxed">Join thousands of students excelling with Educate MW PRO.</p>
+        
+        <motion.button 
+          onClick={scrollToComparison}
+          initial={{ y: 0 }}
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="mt-4 flex flex-col items-center gap-2 mx-auto text-blue-600 font-black text-[10px] uppercase tracking-widest"
+        >
+          See Plans
+          <ChevronDown size={20} />
+        </motion.button>
       </div>
 
       {/* Comparison Section */}
-      <div className="space-y-6">
-        {/* Free Plan Card */}
-        <motion.div 
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group hover:border-slate-200 transition-all"
-        >
-          <div className="absolute -top-12 -left-12 w-24 h-24 bg-slate-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
-          
-          <div className="relative z-10 flex justify-between items-start mb-8">
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[8px] font-black uppercase tracking-widest mb-2">
-                Standard
-              </div>
-              <h3 className="text-xl font-black text-slate-800 tracking-tight">Free Learner</h3>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Start your journey</p>
-            </div>
-            <div className="text-right">
-              <div className="flex items-baseline justify-end gap-0.5">
-                <span className="text-sm font-black text-slate-400">K</span>
-                <span className="text-3xl font-black text-slate-900 tracking-tighter">0</span>
-              </div>
-              <p className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">Forever Free</p>
-            </div>
-          </div>
-
-          <div className="relative z-10 space-y-4 mb-8">
-            <FeatureItem text="Limited Past Papers" included={true} />
-            <FeatureItem text="Basic AI Teacher (5 points)" included={true} />
-            <FeatureItem text="Online Quizzes" included={true} />
-            <FeatureItem text="Offline Downloads" included={false} />
-            <FeatureItem text="Video Explanations" included={false} />
-            <FeatureItem text="Ad-free Experience" included={false} />
-          </div>
-
-          <button 
-            disabled
-            className="relative z-10 w-full bg-slate-50 text-slate-400 font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest border border-slate-100 cursor-not-allowed"
-          >
-            Current Plan
-          </button>
-        </motion.div>
-
-        {/* Pro Plan Card */}
+      <div ref={comparisonRef} className="space-y-8 scroll-mt-20">
+        {/* Pro Plan Card - NOW FIRST */}
         <motion.div 
           initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, type: "spring", damping: 15 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ type: "spring", damping: 15 }}
           className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden ring-4 ring-amber-400/10"
         >
           {/* Decorative Elements */}
@@ -242,7 +236,121 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
             <div className="h-px flex-1 bg-white/20"></div>
           </div>
         </motion.div>
+
+        {/* Free Plan Card - NOW SECOND */}
+        <motion.div 
+          initial={{ x: -20, opacity: 0 }}
+          whileInView={{ x: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm relative overflow-hidden group hover:border-slate-200 transition-all"
+        >
+          <div className="absolute -top-12 -left-12 w-24 h-24 bg-slate-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
+          
+          <div className="relative z-10 flex justify-between items-start mb-8">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[8px] font-black uppercase tracking-widest mb-2">
+                Standard
+              </div>
+              <h3 className="text-xl font-black text-slate-800 tracking-tight">Free Learner</h3>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Start your journey</p>
+            </div>
+            <div className="text-right">
+              <div className="flex items-baseline justify-end gap-0.5">
+                <span className="text-sm font-black text-slate-400">K</span>
+                <span className="text-3xl font-black text-slate-900 tracking-tighter">0</span>
+              </div>
+              <p className="text-slate-400 text-[8px] font-bold uppercase tracking-widest">Forever Free</p>
+            </div>
+          </div>
+
+          <div className="relative z-10 space-y-4 mb-8">
+            <FeatureItem text="Limited Past Papers" included={true} />
+            <FeatureItem text="Basic AI Teacher (5 points)" included={true} />
+            <FeatureItem text="Online Quizzes" included={true} />
+            <FeatureItem text="Offline Downloads" included={false} />
+            <FeatureItem text="Video Explanations" included={false} />
+            <FeatureItem text="Ad-free Experience" included={false} />
+          </div>
+
+          <button 
+            disabled
+            className="relative z-10 w-full bg-slate-50 text-slate-400 font-black py-4 rounded-2xl text-[10px] uppercase tracking-widest border border-slate-100 cursor-not-allowed"
+          >
+            Current Plan
+          </button>
+        </motion.div>
       </div>
+
+      {/* Testimonials Section - IMPROVEMENT */}
+      <section className="space-y-6">
+        <div className="text-center space-y-1">
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">Success Stories</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Hear from our PRO students</p>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-4">
+          <Testimonial 
+            name="Chifundo M." 
+            text="The AI Teacher is a lifesaver! I got an A in Biology thanks to the detailed explanations."
+            role="MSCE Candidate"
+          />
+          <Testimonial 
+            name="Tiwonge K." 
+            text="Downloading papers for offline study helped me pass even when I had no data. Best K5,000 spent!"
+            role="Form 4 Student"
+          />
+        </div>
+      </section>
+
+      {/* FAQ Section - IMPROVEMENT */}
+      <section className="space-y-6">
+        <div className="text-center space-y-1">
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">Common Questions</h3>
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Everything you need to know</p>
+        </div>
+        
+        <div className="space-y-3">
+          <FAQItem 
+            question="How long does PRO last?" 
+            answer="Your PRO access lasts for 30 days from the moment of payment. You can renew at any time."
+          />
+          <FAQItem 
+            question="Can I pay with Airtel Money?" 
+            answer="Yes! Our payment system supports both TNM Mpamba and Airtel Money via the secure gateway."
+          />
+          <FAQItem 
+            question="Is the AI Teacher really unlimited?" 
+            answer="Yes! PRO students get unlimited questions with the AI Teacher to help with any subject."
+          />
+        </div>
+      </section>
+
+      {/* Referral Program Highlight - IMPROVEMENT */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        className="bg-blue-600 rounded-3xl p-6 text-white shadow-xl shadow-blue-600/20 relative overflow-hidden group"
+      >
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
+          <Users size={80} />
+        </div>
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Refer & Earn</span>
+          </div>
+          <h3 className="text-xl font-black tracking-tight leading-tight">Need more AI Points?</h3>
+          <p className="text-blue-100 text-xs font-medium leading-relaxed">
+            Invite your classmates to Educate MW! For every 5 friends who join, you get 500 AI Study Points for FREE.
+          </p>
+          <button 
+            onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}
+            className="bg-white text-blue-600 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+          >
+            Invite Friends
+          </button>
+        </div>
+      </motion.div>
 
       {/* Trust Badges */}
       <div className="flex justify-center items-center gap-10 opacity-30 grayscale pt-4">
@@ -292,6 +400,56 @@ function ActiveBenefit({ text }: { text: string }) {
         <Check size={12} />
       </div>
       <span className="text-xs font-bold text-white">{text}</span>
+    </div>
+  );
+}
+
+function Testimonial({ name, text, role }: { name: string, text: string, role: string }) {
+  return (
+    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-3">
+      <Quote className="text-blue-100" size={24} fill="currentColor" />
+      <p className="text-slate-600 text-xs italic leading-relaxed font-medium">
+        &quot;{text}&quot;
+      </p>
+      <div className="flex items-center gap-3 pt-2">
+        <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-black text-[10px]">
+          {name[0]}
+        </div>
+        <div>
+          <p className="text-xs font-black text-slate-900">{name}</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{role}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FAQItem({ question, answer }: { question: string, answer: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden transition-all">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-4 flex items-center justify-between text-left"
+      >
+        <span className="text-xs font-black text-slate-800 tracking-tight">{question}</span>
+        <HelpCircle size={16} className={`text-slate-300 transition-transform ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-4 pb-4"
+          >
+            <p className="text-[11px] text-slate-500 font-medium leading-relaxed border-t border-slate-50 pt-3">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

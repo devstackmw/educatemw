@@ -1,6 +1,6 @@
 "use client";
-import { Users, MessageSquare, Heart, Share2, Plus, User, Send, X, Trash2, Zap } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Users, MessageSquare, Heart, Share2, Plus, User, Send, X, Trash2, Zap, Search, Filter, Hash, TrendingUp } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
 import { CommunitySkeleton } from "./Skeleton";
 import { db, auth } from "@/firebase";
 import { 
@@ -16,12 +16,18 @@ import {
   updateDoc, 
   increment, 
   deleteDoc,
-  Timestamp
+  Timestamp,
+  where
 } from "firebase/firestore";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 
 import { AVATARS } from "@/lib/avatars";
+
+const SUBJECTS = [
+  "General", "Biology", "Mathematics", "English", "Geography", 
+  "History", "Physics", "Chemistry", "Agriculture", "Social Studies"
+];
 
 interface Post {
   id: string;
@@ -33,6 +39,7 @@ interface Post {
   likes: number;
   commentsCount: number;
   createdAt: any;
+  category?: string;
 }
 
 export default function CommunityView({ isPremium, onNavigate }: { isPremium?: boolean, onNavigate?: (tab: string) => void }) {
@@ -42,14 +49,26 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
   const [loadingMore, setLoadingMore] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [newPostContent, setNewPostContent] = useState("");
+  const [newPostCategory, setNewPostCategory] = useState("General");
   const [submitting, setSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   useEffect(() => {
-    const q = query(
+    let q = query(
       collection(db, "posts"), 
       orderBy("createdAt", "desc"), 
       limit(limitCount)
     );
+
+    if (selectedCategory !== "All") {
+      q = query(
+        collection(db, "posts"),
+        where("category", "==", selectedCategory),
+        orderBy("createdAt", "desc"),
+        limit(limitCount)
+      );
+    }
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const postsData = snapshot.docs.map(doc => ({
@@ -66,18 +85,20 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
     });
 
     return () => unsubscribe();
-  }, [limitCount]);
+  }, [limitCount, selectedCategory]);
 
-  const loadMore = () => {
-    setLoadingMore(true);
-    setLimitCount(prev => prev + 20);
-  };
+  const filteredPosts = useMemo(() => {
+    if (!searchQuery.trim()) return posts;
+    return posts.filter(post => 
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.authorName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [posts, searchQuery]);
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim() || !auth.currentUser) return;
     
     setSubmitting(true);
-    // Fetch user profile for avatar
     const userRef = doc(db, "users", auth.currentUser.uid);
     const userSnap = await getDoc(userRef);
     const userData = userSnap.exists() ? userSnap.data() : {};
@@ -89,11 +110,13 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
         authorPhoto: userData.photoURL || auth.currentUser.photoURL || "",
         authorAvatarId: userData.avatarId || "girl_1",
         content: newPostContent.trim(),
+        category: newPostCategory,
         likes: 0,
         commentsCount: 0,
         createdAt: serverTimestamp()
       });
       setNewPostContent("");
+      setNewPostCategory("General");
       setIsPosting(false);
     } catch (error) {
       console.error("Error creating post:", error);
@@ -137,20 +160,54 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
 
   return (
     <div className="flex flex-col h-full bg-slate-50 relative">
-      <div className="p-4 pb-3 bg-white border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl shadow-sm"><Users size={20} /></div>
-          <div>
-            <h2 className="font-black text-lg text-slate-800 leading-tight">Student Forum</h2>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Connect with Students</p>
+      <div className="p-4 pb-3 bg-white border-b border-slate-100 sticky top-0 z-10 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl shadow-sm"><Users size={20} /></div>
+            <div>
+              <h2 className="font-black text-lg text-slate-800 leading-tight">Student Forum</h2>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Connect with Students</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setIsPosting(true)}
+            className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <Plus size={18} />
+          </button>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="space-y-3">
+          <div className="relative group">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search posts or students..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button 
+              onClick={() => setSelectedCategory("All")}
+              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${selectedCategory === "All" ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white text-slate-500 border border-slate-100'}`}
+            >
+              All Topics
+            </button>
+            {SUBJECTS.map(sub => (
+              <button 
+                key={sub}
+                onClick={() => setSelectedCategory(sub)}
+                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${selectedCategory === sub ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-white text-slate-500 border border-slate-100'}`}
+              >
+                {sub}
+              </button>
+            ))}
           </div>
         </div>
-        <button 
-          onClick={() => setIsPosting(true)}
-          className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center gap-2"
-        >
-          <Plus size={18} />
-        </button>
       </div>
 
       <div className="bg-amber-50 border-b border-amber-100 p-3 px-4 flex items-start gap-3">
@@ -161,19 +218,19 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-300">
               <MessageSquare size={32} />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-sm">No posts yet</h3>
-              <p className="text-slate-500 text-xs max-w-[200px]">Be the first to share something with the community!</p>
+              <h3 className="font-bold text-slate-800 text-sm">No posts found</h3>
+              <p className="text-slate-500 text-xs max-w-[200px]">Try adjusting your search or category filter.</p>
             </div>
           </div>
         ) : (
           <>
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <div key={post.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3 hover:border-blue-200 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -193,7 +250,14 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
                       )}
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-800 text-xs">{post.authorName}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-slate-800 text-xs">{post.authorName}</h4>
+                        {post.category && (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[8px] font-black uppercase tracking-widest">
+                            {post.category}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(post.createdAt)}</p>
                     </div>
                   </div>
@@ -274,6 +338,21 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
                 >
                   <X size={20} className="text-slate-400" />
                 </button>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Category</p>
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                  {SUBJECTS.map(sub => (
+                    <button 
+                      key={sub}
+                      onClick={() => setNewPostCategory(sub)}
+                      className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${newPostCategory === sub ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-slate-100 text-slate-500'}`}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <textarea

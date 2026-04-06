@@ -49,8 +49,12 @@ import {
   X,
   HelpCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader2,
+  UserX
 } from "lucide-react";
+
+const AUTHORIZED_EMAILS = ["devstackmw@gmail.com", "mscepreparation@gmail.com"];
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -81,7 +85,6 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const AUTHORIZED_EMAILS = ["devstackmw@gmail.com", "mscepreparation@gmail.com"];
 
   useEffect(() => {
     const fetchMetrics = async () => {
