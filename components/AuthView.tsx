@@ -3,7 +3,6 @@ import { auth, db } from "@/firebase";
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
-  signInWithRedirect,
   getRedirectResult,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
@@ -68,25 +67,18 @@ export default function AuthView({ onLogin, initialMode = "signup" }: { onLogin?
       setError("");
       const provider = new GoogleAuthProvider();
       
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        await signInWithRedirect(auth, provider);
-        return; // Execution stops here as the page redirects
-      }
-      
+      // Always use signInWithPopup in AI Studio environment
+      // signInWithRedirect often fails with 403 errors in the preview iframe
       const result = await signInWithPopup(auth, provider);
       await saveUserToFirestore(result.user, result.user.displayName || "", result.user.phoneNumber || "");
       
       if (onLogin) onLogin();
     } catch (err: any) {
       console.error("Google auth error:", err);
-      if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-        try {
-          const provider = new GoogleAuthProvider();
-          await signInWithRedirect(auth, provider);
-        } catch (redirectErr) {
-          setError("Failed to login with Google. Please try another method.");
-        }
+      if (err.code === 'auth/popup-blocked') {
+        setError("Sign-in popup was blocked by your browser. Please allow popups for this site and try again.");
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setError("Sign-in was cancelled. Please try again.");
       } else if (err.code === "auth/credential-already-in-use") {
         setError("This Google account is already linked to another user. Please log in normally.");
       } else {
