@@ -1,12 +1,30 @@
-import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare, AlertCircle, ChevronRight, ChevronDown, Quote, HelpCircle, Users } from "lucide-react";
-import { useState, useRef } from "react";
+import { Check, Zap, Loader2, X, Star, ShieldCheck, Globe, BookOpen, Brain, Download, Clock, MessageSquare, AlertCircle, ChevronRight, ChevronDown, Quote, HelpCircle, Users, User } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { User as FirebaseUser } from "firebase/auth";
 import { motion, AnimatePresence } from "motion/react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/firebase";
+import Image from "next/image";
 
 export default function PremiumView({ user, isPremium }: { user?: FirebaseUser | null, isPremium?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [staff, setStaff] = useState<any>(null);
   const comparisonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const staffSnap = await getDoc(doc(db, "settings", "staff"));
+        if (staffSnap.exists()) {
+          setStaff(staffSnap.data());
+        }
+      } catch (err) {
+        console.error("Error fetching staff:", err);
+      }
+    };
+    fetchStaff();
+  }, []);
 
   if (isPremium) {
     return (
@@ -173,26 +191,166 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
             <p className="text-amber-400/80 text-[10px] font-black uppercase tracking-[0.25em]">Unlimited Access</p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 mb-8 border border-white/10 shadow-inner">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-black text-white tracking-tighter">K5,000</span>
-              <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">/ month</span>
+          <div className="bg-white/5 backdrop-blur-xl rounded-[2.5rem] p-8 mb-8 border border-white/10 shadow-inner space-y-8">
+            <div className="space-y-2">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-5xl font-black text-white tracking-tighter">K5,000</span>
+                <span className="text-slate-400 text-sm font-bold uppercase tracking-widest">/ month</span>
+              </div>
+              <p className="text-slate-300 text-sm font-medium leading-relaxed">
+                Unlock the full power of digital learning. Choose your preferred way to upgrade.
+              </p>
             </div>
-            <p className="text-slate-400 text-[10px] font-bold mt-3 leading-relaxed">
-              Unlock the full power of digital learning. One small payment for your academic success.
-            </p>
-            
-            <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
-              <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Manual Verification Option</p>
-              <a 
-                href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Educate MW, I have made a payment for premium access. My username is ${user?.displayName || 'Student'}. Please verify my payment.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all active:scale-95"
+
+            {/* Option 1: Automatic */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-[10px] font-black">1</div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-blue-400">Automatic Method</h4>
+              </div>
+              <button 
+                onClick={handlePayment}
+                disabled={loading}
+                className="w-full bg-amber-400 hover:bg-amber-300 text-slate-900 font-black py-5 rounded-2xl shadow-xl shadow-amber-400/20 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 group text-base uppercase tracking-widest"
               >
-                <MessageSquare size={14} />
-                WhatsApp Approval
-              </a>
+                {loading ? <Loader2 className="animate-spin" size={24} /> : <>Pay Now (Auto-Verify) <ChevronRight size={20} /></>}
+              </button>
+              <p className="text-[10px] text-slate-400 text-center font-medium italic">Instant activation after payment</p>
+            </div>
+
+            <div className="h-px bg-white/10"></div>
+
+            {/* Option 2: Manual / Support */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-[10px] font-black">2</div>
+                <h4 className="text-xs font-black uppercase tracking-widest text-emerald-400">Manual & Support</h4>
+              </div>
+
+              {/* Staff Profiles for Trust */}
+              <div className="grid grid-cols-1 gap-4">
+                {/* Manager */}
+                <div className="bg-white/5 p-5 rounded-[2rem] border border-white/10 space-y-5 relative overflow-hidden group">
+                  <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-slate-800 border-2 border-blue-500/30 shadow-lg relative">
+                      {staff?.managerPhoto ? (
+                        <Image src={staff.managerPhoto} alt="Peter Damiano" fill className="object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <span className="text-white font-black text-xl">P</span>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border-2 border-slate-900">
+                        <ShieldCheck size={10} fill="currentColor" />
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="text-base font-black text-white tracking-tight flex items-center gap-1.5">
+                        Peter Damiano
+                        <span className="bg-blue-500/20 text-blue-400 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">Manager</span>
+                      </h5>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">App Verification & Support</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 relative z-10">
+                    <a 
+                      href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Manager Peter, my automatic payment verification failed. My username is ${user?.displayName || 'Student'}. Please help me verify my account.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-3 bg-slate-800 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all border border-white/5 shadow-lg active:scale-95"
+                    >
+                      <Image src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width={18} height={18} />
+                      Auto-Verify Failed?
+                    </a>
+                    <a 
+                      href={`https://wa.me/265987066051?text=${encodeURIComponent(`Hello Manager Peter, I have a problem with my account. My username is ${user?.displayName || 'Student'}.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-3 bg-white/5 text-slate-300 border border-white/10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95"
+                    >
+                      <Image src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width={18} height={18} />
+                      Message Manager
+                    </a>
+                  </div>
+                </div>
+
+                {/* Teachers */}
+                <div className="bg-white/5 p-5 rounded-[2rem] border border-white/10 space-y-5 relative overflow-hidden group">
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-4">
+                      <div className="flex -space-x-4">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-slate-800 border-2 border-emerald-500/30 shadow-lg relative z-20">
+                          {staff?.teacher1Photo ? (
+                            <Image src={staff.teacher1Photo} alt="Teacher 1" fill className="object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <span className="text-white font-black text-xl">T1</span>
+                          )}
+                        </div>
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-slate-700 border-2 border-emerald-500/30 shadow-lg relative z-10">
+                          {staff?.teacher2Photo ? (
+                            <Image src={staff.teacher2Photo} alt="Teacher 2" fill className="object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <span className="text-white font-black text-xl">T2</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <h5 className="text-base font-black text-white tracking-tight flex items-center gap-1.5">
+                          Our Teachers
+                          <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">Verified</span>
+                        </h5>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Manual Payments & Approval</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl space-y-4">
+                    <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                      Pay directly via <span className="text-white font-bold">Airtel Money</span> or <span className="text-white font-bold">Mpamba</span> to our teachers. They will approve you immediately.
+                    </p>
+                    <div className="flex items-center gap-4 pt-1">
+                      <div className="flex items-center gap-2 bg-[#ed1c24] px-3 py-1.5 rounded-xl border border-white/10 shadow-lg">
+                        <div className="flex items-center justify-center">
+                          <span className="text-[12px] font-black text-white italic tracking-tighter leading-none">airtel</span>
+                        </div>
+                        <div className="w-px h-3 bg-white/20 mx-0.5"></div>
+                        <span className="text-[9px] font-black text-white uppercase tracking-widest">Money</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/5">
+                        <div className="w-5 h-5 bg-emerald-500 rounded flex items-center justify-center text-[8px] font-black text-white">TNM</div>
+                        <span className="text-[9px] font-black text-white uppercase tracking-widest">Mpamba</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 relative z-10">
+                    <a 
+                      href={`https://wa.me/265986692501?text=${encodeURIComponent(`Hello Teacher Emmanuel, I want to pay manually / I have already paid. My username is ${user?.displayName || 'Student'}. Please approve my account.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all active:scale-95"
+                    >
+                      <Image src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width={18} height={18} />
+                      Emmanuel Muthipo: 0986 692 501
+                    </a>
+                    <a 
+                      href={`https://wa.me/265999136433?text=${encodeURIComponent(`Hello Teacher Saidi, I want to pay manually / I have already paid. My username is ${user?.displayName || 'Student'}. Please approve my account.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all active:scale-95"
+                    >
+                      <Image src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width={18} height={18} />
+                      Saidi Liffa: 0999 136 433
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-amber-400/5 border border-amber-400/10 p-4 rounded-2xl">
+              <p className="text-[10px] text-amber-200/70 font-medium text-center leading-relaxed">
+                <Star size={10} className="inline mr-1 mb-0.5" />
+                Note: If you already paid to teachers, just message them with your username for instant approval.
+              </p>
             </div>
           </div>
 

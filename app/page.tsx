@@ -31,6 +31,8 @@ const PrivacyPolicyView = dynamic(() => import("@/components/PrivacyPolicyView")
 const TermsOfServiceView = dynamic(() => import("@/components/TermsOfServiceView"), { loading: () => <LoadingScreen message="Loading Terms..." /> });
 const LandingView = dynamic(() => import("@/components/LandingView"), { loading: () => <LoadingScreen message="Loading..." /> });
 const OnboardingView = dynamic(() => import("@/components/OnboardingView"), { loading: () => <LoadingScreen message="Loading Onboarding..." /> });
+const WhatsNewView = dynamic(() => import("@/components/WhatsNewView"), { loading: () => <LoadingScreen message="Loading What's New..." /> });
+const AdminView = dynamic(() => import("@/components/AdminView"), { loading: () => <LoadingScreen message="Loading Admin..." /> });
 
 // Static components
 import Sidebar from "@/components/Sidebar";
@@ -259,17 +261,22 @@ export default function App() {
           const batch = writeBatch(db);
           
           // 1. Create main user doc
+          const adminEmails = ["mscepreparation@gmail.com", "devstackmw@gmail.com"];
+          const isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
+          
           batch.set(newUserRef, {
             uid: user.uid,
             displayName: user.displayName || "Student",
             email: user.email || "",
             phoneNumber: user.phoneNumber || "",
             photoURL: user.photoURL || "",
-            isPremium: false,
+            isPremium: isAdmin ? true : false,
+            role: isAdmin ? "admin" : "student",
+            isHidden: isAdmin ? true : false,
             hasCompletedOnboarding: false,
             createdAt: new Date().toISOString(),
             referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-            aiPoints: initialAiPoints
+            aiPoints: isAdmin ? 999999 : initialAiPoints
           });
 
           // 2. Create public profile
@@ -277,18 +284,21 @@ export default function App() {
             uid: user.uid,
             displayName: user.displayName || "Student",
             photoURL: user.photoURL || "",
-            isPremium: false
+            isPremium: isAdmin ? true : false,
+            isHidden: isAdmin ? true : false,
+            role: isAdmin ? "admin" : "student"
           });
 
           // 3. Create initial stats
           batch.set(doc(db, "userStats", user.uid), {
             uid: user.uid,
             displayName: user.displayName || "Student",
-            points: referrerUid ? 10 : 0, // 10 points if referred, 0 otherwise
+            points: isAdmin ? 0 : (referrerUid ? 10 : 0),
             streak: 1,
             lastActiveDate: new Date().toISOString().split('T')[0],
-            isPremium: false,
-            isBanned: false
+            isPremium: isAdmin ? true : false,
+            isBanned: false,
+            isHidden: isAdmin ? true : false
           });
 
           // 4. Handle referral rewards for referrer if applicable
@@ -449,6 +459,8 @@ export default function App() {
     auth_signup: <AuthView onLogin={() => navigateTo("home")} initialMode="signup" />,
     landing: <LandingView onGetStarted={() => navigateTo("auth")} onNavigate={navigateTo} />,
     ai: <AskTeacherAI isPremium={userData?.isPremium} aiPoints={userData?.aiPoints} />,
+    whats_new: <WhatsNewView />,
+    admin: <AdminView />,
   }), [user, userData, userStats]);
 
   const renderView = () => {

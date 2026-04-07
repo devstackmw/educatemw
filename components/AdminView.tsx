@@ -1,8 +1,59 @@
 import { useState, useEffect } from "react";
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, limit } from "firebase/firestore";
-import { db } from "@/firebase";
-import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database, Video, Link as LinkIcon, Bell, Users, Search, ShieldCheck, ShieldAlert, Trophy } from "lucide-react";
+import { collection, addDoc, query, where, getDocs, getDoc, setDoc, doc, updateDoc, limit, onSnapshot } from "firebase/firestore";
+import { auth, db } from "@/firebase";
+import { FileText, BookOpen, BrainCircuit, CheckCircle2, AlertCircle, Loader2, PlusCircle, Database, Video, Link as LinkIcon, Bell, Users, Search, ShieldCheck, ShieldAlert, Trophy, Sparkles, X, Zap, MessageSquare, Info, ShieldCheck as ShieldCheckIcon } from "lucide-react";
 import { seedInitialData, seedLeaderboard } from "@/lib/seedData";
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId: string | undefined;
+    email: string | null | undefined;
+    emailVerified: boolean | undefined;
+    isAnonymous: boolean | undefined;
+    tenantId: string | null | undefined;
+    providerInfo: {
+      providerId: string;
+      displayName: string | null;
+      email: string | null;
+      photoUrl: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData.map(provider => ({
+        providerId: provider.providerId,
+        displayName: provider.displayName,
+        email: provider.email,
+        photoUrl: provider.photoURL
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
 
 export default function AdminView() {
   const [activeTab, setActiveTab] = useState("note");
@@ -78,8 +129,7 @@ export default function AdminView() {
         setErrorMsg("No users found with that email, nickname, or ID.");
       }
     } catch (err: any) {
-      console.error("Search error:", err);
-      setErrorMsg("Failed to search users.");
+      handleFirestoreError(err, OperationType.LIST, "users");
     } finally {
       setSearching(false);
     }
@@ -103,25 +153,82 @@ export default function AdminView() {
       setFoundUsers(prev => prev.map(u => u.id === userId ? { ...u, isPremium: !currentStatus } : u));
       setSuccessMsg(`User premium status updated successfully!`);
     } catch (err: any) {
-      console.error("Update error:", err);
-      setErrorMsg("Failed to update user status.");
+      handleFirestoreError(err, OperationType.WRITE, `users/${userId}`);
     } finally {
       setLoading(false);
     }
   };
 
   const toggleBan = async (userId: string, currentStatus: boolean) => {
+    if (!currentStatus) {
+      const confirmBan = window.confirm("Are you sure you want to BAN this user? They will lose access to all features.");
+      if (!confirmBan) return;
+    } else {
+      const confirmUnban = window.confirm("Are you sure you want to UNBAN this user?");
+      if (!confirmUnban) return;
+    }
+
     setLoading(true);
     try {
       const userRef = doc(db, "users", userId);
+      const publicRef = doc(db, "publicProfiles", userId);
+      
       await updateDoc(userRef, {
         isBanned: !currentStatus
       });
+      
+      // Also update public profile so they are hidden from lists
+      await updateDoc(publicRef, {
+        isBanned: !currentStatus
+      });
+
       setFoundUsers(prev => prev.map(u => u.id === userId ? { ...u, isBanned: !currentStatus } : u));
       setSuccessMsg(`User ban status updated successfully!`);
     } catch (err: any) {
-      console.error("Ban error:", err);
-      setErrorMsg("Failed to update ban status.");
+      handleFirestoreError(err, OperationType.WRITE, `users/${userId}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Changelog specific
+  const [updateTitle, setUpdateTitle] = useState("");
+  const [updateContent, setUpdateContent] = useState("");
+  const [updateType, setUpdateType] = useState("feature"); // feature, fix, announcement
+
+  // Staff management specific
+  const [managerPhoto, setManagerPhoto] = useState("");
+  const [teacher1Photo, setTeacher1Photo] = useState("");
+  const [teacher2Photo, setTeacher2Photo] = useState("");
+
+  useEffect(() => {
+    if (activeTab === "staff") {
+      const fetchStaff = async () => {
+        const staffSnap = await getDoc(doc(db, "settings", "staff"));
+        if (staffSnap.exists()) {
+          const data = staffSnap.data();
+          setManagerPhoto(data.managerPhoto || "");
+          setTeacher1Photo(data.teacher1Photo || "");
+          setTeacher2Photo(data.teacher2Photo || "");
+        }
+      };
+      fetchStaff();
+    }
+  }, [activeTab]);
+
+  const updateStaff = async () => {
+    setLoading(true);
+    try {
+      await setDoc(doc(db, "settings", "staff"), {
+        managerPhoto,
+        teacher1Photo,
+        teacher2Photo,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      setSuccessMsg("Staff profiles updated successfully!");
+    } catch (err: any) {
+      console.error("Staff update error:", err);
+      setErrorMsg("Failed to update staff profiles.");
     } finally {
       setLoading(false);
     }
@@ -147,6 +254,9 @@ export default function AdminView() {
     setNotifTitle("");
     setNotifContent("");
     setNotifType("info");
+    setUpdateTitle("");
+    setUpdateContent("");
+    setUpdateType("feature");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -213,12 +323,18 @@ export default function AdminView() {
           active: true,
           createdAt: new Date().toISOString()
         });
+      } else if (activeTab === "whats_new") {
+        await addDoc(collection(db, "changelog"), {
+          title: updateTitle,
+          content: updateContent,
+          type: updateType,
+          createdAt: new Date().toISOString()
+        });
       }
-      setSuccessMsg(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} added successfully!`);
+      setSuccessMsg(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('_', ' ')} added successfully!`);
       resetForm();
     } catch (err: any) {
-      console.error("Error adding document: ", err);
-      setErrorMsg(err.message || "Failed to add document. Check permissions.");
+      handleFirestoreError(err, OperationType.WRITE, activeTab);
     } finally {
       setLoading(false);
     }
@@ -292,7 +408,9 @@ export default function AdminView() {
           { id: "paper", label: "Paper", icon: BookOpen },
           { id: "quiz", label: "Quiz", icon: BrainCircuit },
           { id: "notification", label: "Notif", icon: Bell },
+          { id: "whats_new", label: "New", icon: Sparkles },
           { id: "users", label: "Users", icon: Users },
+          { id: "staff", label: "Staff", icon: ShieldCheck },
         ].map((tab) => (
           <button 
             key={tab.id}
@@ -343,56 +461,127 @@ export default function AdminView() {
           </div>
 
           <div className="space-y-4">
+            {foundUsers.length > 0 && (
+              <div className="flex items-center justify-between px-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Search Results ({foundUsers.length})</p>
+              </div>
+            )}
             {foundUsers.map((user) => (
-              <div key={user.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-bold text-slate-900">{user.nickname || user.displayName || "No Name"}</h4>
-                    <p className="text-xs text-slate-500 font-medium">{user.email}</p>
-                    <p className="text-[10px] text-slate-400 font-mono mt-1">ID: {user.id}</p>
+              <div key={user.id} className="p-5 rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/40 space-y-5 relative overflow-hidden group">
+                <div className="flex justify-between items-start relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 font-black text-xl border border-slate-200 shadow-inner">
+                      {user.nickname?.[0] || user.displayName?.[0] || "?"}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-slate-900 tracking-tight text-lg">{user.nickname || user.displayName || "No Name"}</h4>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{user.email}</p>
+                      <p className="text-[8px] text-slate-400 font-mono mt-1 bg-slate-50 px-1.5 py-0.5 rounded inline-block">ID: {user.id}</p>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col items-end gap-2">
                     {user.isPremium ? (
-                      <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider flex items-center gap-1">
-                        <ShieldCheck size={12} /> PRO
+                      <span className="bg-amber-400 text-slate-900 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-amber-400/20">
+                        <ShieldCheck size={12} fill="currentColor" /> PRO
                       </span>
                     ) : (
-                      <span className="bg-slate-200 text-slate-500 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">FREE</span>
+                      <span className="bg-slate-100 text-slate-400 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">FREE</span>
                     )}
                     {user.isBanned && (
-                      <span className="bg-rose-100 text-rose-700 text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-wider flex items-center gap-1">
-                        <ShieldAlert size={12} /> BANNED
+                      <span className="bg-rose-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-rose-500/20">
+                        <ShieldAlert size={12} fill="currentColor" /> BANNED
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="grid grid-cols-2 gap-3 pt-2 relative z-10">
                   <button 
                     onClick={() => togglePremium(user.id, user.isPremium)}
                     disabled={loading}
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                    className={`py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg ${
                       user.isPremium 
-                      ? "bg-slate-200 text-slate-700 hover:bg-slate-300" 
-                      : "bg-amber-400 text-slate-900 hover:bg-amber-300 shadow-md shadow-amber-400/10"
+                      ? "bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200 shadow-none" 
+                      : "bg-amber-400 text-slate-900 hover:bg-amber-300 shadow-amber-400/20 active:scale-95"
                     }`}
                   >
-                    {user.isPremium ? "Remove Premium" : "Approve Premium"}
+                    {loading ? <Loader2 className="animate-spin" size={14} /> : (
+                      <>
+                        {user.isPremium ? <X size={14} /> : <Zap size={14} fill="currentColor" />}
+                        {user.isPremium ? "Remove Pro" : "Make Pro"}
+                      </>
+                    )}
                   </button>
                   <button 
                     onClick={() => toggleBan(user.id, user.isBanned)}
                     disabled={loading}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 ${
                       user.isBanned 
-                      ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" 
-                      : "bg-rose-100 text-rose-700 hover:bg-rose-200"
+                      ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-emerald-500/20" 
+                      : "bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/20"
                     }`}
                   >
-                    {user.isBanned ? "Unban User" : "Ban User"}
+                    {loading ? <Loader2 className="animate-spin" size={14} /> : (
+                      <>
+                        {user.isBanned ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+                        {user.isBanned ? "Unban User" : "Ban User"}
+                      </>
+                    )}
                   </button>
                 </div>
+                
+                {/* Background Decoration */}
+                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 scale-50 group-hover:scale-100"></div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : activeTab === "staff" ? (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+          <div className="space-y-4">
+            <h3 className="font-black text-slate-900">Manage Staff Profiles</h3>
+            <p className="text-xs text-slate-500">Update profile picture URLs for the manager and teachers.</p>
+            
+            <div className="space-y-4 pt-4">
+              <div>
+                <label className={labelClass}>Manager Photo URL (Peter Damiano)</label>
+                <input 
+                  type="url" 
+                  value={managerPhoto}
+                  onChange={(e) => setManagerPhoto(e.target.value)}
+                  className={inputClass}
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Teacher 1 Photo URL</label>
+                <input 
+                  type="url" 
+                  value={teacher1Photo}
+                  onChange={(e) => setTeacher1Photo(e.target.value)}
+                  className={inputClass}
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Teacher 2 Photo URL</label>
+                <input 
+                  type="url" 
+                  value={teacher2Photo}
+                  onChange={(e) => setTeacher2Photo(e.target.value)}
+                  className={inputClass}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            <button 
+              onClick={updateStaff}
+              disabled={loading}
+              className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-70 mt-4 shadow-lg shadow-slate-200"
+            >
+              {loading ? <Loader2 className="animate-spin" size={20} /> : "Update Staff Profiles"}
+            </button>
           </div>
         </div>
       ) : (
@@ -652,6 +841,45 @@ export default function AdminView() {
                   <option value="info">Information (Blue)</option>
                   <option value="warning">Warning (Amber)</option>
                   <option value="success">Success (Emerald)</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "whats_new" && (
+            <div className="space-y-4">
+              <div>
+                <label className={labelClass}>Update Title</label>
+                <input 
+                  required
+                  type="text" 
+                  value={updateTitle}
+                  onChange={(e) => setUpdateTitle(e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g., Version 2.4: New Math Solver!"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Update Content</label>
+                <textarea 
+                  required
+                  value={updateContent}
+                  onChange={(e) => setUpdateContent(e.target.value)}
+                  rows={4}
+                  className={inputClass}
+                  placeholder="Describe the new features or fixes..."
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Update Type</label>
+                <select 
+                  value={updateType}
+                  onChange={(e) => setUpdateType(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="feature">New Feature (Emerald)</option>
+                  <option value="fix">Bug Fix (Blue)</option>
+                  <option value="announcement">Announcement (Slate)</option>
                 </select>
               </div>
             </div>

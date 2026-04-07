@@ -45,12 +45,18 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
     } else if (url.includes("youtu.be/")) {
       videoId = url.split("youtu.be/")[1]?.split("?")[0];
     } else if (url.includes("youtube.com/embed/")) {
-      return url; // Already an embed URL
+      videoId = url.split("embed/")[1]?.split("?")[0];
     }
     
     if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}`;
+      return `https://www.youtube-nocookie.com/embed/${videoId}`;
     }
+    
+    // Fallback for non-standard URLs that might already be nocookie or other
+    if (url.includes("youtube.com")) {
+      return url.replace("youtube.com", "youtube-nocookie.com");
+    }
+    
     return url;
   };
 
@@ -141,6 +147,7 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
                     title={video.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
                     className="w-full h-full border-0"
                   ></iframe>
                 ) : (
@@ -201,7 +208,16 @@ export default function VideosView({ isPremium }: { isPremium?: boolean }) {
                   >
                     Watch Now
                   </button>
-                ) : null}
+                ) : (
+                  <a 
+                    href={video.url || video.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full mt-2 bg-slate-100 text-slate-600 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    Watch on YouTube
+                  </a>
+                )}
               </div>
             </div>
           ))}

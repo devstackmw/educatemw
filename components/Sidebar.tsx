@@ -3,7 +3,7 @@ import {
   X, Home, BookOpen, MessageSquare, User, 
   Trophy, Calendar, Settings, Zap, LogOut, 
   HelpCircle, Layers, PlayCircle, Users,
-  Clock, Archive, Star, Crown
+  Clock, Archive, Star, Crown, Sparkles, ShieldAlert
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { auth } from "@/firebase";
@@ -45,7 +45,15 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
     { id: "premium_students", label: "Premium Students", icon: <Star size={20} className="text-amber-500" /> },
     { id: "timetable", label: "Student Timetable", icon: <Calendar size={20} /> },
     { id: "ai", label: "Cleo AI Assistant", icon: <MessageSquare size={20} /> },
+    { id: "whats_new", label: "What's New", icon: <Sparkles size={20} className="text-blue-500" /> },
   ];
+
+  const adminEmailsToHide = ["mscepreparation@gmail.com", "devstackmw@gmail.com"];
+  const isExcludedAdmin = user?.email && adminEmailsToHide.includes(user.email.toLowerCase());
+
+  if (userData?.role === "admin" && !isExcludedAdmin) {
+    menuItems.push({ id: "admin", label: "Admin Dashboard", icon: <ShieldAlert size={20} className="text-red-500" /> });
+  }
 
   return (
     <AnimatePresence>

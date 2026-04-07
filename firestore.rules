@@ -33,10 +33,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        (request.auth.token.email == "devstackmw@gmail.com" ||
-         request.auth.token.email == "mscepreparation@gmail.com" ||
-         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     function isPremium() {
@@ -199,12 +197,17 @@ service cloud.firestore {
     }
 
     match /announcements/{annId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 
     match /examDates/{examId} {
-      allow read: if true;
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    match /changelog/{updateId} {
+      allow get, list: if true;
       allow write: if isAdmin();
     }
 

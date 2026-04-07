@@ -226,9 +226,25 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "authorName", "content", "likes", "commentsCount", "createdAt"]
+    },
+    "Changelog": {
+      "title": "App Update",
+      "description": "An update entry for the 'What's New' section.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "type": { "type": "string", "enum": ["feature", "fix", "announcement"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "type", "createdAt"]
     }
   },
   "firestore": {
+    "/changelog/{updateId}": {
+      "schema": { "$ref": "#/entities/Changelog" },
+      "description": "Stores app updates and changelog entries."
+    },
     "/referrals/{referralId}": {
       "schema": { "$ref": "#/entities/Referral" },
       "description": "Tracks referrals."
