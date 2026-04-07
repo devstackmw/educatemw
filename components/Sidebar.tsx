@@ -3,7 +3,7 @@ import {
   X, Home, BookOpen, MessageSquare, User, 
   Trophy, Calendar, Settings, Zap, LogOut, 
   HelpCircle, Layers, PlayCircle, Users,
-  Clock, Archive, Star
+  Clock, Archive, Star, Crown
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { auth } from "@/firebase";
@@ -89,7 +89,7 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
                   : "hover:bg-slate-100"
                 }`}
               >
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 overflow-hidden relative">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden relative border-2 ${isPremium ? 'border-amber-400 shadow-sm shadow-amber-500/20 bg-slate-900' : 'bg-blue-100 border-transparent'}`}>
                   {userData?.photoURL ? (
                     <Image 
                       src={userData.photoURL} 
@@ -100,18 +100,26 @@ export default function Sidebar({ isOpen, onClose, activeTab, onNavigate, user, 
                     />
                   ) : (
                     <div className="w-full h-full p-2">
-                      {AVATARS.find(a => a.id === userData?.avatarId)?.svg || <User size={20} />}
+                      {AVATARS.find(a => a.id === userData?.avatarId)?.svg || <User size={20} className={isPremium ? 'text-amber-400' : 'text-blue-600'} />}
+                    </div>
+                  )}
+                  {isPremium && (
+                    <div className="absolute -bottom-1 -right-1 bg-amber-400 p-0.5 rounded-tl-md shadow-sm">
+                      <Crown size={8} className="text-slate-900" fill="currentColor" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-slate-800 truncate text-sm">{userData?.nickname || userData?.realName || user?.displayName || "Student"}</h3>
+                    <h3 className={`font-bold truncate text-sm ${isPremium ? 'text-slate-900' : 'text-slate-800'}`}>{userData?.nickname || userData?.realName || user?.displayName || "Student"}</h3>
                     {isPremium && (
-                      <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md shadow-sm shadow-orange-500/20">PRO</span>
+                      <div className="flex items-center gap-0.5 bg-amber-500/10 px-1.5 py-0.5 rounded-md border border-amber-500/20">
+                        <Crown size={6} className="text-amber-500" fill="currentColor" />
+                        <span className="text-[6px] font-black text-amber-600 uppercase tracking-tighter">PRO</span>
+                      </div>
                     )}
                   </div>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{isPremium ? "Pro Account" : "Free Account"}</p>
+                  <p className={`text-[8px] font-bold uppercase tracking-widest ${isPremium ? 'text-amber-600' : 'text-slate-400'}`}>{isPremium ? "Verified Pro Student" : "Free Account"}</p>
                 </div>
               </button>
               {!isPremium && (

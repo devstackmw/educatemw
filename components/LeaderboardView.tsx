@@ -26,7 +26,7 @@ export default function LeaderboardView({ currentUserStats }: { currentUserStats
     const q = query(
       collection(db, "userStats"),
       orderBy("points", "desc"),
-      limit(20)
+      limit(100)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -234,6 +234,10 @@ export default function LeaderboardView({ currentUserStats }: { currentUserStats
                 </div>
               </motion.div>
             ))}
+          </div>
+          <div className="p-6 text-center bg-slate-50/50">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Showing Top 100 Students</p>
+            <p className="text-[9px] text-slate-400 mt-1">Keep studying to climb higher!</p>
           </div>
         </div>
       </div>

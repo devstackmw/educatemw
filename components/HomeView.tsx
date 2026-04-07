@@ -1,6 +1,6 @@
 import { useState, useEffect, memo, useMemo } from "react";
 import { AppIcon } from "./AppLogo";
-import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar, PlayCircle, Users } from "lucide-react";
+import { BookOpen, HelpCircle, User, ChevronRight, Layers, Zap, Trophy, Clock, Sparkles, FileText, Bell, Calendar, PlayCircle, Users, Crown } from "lucide-react";
 import { User as FirebaseUser } from "firebase/auth";
 import { doc, onSnapshot, collection, query, where, getCountFromServer, orderBy, limit } from "firebase/firestore";
 import { db } from "@/firebase";
@@ -127,25 +127,41 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
   return (
     <div className="p-6 md:p-8 pt-16 space-y-8 pb-32 max-w-3xl mx-auto font-sans">
       {/* Header Section */}
-      <div className="flex items-center justify-between bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
-        <div className="absolute -top-12 -left-12 w-32 h-32 bg-indigo-50 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
+      <div className={`flex items-center justify-between p-6 rounded-[2.5rem] border shadow-xl shadow-slate-200/40 relative overflow-hidden group transition-all duration-500 ${isPremium ? 'bg-slate-900 border-amber-500/30' : 'bg-white border-slate-100'}`}>
+        {isPremium && (
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16 blur-3xl animate-pulse"></div>
+        )}
+        <div className="absolute -top-12 -left-12 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/10 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700"></div>
         <div className="space-y-1 relative z-10">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{greeting}</p>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{displayName.split(' ')[0]}</h2>
+          <div className="flex items-center gap-2">
+            <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${isPremium ? 'text-amber-400' : 'text-slate-400'}`}>{greeting}</p>
+            {isPremium && (
+              <div className="flex items-center gap-1 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/30">
+                <Crown size={8} className="text-amber-400" fill="currentColor" />
+                <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">PRO VERIFIED</span>
+              </div>
+            )}
+          </div>
+          <h2 className={`text-2xl font-black tracking-tight leading-none ${isPremium ? 'text-white' : 'text-slate-900'}`}>{displayName.split(' ')[0]}</h2>
           <div className="flex items-center gap-1.5 mt-1">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Now</span>
+            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isPremium ? 'bg-amber-400' : 'bg-emerald-500'}`}></div>
+            <span className={`text-[9px] font-bold uppercase tracking-widest ${isPremium ? 'text-slate-400' : 'text-slate-400'}`}>Active Now</span>
           </div>
         </div>
         <div 
           onClick={() => window.dispatchEvent(new CustomEvent('navigate', { detail: 'profile' }))}
-          className="w-16 h-16 rounded-2xl bg-white border-2 border-slate-100 shadow-lg overflow-hidden relative cursor-pointer hover:scale-105 active:scale-95 transition-all hover:border-indigo-200 group/avatar"
+          className={`w-16 h-16 rounded-2xl bg-white border-2 overflow-hidden relative cursor-pointer hover:scale-105 active:scale-95 transition-all group/avatar ${isPremium ? 'border-amber-400 shadow-amber-500/20' : 'border-slate-100 shadow-lg'}`}
         >
           {photoURL ? (
             <Image src={photoURL} alt="Profile" fill className="object-cover" referrerPolicy="no-referrer" />
           ) : (
             <div className="w-full h-full p-1.5">
               {AVATARS.find(a => a.id === avatarId)?.svg || AVATARS[0].svg}
+            </div>
+          )}
+          {isPremium && (
+            <div className="absolute -bottom-1 -right-1 bg-amber-400 p-1 rounded-tl-lg shadow-lg">
+              <Crown size={10} className="text-slate-900" fill="currentColor" />
             </div>
           )}
           <div className="absolute inset-0 bg-indigo-600/0 group-hover/avatar:bg-indigo-600/10 transition-colors"></div>

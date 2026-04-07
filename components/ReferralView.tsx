@@ -121,7 +121,7 @@ export default function ReferralView({ user, userData }: { user: any, userData: 
         <h2 className="text-xl font-black mb-2">Refer & Earn</h2>
         <p className="text-blue-100 text-sm mb-6 leading-relaxed">
           Invite a friend and you both win! You both get 5 AI questions + 10 points. 
-          Sharing is caring, and balanced points keep friendships strong! 🤝😁
+          Rewards are <strong>automatic</strong> when your friend joins using your link! 🤝😁
         </p>
         
         <div className="space-y-3">

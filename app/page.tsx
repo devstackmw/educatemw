@@ -4,7 +4,7 @@ import { Home, BookOpen, MessageSquare, User, Play, ChevronLeft, Sparkles, Menu,
 import dynamic from "next/dynamic";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, onSnapshot, updateDoc, increment } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, onSnapshot, updateDoc, increment, query, where, getDocs, writeBatch } from "firebase/firestore";
 import { AnimatePresence, motion } from "motion/react";
 import { memo, useMemo } from "react";
 
@@ -236,24 +236,94 @@ export default function App() {
         });
       } else {
         // Create initial user doc if it doesn't exist
-        setDoc(userRef, {
-          uid: user.uid,
-          displayName: user.displayName || "Student",
-          email: user.email || "",
-          phoneNumber: user.phoneNumber || "",
-          photoURL: user.photoURL || "",
-          isPremium: false,
-          hasCompletedOnboarding: false,
-          createdAt: new Date().toISOString(),
-          referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-          aiPoints: 5 // Initial points
-        });
-        setDoc(doc(db, "publicProfiles", user.uid), {
-          uid: user.uid,
-          displayName: user.displayName || "Student",
-          photoURL: user.photoURL || "",
-          isPremium: false
-        });
+        const createNewUser = async () => {
+          const newUserRef = doc(db, "users", user.uid);
+          const referralCodeFromUrl = window.localStorage.getItem('referralCodeFromUrl');
+          let initialAiPoints = 5;
+          let referrerUid = null;
+          let referrerData = null;
+
+          if (referralCodeFromUrl) {
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("referralCode", "==", referralCodeFromUrl.toUpperCase()));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+              const referrerDoc = querySnapshot.docs[0];
+              referrerUid = referrerDoc.id;
+              referrerData = referrerDoc.data();
+              initialAiPoints += 5; // Bonus for being referred
+            }
+          }
+
+          const batch = writeBatch(db);
+          
+          // 1. Create main user doc
+          batch.set(newUserRef, {
+            uid: user.uid,
+            displayName: user.displayName || "Student",
+            email: user.email || "",
+            phoneNumber: user.phoneNumber || "",
+            photoURL: user.photoURL || "",
+            isPremium: false,
+            hasCompletedOnboarding: false,
+            createdAt: new Date().toISOString(),
+            referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+            aiPoints: initialAiPoints
+          });
+
+          // 2. Create public profile
+          batch.set(doc(db, "publicProfiles", user.uid), {
+            uid: user.uid,
+            displayName: user.displayName || "Student",
+            photoURL: user.photoURL || "",
+            isPremium: false
+          });
+
+          // 3. Create initial stats
+          batch.set(doc(db, "userStats", user.uid), {
+            uid: user.uid,
+            displayName: user.displayName || "Student",
+            points: referrerUid ? 10 : 0, // 10 points if referred, 0 otherwise
+            streak: 1,
+            lastActiveDate: new Date().toISOString().split('T')[0],
+            isPremium: false,
+            isBanned: false
+          });
+
+          // 4. Handle referral rewards for referrer if applicable
+          if (referrerUid && referrerData) {
+            // Create referral record
+            const referralRef = doc(collection(db, "referrals"));
+            batch.set(referralRef, {
+              referrerUid: referrerUid,
+              referredUid: user.uid,
+              referrerName: referrerData.displayName,
+              referredName: user.displayName || "Student",
+              createdAt: new Date().toISOString(),
+              automatic: true
+            });
+
+            // Reward referrer (5 AI points)
+            const referrerRef = doc(db, "users", referrerUid);
+            batch.update(referrerRef, {
+              aiPoints: increment(5)
+            });
+
+            // Update stats for referrer (10 points)
+            const referrerStatsRef = doc(db, "userStats", referrerUid);
+            batch.update(referrerStatsRef, {
+              points: increment(10)
+            });
+
+            // Clear the referral code from storage
+            window.localStorage.removeItem('referralCodeFromUrl');
+          }
+
+          await batch.commit();
+        };
+
+        createNewUser();
       }
       setLoading(false);
     }, (error) => {
@@ -315,19 +385,6 @@ export default function App() {
             isPremium: userData?.isPremium || false // Sync on update too
           });
         }
-      } else {
-        // Create initial stats
-        const { setDoc } = await import("firebase/firestore");
-        await setDoc(statsRef, {
-          uid: user.uid,
-          displayName: userData?.nickname || userData?.displayName || user.displayName || "Student",
-          points: 0,
-          streak: 1,
-          lastActiveDate: todayStr,
-          isPremium: userData?.isPremium || false,
-          isBanned: userData?.isBanned || false
-        });
-        streakHandled = true;
       }
     });
 
