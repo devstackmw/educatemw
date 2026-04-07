@@ -136,6 +136,11 @@ export default function CommunityView({ isPremium, onNavigate }: { isPremium?: b
     }
   };
 
+  const loadMore = () => {
+    setLoadingMore(true);
+    setLimitCount(prev => prev + 20);
+  };
+
   const handleDelete = async (postId: string) => {
     try {
       await deleteDoc(doc(db, "posts", postId));
