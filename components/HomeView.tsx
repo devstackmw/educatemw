@@ -366,7 +366,7 @@ export default function HomeView({ onNavigate, user, isPremium, onOpenSidebar }:
             <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Exam Countdown</h3>
             <div className="flex items-center gap-1 text-indigo-600">
               <Calendar size={14} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">2025 MSCE</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest">2026 MSCE</span>
             </div>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
