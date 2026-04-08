@@ -49,6 +49,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Install Android Build Tools
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;29.0.3"
+
       - name: Build Android APK (Release)
         run: |
           cd android
@@ -61,14 +65,13 @@ jobs:
       - name: Sign APK
         if: success()
         id: sign_app
-        uses: r0adkll/sign-android-release@v2
+        uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: android/app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           alias: ${{ secrets.ANDROID_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: "35.0.0"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
