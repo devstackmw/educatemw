@@ -52,8 +52,8 @@ jobs:
       - name: Build Android APK (Release)
         run: |
           cd android
-          # Regenerate the wrapper with a compatible version (8.12)
-          gradle wrapper --gradle-version 8.12 --distribution-type all
+          # Regenerate the wrapper with the minimum required version (8.13)
+          gradle wrapper --gradle-version 8.13 --distribution-type all
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace
 
