@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Setup Java
@@ -33,7 +33,9 @@ jobs:
           sed -i "s/output: 'standalone'/output: 'export'/g" next.config.ts
 
       - name: Build Next.js app
-        run: npm run build
+        run: |
+          rm -rf app/api
+          npm run build
         env:
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
 
