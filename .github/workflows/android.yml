@@ -49,6 +49,7 @@ jobs:
       - name: Build Android APK (Release)
         run: |
           cd android
+          chmod +x gradlew
           ./gradlew assembleRelease
 
       - name: Sign APK
