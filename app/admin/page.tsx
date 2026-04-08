@@ -67,8 +67,15 @@ export default function AdminDashboard() {
   const [hasMoreResources, setHasMoreResources] = useState(true);
   const resourcesPerPage = 10;
   const [users, setUsers] = useState<any[]>([]);
+  const [userPage, setUserPage] = useState(1);
+  const [lastUserDoc, setLastUserDoc] = useState<any>(null);
+  const [firstUserDoc, setFirstUserDoc] = useState<any>(null);
+  const [hasMoreUsers, setHasMoreUsers] = useState(true);
+  const usersPerPage = 20;
   const [payments, setPayments] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [changelog, setChangelog] = useState<any[]>([]);
+  const [newChangelog, setNewChangelog] = useState({ title: "", content: "", type: "feature" });
   const [examDates, setExamDates] = useState<any[]>([]);
   const [dailyTip, setDailyTip] = useState("");
   const [loading, setLoading] = useState(true);
@@ -130,15 +137,23 @@ export default function AdminDashboard() {
       }
 
       setIsAuthorized(true);
+      setLoading(false);
 
-      // Listen for users
-      const qUsers = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(50));
+      // Listen for users (First Page)
+      const qUsers = query(collection(db, "users"), orderBy("uid", "desc"), limit(usersPerPage));
       const unsubUsers = onSnapshot(qUsers, (snapshot) => {
+        console.log("Users fetched:", snapshot.docs.length);
         setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        setLoading(false);
+        setLastUserDoc(snapshot.docs[snapshot.docs.length - 1]);
+        setFirstUserDoc(snapshot.docs[0]);
+        setHasMoreUsers(snapshot.docs.length === usersPerPage);
       }, (err) => {
         console.error("Error fetching users:", err);
-        setLoading(false);
+      });
+
+      // Listen for changelog
+      const unsubChangelog = onSnapshot(query(collection(db, "changelog"), orderBy("createdAt", "desc")), (snapshot) => {
+        setChangelog(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
       // Listen for daily tip
@@ -158,6 +173,7 @@ export default function AdminDashboard() {
 
       // Listen for payments
       const unsubPayments = onSnapshot(query(collection(db, "payments"), orderBy("createdAt", "desc")), (snapshot) => {
+        console.log("Payments fetched:", snapshot.docs.length);
         setPayments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
@@ -173,6 +189,7 @@ export default function AdminDashboard() {
         unsubUsers();
         unsubTip();
         unsubAnnouncements();
+        unsubChangelog();
         unsubExamDates();
         unsubPayments();
         unsubQuizzes();
@@ -263,6 +280,74 @@ export default function AdminDashboard() {
     setFirstResourceDoc(snapshot.docs[0]);
     setResourcePage(prev => prev - 1);
     setHasMoreResources(true);
+  };
+
+  const handleNextUsers = async () => {
+    if (!lastUserDoc || !hasMoreUsers) return;
+    
+    const q = query(
+      collection(db, "users"),
+      orderBy("uid", "desc"),
+      startAfter(lastUserDoc),
+      limit(usersPerPage)
+    );
+    
+    const snapshot = await getDocs(q);
+    if (snapshot.docs.length > 0) {
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLastUserDoc(snapshot.docs[snapshot.docs.length - 1]);
+      setFirstUserDoc(snapshot.docs[0]);
+      setUserPage(prev => prev + 1);
+      setHasMoreUsers(snapshot.docs.length === usersPerPage);
+    } else {
+      setHasMoreUsers(false);
+    }
+  };
+
+  const handlePrevUsers = async () => {
+    if (!firstUserDoc || userPage === 1) return;
+    
+    const q = query(
+      collection(db, "users"),
+      orderBy("uid", "desc"),
+      endBefore(firstUserDoc),
+      limitToLast(usersPerPage)
+    );
+    
+    const snapshot = await getDocs(q);
+    setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    setLastUserDoc(snapshot.docs[snapshot.docs.length - 1]);
+    setFirstUserDoc(snapshot.docs[0]);
+    setUserPage(prev => prev - 1);
+    setHasMoreUsers(true);
+  };
+
+  const handleAddChangelog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newChangelog.title || !newChangelog.content) return;
+    setSubmitting(true);
+    try {
+      await addDoc(collection(db, "changelog"), {
+        ...newChangelog,
+        createdAt: new Date().toISOString(), // Following the string format in WhatsNewView
+      });
+      setNewChangelog({ title: "", content: "", type: "feature" });
+      alert("Update published!");
+    } catch (error) {
+      console.error("Error adding changelog:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteChangelog = async (id: string) => {
+    if (confirm("Delete this update?")) {
+      try {
+        await deleteDoc(doc(db, "changelog", id));
+      } catch (error) {
+        console.error("Error deleting changelog:", error);
+      }
+    }
   };
 
   const handleAddAnnouncement = async (e: React.FormEvent) => {
@@ -500,7 +585,9 @@ export default function AdminDashboard() {
     payments.forEach(p => {
       const date = p.createdAt?.split('T')[0];
       if (dailyEarnings[date] !== undefined) {
-        dailyEarnings[date] += 5000;
+        // Fallback to 5000 if amount is 100 or missing, as requested by user
+        const amount = (p.amount === 100 || !p.amount) ? 5000 : p.amount;
+        dailyEarnings[date] += amount;
       }
     });
 
@@ -521,7 +608,10 @@ export default function AdminDashboard() {
   }, [resources]);
 
   const totalEarnings = useMemo(() => {
-    return payments.reduce((acc, curr) => acc + 5000, 0);
+    return payments.reduce((acc, curr) => {
+      const amount = (curr.amount === 100 || !curr.amount) ? 5000 : curr.amount;
+      return acc + amount;
+    }, 0);
   }, [payments]);
 
   if (loading) {
@@ -666,6 +756,12 @@ export default function AdminDashboard() {
             label="Announcements" 
             isActive={activeTab === "announcements"} 
             onClick={() => { setActiveTab("announcements"); setIsMobileSidebarOpen(false); }} 
+          />
+          <SidebarLink 
+            icon={<Sparkles size={20} />} 
+            label="What's New" 
+            isActive={activeTab === "changelog"} 
+            onClick={() => { setActiveTab("changelog"); setIsMobileSidebarOpen(false); }} 
           />
           <SidebarLink 
             icon={<Calendar size={20} />} 
@@ -1380,7 +1476,89 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Page {userPage}</p>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handlePrevUsers} 
+                  disabled={userPage === 1}
+                  className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-all"
+                  title="Previous Page"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button 
+                  onClick={handleNextUsers} 
+                  disabled={!hasMoreUsers}
+                  className="p-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-all"
+                  title="Next Page"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
           </section>
+        )}
+
+        {activeTab === "changelog" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl"><Sparkles size={24} /></div>
+                <h3 className="text-xl font-bold text-slate-900">Post New Update</h3>
+              </div>
+              <form onSubmit={handleAddChangelog} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Update Title</label>
+                  <input type="text" placeholder="e.g. New Biology Past Papers!" value={newChangelog.title} onChange={(e) => setNewChangelog({...newChangelog, title: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium" required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Type</label>
+                  <select value={newChangelog.type} onChange={(e) => setNewChangelog({...newChangelog, type: e.target.value as any})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium">
+                    <option value="feature">New Feature</option>
+                    <option value="fix">Bug Fix</option>
+                    <option value="announcement">Announcement</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Content</label>
+                  <textarea placeholder="Describe the update..." value={newChangelog.content} onChange={(e) => setNewChangelog({...newChangelog, content: e.target.value})} className="w-full h-40 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-medium resize-none" required />
+                </div>
+                <button type="submit" disabled={submitting} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50">
+                  {submitting ? "Publishing..." : "Publish Update"}
+                </button>
+              </form>
+            </section>
+
+            <section className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Recent Updates</h3>
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                {changelog.map((entry) => (
+                  <div key={entry.id} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${entry.type === 'feature' ? 'bg-emerald-100 text-emerald-700' : entry.type === 'fix' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>
+                          {entry.type}
+                        </span>
+                        <h4 className="font-bold text-slate-800 text-sm">{entry.title}</h4>
+                      </div>
+                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{entry.content}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{new Date(entry.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <button onClick={() => handleDeleteChangelog(entry.id)} className="p-2 text-slate-400 hover:text-rose-600 transition-all">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+                {changelog.length === 0 && (
+                  <div className="text-center py-10">
+                    <p className="text-slate-400 font-medium">No updates posted yet.</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
         )}
 
         {activeTab === "settings" && (

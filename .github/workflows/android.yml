@@ -1,0 +1,72 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21' # Capacitor 7+ / Modern Android builds
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Update next.config.ts for Export
+        run: |
+          sed -i "s/output: 'standalone'/output: 'export'/g" next.config.ts
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+
+      - name: Initialize Capacitor Android
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Build Android APK (Release)
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Sign APK
+        if: success()
+        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+
+      - name: Upload Unsigned APK (Fallback)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-apk
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk

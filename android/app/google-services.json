@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "942644541208",
+    "project_id": "gen-lang-client-0343379545",
+    "storage_bucket": "gen-lang-client-0343379545.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942644541208:android:3780f2564747adcb83d06d",
+        "android_client_info": {
+          "package_name": "com.educatemw.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "942644541208-vd658pncum74j6mnkimdgd757ljm1r9h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8usmU24TBuPVv9QlYTRFepP52NJC3n6Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "942644541208-vd658pncum74j6mnkimdgd757ljm1r9h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

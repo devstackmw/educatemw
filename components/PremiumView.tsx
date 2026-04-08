@@ -66,7 +66,8 @@ export default function PremiumView({ user, isPremium }: { user?: FirebaseUser |
     setError("");
 
     try {
-      const response = await fetch('/api/pay', {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/pay`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

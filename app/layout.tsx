@@ -24,7 +24,6 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'Educate MW - Malawi\'s #1 MSCE Study App',
   description: 'Educate MW is the ultimate learning companion for Malawian students. Access thousands of MSCE past papers, study notes, interactive quizzes, and AI-powered tutoring. Join over 10,000 students acing their exams today.',
-  manifest: '/manifest.json',
   keywords: ['MSCE Malawi', 'Malawi past papers', 'MSCE study notes', 'Malawi education app', 'MANEB past papers', 'MSCE quizzes', 'MSCE AI teacher'],
   authors: [{ name: 'Educate MW Team' }],
   creator: 'Educate MW',
@@ -72,6 +71,53 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <meta name="google-site-verification" content="your-google-verification-code" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Catch chunk load errors (Unexpected token '<') and force reload
+              window.addEventListener('error', function(e) {
+                const msg = e.message || (e.error && e.error.message) || '';
+                if (msg.includes("Unexpected token '<'") || msg.includes("SyntaxError")) {
+                  if (!sessionStorage.getItem('chunk_reload')) {
+                    sessionStorage.setItem('chunk_reload', 'true');
+                    console.warn("Stale chunk detected, reloading...");
+                    window.location.reload();
+                  }
+                }
+              });
+
+              // Catch dynamic import failures
+              window.addEventListener('unhandledrejection', function(e) {
+                const msg = e.reason && e.reason.message ? e.reason.message : '';
+                if (msg.includes("Unexpected token '<'") || msg.includes("SyntaxError") || msg.includes("Failed to fetch dynamically imported module")) {
+                  if (!sessionStorage.getItem('chunk_reload')) {
+                    sessionStorage.setItem('chunk_reload', 'true');
+                    console.warn("Dynamic import failed, reloading...");
+                    window.location.reload();
+                  }
+                }
+              });
+
+              // Kill service workers aggressively
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  let shouldReload = false;
+                  for(let registration of registrations) {
+                    registration.unregister();
+                    shouldReload = true;
+                  }
+                  if (shouldReload && !sessionStorage.getItem('sw_reload')) {
+                    sessionStorage.setItem('sw_reload', 'true');
+                    window.location.reload();
+                  }
+                });
+                caches.keys().then(function(names) {
+                  for (let name of names) caches.delete(name);
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.variable} ${outfit.variable} font-sans text-base md:text-lg bg-slate-50 text-slate-900`}>
         <noscript>
@@ -89,54 +135,6 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           </div>
         </noscript>
         {children}
-        <Script id="register-sw" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
-                  function(registration) {
-                    console.log('ServiceWorker registration successful');
-                    
-                    // Check for updates every hour
-                    setInterval(() => {
-                      registration.update();
-                    }, 3600000);
-
-                    registration.onupdatefound = () => {
-                      const installingWorker = registration.installing;
-                      if (installingWorker == null) return;
-                      installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed') {
-                          if (navigator.serviceWorker.controller) {
-                            // New content is available; please refresh.
-                            console.log('New content is available; please refresh.');
-                            if (window.confirm('A new version of Educate MW is available! Refresh now to get the latest features?')) {
-                              window.location.reload();
-                            }
-                          } else {
-                            // Content is cached for offline use.
-                            console.log('Content is cached for offline use.');
-                          }
-                        }
-                      };
-                    };
-                  },
-                  function(err) {
-                    console.log('ServiceWorker registration failed: ', err);
-                  }
-                );
-              });
-
-              // Handle controller change (e.g. after skipWaiting)
-              let refreshing = false;
-              navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                refreshing = true;
-                window.location.reload();
-              });
-            }
-          `}
-        </Script>
       </body>
     </html>
   );
