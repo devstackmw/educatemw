@@ -1,16 +1,39 @@
-import { adminDb } from "@/lib/firebase-admin";
-import StudyHubView from "@/components/StudyHubView";
+"use client";
 
-export default async function StudyHubPage() {
-  let notes: any[] = [];
-  try {
-    const notesSnapshot = await adminDb.collection("notes").get();
-    notes = notesSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-  } catch (error) {
-    console.error("Error fetching notes:", error);
+import { db } from "@/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import StudyHubView from "@/components/StudyHubView";
+import { Loader2 } from "lucide-react";
+
+export default function StudyHubPage() {
+  const [notes, setNotes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchNotes() {
+      try {
+        const notesSnapshot = await getDocs(collection(db, "notes"));
+        const notesData = notesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setNotes(notesData);
+      } catch (error) {
+        console.error("Error fetching notes:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNotes();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
   }
 
   return (
