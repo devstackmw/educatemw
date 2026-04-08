@@ -1,0 +1,9 @@
+# Handle binary files correctly
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.zip binary
+*.apk binary

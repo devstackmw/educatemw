@@ -41,9 +41,9 @@ jobs:
 
       - name: Initialize Capacitor Android
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          # Delete the potentially corrupt android folder to start fresh
+          rm -rf android
+          npx cap add android
           npx cap sync android
 
       - name: Setup Gradle
@@ -52,10 +52,8 @@ jobs:
       - name: Build Android APK (Release)
         run: |
           cd android
-          # Regenerate the wrapper with the minimum required version (8.13)
-          gradle wrapper --gradle-version 8.13 --distribution-type all
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew assembleRelease
 
       - name: Sign APK
         if: success()
