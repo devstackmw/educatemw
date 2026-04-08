@@ -46,9 +46,14 @@ jobs:
           fi
           npx cap sync android
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Build Android APK (Release)
         run: |
           cd android
+          # Replace corrupt wrapper jar with a fresh one
+          wget -q https://github.com/gradle/gradle/raw/v8.7/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
           chmod +x gradlew
           ./gradlew assembleRelease
 
