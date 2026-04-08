@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       const snapshot = await adminDb.collection(collectionName).get();
       const batch = adminDb.batch();
       
-      snapshot.docs.forEach((doc) => {
+      snapshot.docs.forEach((doc: any) => {
         batch.delete(doc.ref);
       });
       
