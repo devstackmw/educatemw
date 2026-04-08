@@ -52,10 +52,10 @@ jobs:
       - name: Build Android APK (Release)
         run: |
           cd android
-          # Regenerate the wrapper to fix the corrupt jar using the installed Gradle
-          gradle wrapper
+          # Regenerate the wrapper with a compatible version (8.12)
+          gradle wrapper --gradle-version 8.12 --distribution-type all
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --stacktrace
 
       - name: Sign APK
         if: success()
