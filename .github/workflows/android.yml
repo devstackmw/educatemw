@@ -52,8 +52,8 @@ jobs:
       - name: Build Android APK (Release)
         run: |
           cd android
-          # Replace corrupt wrapper jar with a fresh one
-          wget -q https://github.com/gradle/gradle/raw/v8.7/gradle/wrapper/gradle-wrapper.jar -O gradle/wrapper/gradle-wrapper.jar
+          # Regenerate the wrapper to fix the corrupt jar using the installed Gradle
+          gradle wrapper
           chmod +x gradlew
           ./gradlew assembleRelease
 
